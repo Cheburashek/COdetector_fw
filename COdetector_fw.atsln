@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "COdetector_fw", "COdetector_fw\COdetector_fw.cproj", "{1DD042FB-001D-447D-B0A5-DB2E33EE72C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DD042FB-001D-447D-B0A5-DB2E33EE72C8}.Debug|AVR.ActiveCfg = Debug|AVR
+		{1DD042FB-001D-447D-B0A5-DB2E33EE72C8}.Debug|AVR.Build.0 = Debug|AVR
+		{1DD042FB-001D-447D-B0A5-DB2E33EE72C8}.Release|AVR.ActiveCfg = Release|AVR
+		{1DD042FB-001D-447D-B0A5-DB2E33EE72C8}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
