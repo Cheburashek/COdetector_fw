@@ -13,6 +13,8 @@
    GLOBAL INCLUDES
 */
 
+#include "common.h"
+
 /*****************************************************************************************
    GLOBAL DEFINITIONS
 */
@@ -21,6 +23,7 @@
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
+void serialInit ( void );
 
 
 
