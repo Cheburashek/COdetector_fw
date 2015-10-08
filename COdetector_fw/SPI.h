@@ -1,19 +1,17 @@
 /*
- * serial.h
+ * SPI.h
  *
- * Created: 2015-10-02 21:22:03
+ * Created: 2015-10-06 21:11:01
  *  Author: Chebu
  */ 
 
 
-#ifndef SERIAL_H_
-#define SERIAL_H_
+#ifndef SPI_H_
+#define SPI_H_
 
 /*****************************************************************************************
    GLOBAL INCLUDES
 */
-
-#include "common.h"
 
 /*****************************************************************************************
    GLOBAL DEFINITIONS
@@ -23,12 +21,7 @@
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
-void serialInitC ( void );
-
-void serialSendC ( const uint8_t* data, uint8_t len );
 
 
 
-#endif /* SERIAL_H_ */
-
-
+#endif /* SPI_H_ */

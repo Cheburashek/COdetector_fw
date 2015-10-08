@@ -10,40 +10,30 @@
 #include "serial.h"
 
 
-
+uint8_t test[] = {"Hello my beautiful world! :3\r"};
 
 int main(void)
 {
-  // Cfg, to be moved into boardCfg
+ 
+   boardInit();
    
-   // Debug LEDs:
-      PORTD.DIRSET = PIN5_bm;
-      PORTD.DIRSET = PIN6_bm;
-      PORTD.DIRSET = PIN7_bm;      
-   //
-
-  OSC.CTRL |= OSC_RC8MEN_bm;
-  while (!(OSC.STATUS & OSC_RC8MRDY_bm));
-
-   CCP=CCP_IOREG_gc;
-   CLK.CTRL = CLK_SCLKSEL_RC8M_gc;
-
-
-
-  
-  
-  
-   CFG_GLOBAL_INT_ENABLE();
+    // TO be changed:
+   CFG_GLOBAL_INT_ENABLE();   
    PRIO_ALL_LEVELS_ENABLE();
    
-   serialInit ();
+  
+   
    
     while(1)
-    {       
+    {        
+       for ( uint32_t i = 0; i < 5000; i++ ){;}
+       serialSendC ( test, sizeof(test));
+       DEB_2_TGL();
     }
 }
 
 
 // TODO: Add watchdog
+// TODO: add critical section macro
 // TODO: Add 32kHz low timer when i ULP mode
 // Clock change -> protected registers

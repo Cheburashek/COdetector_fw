@@ -70,6 +70,10 @@
 */
 
 
+/*****************************************************************************************
+   GLOBAL FUNCTIONS DECLARATIONS
+*/
+void boardInit ( void );
 
 
 #endif /* BOARDCFG_H_ */
