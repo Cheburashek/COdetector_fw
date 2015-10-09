@@ -103,8 +103,12 @@
   <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>F_CPU_8MHZ=8000000U</Value>
+      <Value>F_CPU_2MHZ=2000000U</Value>
+      <Value>F_CPU_32KHZ=32768U</Value>
       <Value>DEBUG</Value>
       <Value>LOG_USARTC0</Value>
+      <Value>F_CPU=F_CPU_32KHZ</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
@@ -134,6 +138,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="common.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PDC8544.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PDC8544.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">

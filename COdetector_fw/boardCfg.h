@@ -23,11 +23,16 @@
    GLOBAL CONFIGURATION DEFINES
 */
 
-/*** GPIO ****/ 
-#define CFG_TXC0_PIN_NUM       PIN3_bp  // PORTC
-#define CFG_RXC0_PIN_NUM       PIN2_bp
-#define CFG_TXC0_PIN_MASK      ( 1 << CFG_TXC0_PIN_NUM ) 
-#define CFG_RXC0_PIN_MASK      ( 1 << CFG_RXC0_PIN_NUM )
+// UARTC0 pins ( PORTC ):
+#define CFG_TXC0_PIN_MASK        PIN3_bm  
+#define CFG_RXC0_PIN_MASK        PIN2_bm
+
+// SPI pins (for lcd3310) ( PORTC ):
+#define CFG_RST_PIN_MASK         PIN0_bm 
+#define CFG_SCE_PIN_MASK         PIN1_bm
+#define CFG_DC_PIN_MASK          PIN4_bm
+#define CFG_SCK_PIN_MASK         PIN5_bm
+#define CFG_MOSI_PIN_MASK        PIN7_bm
 
 
 /*** Interrupts priority ****/ 
@@ -38,7 +43,8 @@
  * Receive Complete Interrupt level */
 #define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_MED_gc )    
 
-
+// SPI intlvl:
+#define CFG_PRIO_SPI         SPI_INTLVL_LO_gc;
 
 
 

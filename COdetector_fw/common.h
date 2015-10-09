@@ -15,9 +15,14 @@
 */
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+
+#include <stddef.h>
+
 #include "boardCfg.h"
 #include "serial.h"
-
+#include "SPI.h"
+#include "PDC8544.h"
 
  
 /*****************************************************************************************

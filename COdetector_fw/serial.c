@@ -17,9 +17,22 @@
 /*****************************************************************************************
    LOCAL DEFINITIONS
 */
+#if ( F_CPU == F_CPU_32KHZ )
+   #define BSEL_BAUD_VAL 22               // 2400bps @ 32768Hz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b10110000)   // Should be between -7 to 7 in U2 // -5
+   
+#elif ( F_CPU == F_CPU_2MHZ )
+   #define BSEL_BAUD_VAL 9                // 57600bps @ 2MHz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b11110000)   //  -1
 
-#define BSEL_BAUD_VAL 22               // 2400bps @ 32768Hz & CLK2X enabled
-#define BSCALE_BAUD_VAL (0b10110000)   // Should be between -7 to 7 in U2 // -5
+#elif ( F_CPU == F_CPU_8MHZ )
+   #define BSEL_BAUD_VAL 17               // 57600bps @ 8MHz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b11110000)   //  -1
+
+#else 
+   #error "F_CPU is not defined correctly!"
+#endif
+
 
 #define TX_BUF_LEN 256
 #define RX_BUF_LEN 128
@@ -58,7 +71,7 @@ void serialInitC ( void )
    // PORTC configuration:
    
    PORTC.REMAP &= ~PORT_USART0_bm;       // Don't remap ports from 0-3 to 4-7   
-   PORTC.DIRSET = CFG_TXC0_PIN_MASK;     // Output for Tx
+   PORTC.DIRSET = CFG_TXC0_PIN_MASK;     // Output for Tx (pin must be manually set to output)
    PORTC.DIRCLR = CFG_RXC0_PIN_MASK;     // Input for Rx
    
    // CTRLC:
@@ -86,6 +99,8 @@ void serialInitC ( void )
                       USART_CLK2X_bm );  // Enabling 2x clock    
                        
    USARTC0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
+   
+   LOG_TXT ( ">>init<<   Serial initialized\n", 31 );
 }
 
 
@@ -116,7 +131,7 @@ void serialSendC ( const uint8_t* data, uint8_t len )
       DEB_3_SET();    
    }
    
-   }
+}
 
 
 //****************************************************************************************
@@ -129,10 +144,9 @@ ISR ( USARTC0_TXC_vect )
       USARTC0.DATA = *txTail;
       txTail++;      
    }
-   else // Data from buffer is send 
+   else // All of data from buffer is send
    {
       txTail = txBuff;
-      txHead = txTail; 
-      DEB_1_SET();     
+      txHead = txTail;    
    } 
 }

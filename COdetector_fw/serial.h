@@ -20,6 +20,18 @@
 */
 
 /*****************************************************************************************
+   GLOBAL MACROS
+*/
+
+// LOGS:
+#ifdef LOG_USARTC0
+   #define LOG_TXT( txt, len )         serialSendC( (uint8_t*)txt, (uint8_t)len )
+#else 
+   #define LOG_TXT( txt, len )         // NULL
+#endif
+
+   
+/*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
