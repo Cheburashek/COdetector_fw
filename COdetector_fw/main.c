@@ -15,6 +15,7 @@ int main(void)
    boardInit();
    
 
+       for ( uint32_t i = 0; i < 5000; i++ ){;}
        pdcLine ( "Heheszek!     ", 0 );
        pdcLine ( "Slodkich snow!", 2 );
        pdcLine ( "<3 <3 <3 <3 <3", 3 );
@@ -22,14 +23,14 @@ int main(void)
 
 
 
-
-   /* while(1)
+/*
+    while(1)
     {        
        for ( uint32_t i = 0; i < 5000; i++ ){;}
        serialSendC ( test, sizeof(test));
        DEB_2_TGL();
-    }*/
-   
+    }
+   */
    /*
     while(1)
     {        

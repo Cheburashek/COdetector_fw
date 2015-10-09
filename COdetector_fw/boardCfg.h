@@ -41,7 +41,7 @@
 /* Data Register Empty Interrupt Level
  * Transmit Complete Interrupt level
  * Receive Complete Interrupt level */
-#define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_MED_gc )    
+#define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
 #define CFG_PRIO_SPI         SPI_INTLVL_LO_gc;

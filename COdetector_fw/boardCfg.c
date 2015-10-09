@@ -66,14 +66,14 @@ void boardInit ( void )
       CCP=CCP_IOREG_gc;                          // Protected register
       CLK.CTRL = CLK_SCLKSEL_RC8M_gc;            // 32khz internal
       LOG_TXT ( ">>clock<<  Clock 8MHZ\n", 23 );
+   #else
+      #error "Clock is not set!"
 
    #endif
    
    
    // Interrupt settings****************:
-   CFG_GLOBAL_INT_ENABLE();
-   PRIO_ALL_LEVELS_ENABLE();
-   LOG_TXT ( ">>system<< Interrupts enabled\n", 33 );
+   
    
    // Initializations*******************:
    
@@ -84,7 +84,10 @@ void boardInit ( void )
 
    spiInit();
    pdcInit();
-   
+  
+  
+   CFG_GLOBAL_INT_ENABLE();
+   PRIO_ALL_LEVELS_ENABLE();
    
    LOG_TXT ( ">>init<<   Board initialized\n", 30 );
    

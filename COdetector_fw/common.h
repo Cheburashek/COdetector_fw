@@ -16,8 +16,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-
 #include <stddef.h>
+
+#include <stdbool.h>
 
 #include "boardCfg.h"
 #include "serial.h"
@@ -29,6 +30,8 @@
    GLOBAL DEFINITIONS
 */
 
+#define FALSE  0
+#define TRUE   1
 
 
 /*****************************************************************************************

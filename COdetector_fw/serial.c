@@ -5,6 +5,9 @@
  *  Author: Chebu
  */ 
 
+// RX is off!
+
+
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -22,12 +25,12 @@
    #define BSCALE_BAUD_VAL (0b10110000)   // Should be between -7 to 7 in U2 // -5
    
 #elif ( F_CPU == F_CPU_2MHZ )
-   #define BSEL_BAUD_VAL 9                // 57600bps @ 2MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11110000)   //  -1
+   #define BSEL_BAUD_VAL 54                // 57600bps @ 2MHz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b11000000)   //  -4
 
 #elif ( F_CPU == F_CPU_8MHZ )
-   #define BSEL_BAUD_VAL 17               // 57600bps @ 8MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11110000)   //  -1
+   #define BSEL_BAUD_VAL 110               // 57600bps @ 8MHz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b10110000)   //  -5
 
 #else 
    #error "F_CPU is not defined correctly!"
@@ -47,6 +50,7 @@ static uint8_t  txBuff [ TX_BUF_LEN ];
 static uint8_t* txHead = txBuff;
 static uint8_t* txTail = txBuff;
 
+static bool initFlag = FALSE;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -67,7 +71,6 @@ static uint8_t* txTail = txBuff;
 // Serial on PORTC initialization:
 void serialInitC ( void )
 {
-   PORTD.OUTCLR=PIN7_bm; 
    // PORTC configuration:
    
    PORTC.REMAP &= ~PORT_USART0_bm;       // Don't remap ports from 0-3 to 4-7   
@@ -81,26 +84,24 @@ void serialInitC ( void )
                       
    USARTC0.CTRLC &= ~USART_SBMODE_bm;  // Stop bit disabled
    
-   // Baud rate 57600bps for 8MHz clock:
+   // Baud rate
        
    USARTC0.BAUDCTRLA =  BSEL_BAUD_VAL;           // 8 LSB of BSEL
-   // TODO : change this U2 -5:
    USARTC0.BAUDCTRLB =  BSCALE_BAUD_VAL | ((BSEL_BAUD_VAL >> 8) & 0x0F) ;           // 4 MSB of BSEL and BSCALE    
        
         
    // Priorities from common.h:
    USARTC0.CTRLA = CFG_PRIO_USARTC0;  
-    
-   // Clearing interrupt flags:    
-   USARTC0.STATUS = 0x00; 
          
    USARTC0.CTRLB |= ( USART_TXEN_bm |    // Transmitter enabled
-                      USART_RXEN_bm |    // Receiver enabled
+                      //USART_RXEN_bm |    // Receiver enabled
                       USART_CLK2X_bm );  // Enabling 2x clock    
                        
    USARTC0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
    
    LOG_TXT ( ">>init<<   Serial initialized\n", 31 );
+   
+   initFlag = TRUE;
 }
 
 
@@ -109,6 +110,7 @@ void serialInitC ( void )
 
 void serialSendC ( const uint8_t* data, uint8_t len )
 {
+   
    // TODO: Critical section  here
    if ( ((txBuff + TX_BUF_LEN)-txHead) > len )  // If there's a place to copy data
    {
@@ -119,10 +121,10 @@ void serialSendC ( const uint8_t* data, uint8_t len )
          data++;                 
       }
       
-      if ( txBuff == txTail )       // Initial send
+      if ( (txBuff == txTail) && (TRUE == initFlag) )       // Initial send
       {        
          USARTC0.DATA = *txTail;    // First character sent starts transmission
-         txTail++;  
+         txTail++;
       }                
    }
    else
@@ -138,15 +140,20 @@ void serialSendC ( const uint8_t* data, uint8_t len )
 // Serial Tx complete ISR ( tx flag is cleared automatically):
 
 ISR ( USARTC0_TXC_vect )
-{            
+{             
    if ( txTail < txHead )
    {
       USARTC0.DATA = *txTail;
       txTail++;      
+
    }
    else // All of data from buffer is send
    {
       txTail = txBuff;
       txHead = txTail;    
    } 
+}
+
+ISR ( USARTC0_RXC_vect )
+{   
 }

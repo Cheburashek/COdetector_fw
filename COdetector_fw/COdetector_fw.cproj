@@ -108,7 +108,7 @@
       <Value>F_CPU_32KHZ=32768U</Value>
       <Value>DEBUG</Value>
       <Value>LOG_USARTC0</Value>
-      <Value>F_CPU=F_CPU_32KHZ</Value>
+      <Value>F_CPU=F_CPU_8MHZ</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
