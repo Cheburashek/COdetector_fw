@@ -180,17 +180,18 @@ static void pdcReset( void )
 // Function to configure PDC8544
 void pdcInit( void )
 {
-   spiTxEndCB ( pdcChipDisable );
+   spiRegisterTxEndCB ( pdcChipDisable );
 
    pdcReset(); 
+   
    
    pdcSend( DC_CMD, 0x21 );	// Extended cmd
    pdcSend( DC_CMD, 0xE0 );	// Bias
    pdcSend( DC_CMD, 0x04 );	// Temp. control
    pdcSend( DC_CMD, 0xCB );	// Set V
-   pdcSend( DC_CMD, 0x20 );	// Basic cmd
+   pdcSend( DC_CMD, 0x20 );	// Basic cmd   / horizontal addressing
    pdcSend( DC_CMD, 0x0C );	// Normal mode
-   
+
    LOG_TXT ( ">>init<<   PDC8544 initialized\n", 32 );   
 }
 
@@ -257,13 +258,15 @@ static void pdcClearRAM( void )
    uint8_t X = 0,
            Y = 0;
    
+   pdcSetCol( 0x00 );
+   
    for( Y = 0; Y < 6; Y++ )
    {      
       pdcSetRow( Y );
+      pdcSetCol( 0x00 );
       
       for( X = 0; X < 84; X++)
       {         
-         pdcSetCol( X );
          pdcSend( DC_DATA, 0x00 );         
       }
    }
@@ -278,10 +281,10 @@ static void pdcClearLine( uint8_t pos_Y )
    uint8_t X = 0;
    
    pdcSetRow( pos_Y );
+   pdcSetCol( 0x00 );
    
    for( X = 0; X < 84; X++)
    {      
-      //pdcSetCol(X);
       pdcSend( DC_DATA, 0x00 );      
    }
 }
@@ -302,11 +305,11 @@ void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
    if( pos_X > 13 ){ /*ERROR!!!!!!*/ }
    if( pos_Y > 5  ){ /*ERROR!!!!!!*/ }
    
-   pdcSetRow( pos_Y );				// Setting active row
+   pdcSetRow( pos_Y   );				// Setting active row
+   pdcSetCol( pos_X*6 ); 
    
    for( X = 0; X < 5; X++ )
-   {      
-      //pdcSetCol( (pos_X*6) + X  );	// Setting active column (position of char + col index)
+   {            
       pdcSend( DC_DATA, charTab[ ((ch-0x20)*5) + X ] );	// Finding index of char in table
    }
    

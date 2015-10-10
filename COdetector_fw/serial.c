@@ -135,6 +135,29 @@ void serialSendC ( const uint8_t* data, uint8_t len )
    
 }
 
+// TODO: modify this
+void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
+{
+   char temp[10];
+   char* EOL[2] = {"\r"};
+      
+   uint8_t numLen = 0;
+   uint32_t tempVal = val;
+   
+   while ( tempVal ) 
+   {
+      tempVal /= 10;
+      numLen++;      
+   }  
+      
+   (void) utoa ( (unsigned int)val, temp, 10 );
+   
+   serialSendC ( (const uint8_t*) txt, len );
+   serialSendC ( (const uint8_t*) temp, numLen );
+   serialSendC ( (const uint8_t*) "\n", 2 );
+   
+}
+
 
 //****************************************************************************************
 // Serial Tx complete ISR ( tx flag is cleared automatically):

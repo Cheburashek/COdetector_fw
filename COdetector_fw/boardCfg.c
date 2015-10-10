@@ -79,11 +79,12 @@ void boardInit ( void )
    
 
    #ifdef LOG_USARTC0
-   serialInitC();
+      serialInitC();
    #endif
 
    spiInit();
    pdcInit();
+   adcInit();
   
   
    CFG_GLOBAL_INT_ENABLE();

@@ -1,19 +1,17 @@
 /*
- * SPI.h
+ * ADC.h
  *
- * Created: 2015-10-06 21:11:01
+ * Created: 2015-10-10 01:15:49
  *  Author: Chebu
  */ 
 
 
-#ifndef SPI_H_
-#define SPI_H_
+#ifndef ADC_H_
+#define ADC_H_
 
 /*****************************************************************************************
    GLOBAL INCLUDES
 */
-
-#include "common.h"
 
 /*****************************************************************************************
    GLOBAL DEFINITIONS
@@ -23,23 +21,15 @@
    GLOBAL TYPEDEFS
 */
 
-typedef void (*pfnTxEnd) (void);
-
-/*****************************************************************************************
-   GLOBAL MACROS
-*/
-
-#define SPI_EN()    ( SPIC.CTRL |= SPI_ENABLE_bm  )
-#define SPI_DIS()   ( SPIC.CTRL &= ~SPI_ENABLE_bm )
+typedef void (*pfnAdcEnd) (uint16_t); 
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
-void spiInit ( void );
+void adcRegisterEndCb( pfnAdcEnd cb );
+void adcStartChToGnd ( ADC_CH_MUXPOS_t ch );
+void adcInit ( void );
 
-void spiSend ( const uint8_t* data, uint16_t len );
 
-void spiRegisterTxEndCB ( pfnTxEnd cb);
-
-#endif /* SPI_H_ */
+#endif /* ADC_H_ */

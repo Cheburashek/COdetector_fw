@@ -103,7 +103,7 @@ void spiSend ( const uint8_t* data, uint16_t len )
 
 
 
-void spiTxEndCB ( pfnTxEnd cb)
+void spiRegisterTxEndCB ( pfnTxEnd cb)
 {
    txEndCB = cb;   
 }

@@ -34,6 +34,10 @@
 #define CFG_SCK_PIN_MASK         PIN5_bm
 #define CFG_MOSI_PIN_MASK        PIN7_bm
 
+// ADC pins (PORTA):
+#define CFG_ADC_PIN_NUM         PIN0_bm
+
+
 
 /*** Interrupts priority ****/ 
 // TODO: there should be all interrupts prioritized:
@@ -44,9 +48,10 @@
 #define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
-#define CFG_PRIO_SPI         SPI_INTLVL_LO_gc;
+#define CFG_PRIO_SPI         SPI_INTLVL_MED_gc; // not working on HI int - why?
 
-
+// ADC intlvl:
+#define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc;
 
 /*****************************************************************************************
    GLOBAL MACROS AND DEFINITIONS

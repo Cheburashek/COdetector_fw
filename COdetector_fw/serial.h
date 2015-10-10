@@ -25,7 +25,8 @@
 
 // LOGS:
 #ifdef LOG_USARTC0
-   #define LOG_TXT( txt, len )         serialSendC( (uint8_t*)txt, (uint8_t)len )
+   #define LOG_TXT( txt, len )         serialSendC( (const uint8_t*)txt, (uint8_t)len )
+   #define LOG_UINT( txt, len, val )  serialLogUintC ( (const uint8_t*)txt, (uint8_t)len, (uint32_t) val )
 #else 
    #define LOG_TXT( txt, len )         // NULL
 #endif
@@ -39,6 +40,7 @@ void serialInitC ( void );
 
 void serialSendC ( const uint8_t* data, uint8_t len );
 
+void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val );
 
 
 #endif /* SERIAL_H_ */
