@@ -135,6 +135,8 @@ void serialSendC ( const uint8_t* data, uint8_t len )
    
 }
 
+
+//****************************************************************************************
 // TODO: modify this
 void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
 {
@@ -144,11 +146,19 @@ void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
    uint8_t numLen = 0;
    uint32_t tempVal = val;
    
-   while ( tempVal ) 
+   if ( 0 == val )
    {
-      tempVal /= 10;
-      numLen++;      
-   }  
+      numLen = 1;
+   }
+   else
+   {     
+      while ( tempVal ) 
+      {
+         tempVal /= 10;
+         numLen++;      
+      }  
+   }
+   
       
    (void) utoa ( (unsigned int)val, temp, 10 );
    
@@ -177,6 +187,9 @@ ISR ( USARTC0_TXC_vect )
    } 
 }
 
+
+ 
+//****************************************************************************************
 ISR ( USARTC0_RXC_vect )
 {   
 }

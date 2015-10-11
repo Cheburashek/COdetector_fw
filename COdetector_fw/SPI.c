@@ -47,6 +47,7 @@ static pfnTxEnd txEndCB = NULL;
 */
 
 
+//****************************************************************************************
 void spiInit ( void )
 {
    
@@ -73,7 +74,7 @@ void spiInit ( void )
    
 }
 
-
+//****************************************************************************************
 void spiSend ( const uint8_t* data, uint16_t len )
 {
    // TODO: Critical section  here
@@ -102,14 +103,14 @@ void spiSend ( const uint8_t* data, uint16_t len )
 }
 
 
-
+//****************************************************************************************
 void spiRegisterTxEndCB ( pfnTxEnd cb)
 {
    txEndCB = cb;   
 }
 
 
-
+//****************************************************************************************
 ISR ( SPIC_INT_vect )
 {
    // Is there critical section necessary ?
