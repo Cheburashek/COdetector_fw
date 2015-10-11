@@ -13,6 +13,8 @@
    GLOBAL INCLUDES
 */
 
+#include "common.h"
+
 /*****************************************************************************************
    GLOBAL DEFINITIONS
 */
@@ -28,7 +30,7 @@ typedef void (*pfnAdcEnd) (uint16_t);
 */
 
 void adcRegisterEndCb( pfnAdcEnd cb );
-void adcStartChToGnd ( ADC_CH_MUXPOS_t ch );
+void adcStartChToGnd ( void );
 void adcInit ( void );
 
 

@@ -66,10 +66,7 @@ void spiInit ( void )
                  SPI_MASTER_bm   );    // Master mode               
    
    SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h              
-                 
-                 
-                 
-   //SPI_EN();   // SPI enable
+                                
    LOG_TXT ( ">>init<<   SPI initialized\n", 28 );
    
 }

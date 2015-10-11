@@ -6,78 +6,51 @@
  */ 
 
 
-// TODO: _delay not working correctly
-// TODO: clearing LCD
-// TODO: Add watchdog
-// TODO: add critical section macro
-// TODO: Add 32kHz low timer when in ULP mode
-
-// TODO: ADC offset !
-
 #include "common.h"
 
-volatile uint16_t measRes = 0;
+
+#define NUMBER_OF_MEAS  25       // Number of measurements for additional averaging
+#define DIVIDER         1000     // Input voltage divider ( 1:1 -> 1000 )
+
+volatile uint16_t detVal = 0;    // Measured voltage on detector output
+
+static void endOfMeas ( uint16_t val );
 
 
 
-void adcTest ( uint16_t val )
-{
-   measRes = (uint16_t)((((uint32_t)val)*1000)/65535);    // in mV
-   
-   DEB_1_TGL();
-   //pdcUint ( measRes, 1, 0, 7 );
-   LOG_UINT ( "Result:  ", 9, (uint32_t) measRes );
-}
-
-
+//****************************************************************************************
 int main(void)
-{ 
-   boardInit();
-
-
-   timerSingleUs( 65000 );
-
-   while(1){;}
-
-
-
-
-
-
-
-
-// ADC part:
-
-   //adcRegisterEndCb( adcTest );
+{     
    
-   
-   //pdcUint ( 65530, 2, 0, 5 );
-   /*
-   while(1)
-   {      
-      _delay_ms (80);
-      adcStartChToGnd( ADC_CH_MUXPOS_PIN0_gc );
-    
-   }   */
-   
-
-/*
-    while(1)
-    {        
-       for ( uint32_t i = 0; i < 5000; i++ ){;}
-       serialSendC ( test, sizeof(test));
-       DEB_2_TGL();
-    }
-   */
-   /*
-    while(1)
-    {        
-       for ( uint32_t i = 0; i < 5000; i++ ){;}
-       spiSend ( test, sizeof(test));
-       DEB_2_TGL();
-    }*/
+   PORTA.DIRSET = CFG_PULSE_PIN_MASK;  // Pulse pin as output
+   boardInit();                        // Board peripherals initialization 
+      
+   adcRegisterEndCb( endOfMeas );      // Registering CB
+   timerSHARP();                       // Starting measuring loop
    
    while(1){;}
+
 }
 
+//****************************************************************************************
+static void endOfMeas ( uint16_t val )
+{
+   
+   
+   static uint8_t measNum;     // Number of sample
+   static uint32_t measSum;    // For averaging
+   
+   measSum += val;
+   measNum ++;
+   
+   if ( NUMBER_OF_MEAS == measNum )
+   {
+      detVal = (((measSum / NUMBER_OF_MEAS)*DIVIDER)/65535);   // For 16b res
+      measSum = 0;
+      measNum = 0;
+      LOG_UINT ( "Result [mV]:  ", 14, (uint16_t) detVal );
+   }   
+   
+    
+}
 
