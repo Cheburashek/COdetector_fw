@@ -33,22 +33,32 @@ void adcTest ( uint16_t val )
 int main(void)
 { 
    boardInit();
-   
-   pdcLine ("Result:       ", 0 );
+
+
+   timerSingleUs( 65000 );
+
+   while(1){;}
+
+
+
+
+
+
+
 
 // ADC part:
 
-   adcRegisterEndCb( adcTest );
+   //adcRegisterEndCb( adcTest );
    
    
    //pdcUint ( 65530, 2, 0, 5 );
-   
+   /*
    while(1)
    {      
       _delay_ms (80);
       adcStartChToGnd( ADC_CH_MUXPOS_PIN0_gc );
     
-   }   
+   }   */
    
 
 /*

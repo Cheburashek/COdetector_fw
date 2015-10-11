@@ -141,7 +141,6 @@ void serialSendC ( const uint8_t* data, uint8_t len )
 void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
 {
    char temp[10];
-   char* EOL[2] = {"\r"};
       
    uint8_t numLen = 0;
    uint32_t tempVal = val;

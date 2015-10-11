@@ -37,7 +37,7 @@
 // ADC pins (PORTA):
 #define CFG_ADC_PIN_NUM         PIN0_bm
 
-
+// Timer:
 
 /*** Interrupts priority ****/ 
 // TODO: there should be all interrupts prioritized:
@@ -48,10 +48,14 @@
 #define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
-#define CFG_PRIO_SPI         SPI_INTLVL_MED_gc; // not working on HI int - why?
+#define CFG_PRIO_SPI         SPI_INTLVL_MED_gc // not working on HI int - why?
 
 // ADC intlvl:
-#define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc;
+#define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc
+
+// Timer intlvl:
+//#define CFG_PRIO_TC4         TC45_OVFINTLVL_HI_gc
+#define CFG_PRIO_TC4_CCxLVL  TC45_CCAINTLVL_HI_gc
 
 /*****************************************************************************************
    GLOBAL MACROS AND DEFINITIONS

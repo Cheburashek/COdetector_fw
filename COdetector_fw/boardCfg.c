@@ -85,7 +85,7 @@ void boardInit ( void )
    spiInit();
    pdcInit();
    adcInit();
-  
+   timerInit();
   
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();
