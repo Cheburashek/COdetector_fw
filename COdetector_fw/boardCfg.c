@@ -43,13 +43,13 @@ void boardInit ( void )
    
    
    
-   // Debug LEDs:
+   // Debug LEDs***********************:
    PORTD.DIRSET = PIN5_bm;
    PORTD.DIRSET = PIN6_bm;
    PORTD.DIRSET = PIN7_bm;   
-   
 
-   // Clocks:
+   // Clocks***************************:
+
    #if ( F_CPU == F_CPU_32KHZ )
       OSC.CTRL |= OSC_RC32KEN_bm;               // Enabling 32kHz clock
       while (!(OSC.STATUS & OSC_RC32KRDY_bm));  // Waiting for clock ready
@@ -57,14 +57,6 @@ void boardInit ( void )
       CLK.CTRL = CLK_SCLKSEL_RC32K_gc;          // 32khz internal
       OSC.CTRL = OSC_RC32KEN_bm;                // Disabling other clocks
       LOG_TXT ( ">>clock<<   Clock 32kHZ\n", 25 );
-      
-   #elif ( F_CPU == F_CPU_32MHZ )   
-      OSC.CTRL |= OSC_RC32MEN_bm;               // Enabling 32kHz clock
-      while (!(OSC.STATUS & OSC_RC32MRDY_bm));  // Waiting for clock ready
-      CCP=CCP_IOREG_gc;                         // Protected register
-      CLK.CTRL = CLK_SCLKSEL_RC32M_gc;          // 32khz internal
-      OSC.CTRL = OSC_RC32MEN_bm;                // Disabling other clocks
-      LOG_TXT ( ">>clock<<   Clock 32MHZ\n", 25 );
       
    #elif ( F_CPU == F_CPU_2MHZ )
       LOG_TXT ( ">>clock<<   Clock 2MHZ\n", 24 );
@@ -79,14 +71,19 @@ void boardInit ( void )
 
    #endif
    
-     
-   // Initializations:
+   
+   // Interrupt settings****************:
+   
+   
+   // Initializations*******************:
+   
+
    #ifdef LOG_USARTC0
       serialInitC();
    #endif
 
-   //spiInit();
-   //pdcInit();
+   spiInit();
+   pdcInit();
    adcInit();
    timerInit();
   

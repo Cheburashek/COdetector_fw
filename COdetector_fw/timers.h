@@ -28,7 +28,7 @@ void timerInit ( void );
 
 void timerSingleUs( uint16_t us );
 
-void timerSHARP ( void );
+
 
 
 #endif /* TIMERS_H_ */
