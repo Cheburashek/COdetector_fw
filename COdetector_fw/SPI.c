@@ -20,6 +20,7 @@
    LOCAL DEFINITIONS
 */
 
+// TODO: check, if this is necessary:
 #define TX_BUFF_LEN 600  // minimum is 6 rows * 84 columns in 3310 LCD 
 
 /*****************************************************************************************
@@ -62,8 +63,13 @@ void spiInit ( void )
    SPIC.CTRLB = SPI_SSD_bm;      // Slave select disable (master mode) 
    
    // TODO: DMA?
-   SPIC.CTRL = ( SPI_CLK2X_bm    |     // Clock Double
-                 SPI_MASTER_bm   );    // Master mode               
+   
+   SPIC.CTRL =  SPI_MASTER_bm;    // Master mode  
+   #if ( F_CPU == F_CPU_32KHZ )   
+      SPIC.CTRL |= SPI_PRESCALER_DIV16_gc; // Max 4MHz at PDC8544
+   #else
+      SPIC.CTRL |=  SPI_CLK2X_bm;   // 2x clock
+   #endif             
    
    SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h              
                  
@@ -77,7 +83,6 @@ void spiInit ( void )
 //****************************************************************************************
 void spiSend ( const uint8_t* data, uint16_t len )
 {
-   // TODO: Critical section  here
    if ( ((txBuff + TX_BUFF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )

@@ -35,9 +35,14 @@
 #define CFG_MOSI_PIN_MASK        PIN7_bm
 
 // ADC pins (PORTA):
-#define CFG_ADC_PIN_NUM         PIN0_bm
+#define CFG_ADC_PIN_MASK         PIN0_bm
+#define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN0_gc
+
+// IO:   (PORTA)
+#define CFG_PULSE_PIN_MASK       PIN1_bm
 
 // Timer:
+
 
 /*** Interrupts priority ****/ 
 // TODO: there should be all interrupts prioritized:
@@ -55,7 +60,11 @@
 
 // Timer intlvl:
 //#define CFG_PRIO_TC4         TC45_OVFINTLVL_HI_gc
-#define CFG_PRIO_TC4_CCxLVL  TC45_CCAINTLVL_HI_gc
+#define CFG_PRIO_TC4_CCALVL  TC45_CCAINTLVL_HI_gc
+#define CFG_PRIO_TC4_CCBLVL  TC45_CCBINTLVL_HI_gc
+#define CFG_PRIO_TC4_CCCLVL  TC45_CCCINTLVL_HI_gc
+
+
 
 /*****************************************************************************************
    GLOBAL MACROS AND DEFINITIONS
@@ -79,6 +88,22 @@
 #define PRIO_HI_LEVEL_DISABLE()       ( PMIC_CTRL &= ~PMIC_HILVLEN_bm  )
 #define PRIO_ALL_LEVELS_DISABLE()     ( PMIC_CTRL &= ~0x07             )
 
+#define DEB_1_SET()     PORTD.OUTSET = PIN5_bm
+#define DEB_2_SET()     PORTD.OUTSET = PIN6_bm
+#define DEB_3_SET()     PORTD.OUTSET = PIN7_bm
+
+#define DEB_1_CLR()     PORTD.OUTCLR = PIN5_bm
+#define DEB_2_CLR()     PORTD.OUTCLR = PIN6_bm
+#define DEB_3_CLR()     PORTD.OUTCLR = PIN7_bm
+
+#define DEB_1_TGL()     PORTD.OUTTGL = PIN5_bm
+#define DEB_2_TGL()     PORTD.OUTTGL = PIN6_bm
+#define DEB_3_TGL()     PORTD.OUTTGL = PIN7_bm
+
+// IO pulse output:
+
+#define PULSE_SET()     PORTA.OUTSET = CFG_PULSE_PIN_MASK
+#define PULSE_CLR()     PORTA.OUTCLR = CFG_PULSE_PIN_MASK
 
 /*****************************************************************************************
    GLOBAL DEFINES
