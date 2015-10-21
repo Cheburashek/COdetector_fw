@@ -8,8 +8,8 @@
 
 // TODO: automatic offset calibration
 // TODO: DMA ?
-// TODO: eventsystem
-// TODO: averaging
+// TODO: event system
+// TODO: averaging in macro time
 // TODO: API to select channel with should start conversion
 
 
@@ -27,16 +27,14 @@
    LOCAL DEFINITIONS
 */
 
-#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single covertion
-#define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
-#define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
+#define ADC_OFFSET_RAW_VAL 170
 
 
 /*****************************************************************************************
    LOCAL VARIABLES
 */
 
-static pfnAdcEnd convEndCB = NULL;
+static pfnAdcEnd_t convEndCB = NULL;
 static void adcOffCalibration ( void );
 
 /*****************************************************************************************
@@ -64,65 +62,92 @@ void adcInit ( void )
       - interrupt on complete conversion
 
    */
-
-   // PORT:
-   PORTA.DIRCLR = CFG_ADC_PIN_MASK;             // Input
    
-   ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
-                ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
-                  
-   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_16X_gc ;      // Number of samples (averaging) - 16bit
-
-   ADC_EN();                                    // Enabling ADC block
    
-   //adcOffCalibration ();
+   PORTA.DIRCLR = CFG_ADC_PIN_MASK;   
    
-   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Single ended input
+          
+               // Enabling ADC block
+   ADCA.INTFLAGS = 0x00;
+   ADCA.REFCTRL = ADC_REFSEL_INT1V_gc;
+   ADCA.EVCTRL = 0x00;  // No events
+   ADCA.PRESCALER = ADC_PRESCALER_DIV32_gc ;
+   
+   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_1X_gc;   // Number of samples (averaging) - 16bit
+   ADCA.CTRLB = ADC_RESOLUTION_MT12BIT_gc;
+ 
+        
+   ADCA.CH0.CTRL = ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Single ended input             
+   
+   ADCA.CTRLB &= ~(1<<4);   // Unsigned mode
    ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
+
+   // Calibration:
+  
+   ADCA.CH0.OFFSETCORR0 = ADC_OFFSET_RAW_VAL & 0xFF;
+   ADCA.CH0.OFFSETCORR1 = ADC_OFFSET_RAW_VAL >> 8;  
+
+   ADCA.CH0.GAINCORR0 = 0x00;
+   ADCA.CH0.GAINCORR1 = 0x08;          // Gain correction x1
+   ADCA.CH0.CORRCTRL = ADC_CH_CORREN_bm;     // Correction enabled
    
+   ADC_EN();
+   
+   //TODO: store in NV
    LOG_TXT ( ">>init<<   ADC initialized\n", 28 );
 }
  
  
 
 //****************************************************************************************
-static void adcOffCalibration ( void )
-{   
-   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_DIFFWGAINL_gc;    // Only for calibration
-   
-   ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc |         // Connect to one pin - offset cal
-                      ADC_CH_MUXNEGL_PIN0_gc ;
-                      
-   ADC_START();  
-   while ( !ADCA.INTFLAGS ){;}
-   ADCA.INTFLAGS = 0x01;         // Clearing this flag     
-
-   uint16_t offTemp = ADCA.CH0RESL + (((uint16_t)ADCA.CH0RESH)<<8);
-   offTemp >>= 8;
-
-   ADCA.CH0.OFFSETCORR0 = offTemp & 0xFF; 
-   ADCA.CH0.OFFSETCORR1 = offTemp >> 8;  
-     
-   ADCA.CH0.GAINCORR0 = 0x00;
-   ADCA.CH0.GAINCORR1 = 0x08;          // Gain correction x1
-   
-   ADCA.CH0.CORRCTRL = 0x01;     // Correction enabled
-   
-   LOG_UINT ( ">>adc<<  Offset calibration: ", 30, (((uint16_t)ADCA.CH0.OFFSETCORR1)<<8)+ADCA.CH0.OFFSETCORR0 );
-}
+//static void adcOffCalibration ( void )
+//{   
+   //ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;    // Only for calibration
+   //
+   //ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc |         // Connect to one pin - offset cal
+                      //ADC_CH_MUXNEGL_PIN0_gc ;
+         //
+  //// ADCA.CTRLB |= (1<<4);   // Signed mode
+   //
+                      //
+   //ADC_START();  
+   //while ( !ADCA.INTFLAGS );
+   //ADCA.INTFLAGS = 0x01;         // Clearing this flag     
+//
+   //uint16_t offTemp = ADCA.CH0RES>>4;
+  //// offTemp >>= 4; // Because of 16b resolution
+//
+   //LOG_UINT ( "off= ", 5, offTemp );
+   //LOG_BIN ( "off= ", 5, offTemp, 16 );
+//
+   //ADCA.CH0.OFFSETCORR0 = offTemp & 0xFF; 
+   //ADCA.CH0.OFFSETCORR1 = offTemp >> 8;  
+     //
+      ////ADCA.CH0.OFFSETCORR0 = 0x1A;
+      ////ADCA.CH0.OFFSETCORR1 = 0x00;
+     //
+   //ADCA.CH0.GAINCORR0 = 0x00;
+   //ADCA.CH0.GAINCORR1 = 0x08;          // Gain correction x1
+   //
+   //ADCA.CH0.CORRCTRL = ADC_CH_CORREN_bm;     // Correction enabled
+   //ADCA.CTRLB &= ~(1<<4);   // Signed mode
+   //
+   //LOG_UINT ( ">>adc<<  Offset calibration: ", 30, (((uint16_t)ADCA.CH0.OFFSETCORR1)<<8)+ADCA.CH0.OFFSETCORR0 );
+//}
 
 
 
 //****************************************************************************************
 void adcStartChToGnd ( void )
 {
+   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;
    ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS;  
    ADC_START();
 }
 
 
 //****************************************************************************************
-void adcRegisterEndCb ( pfnAdcEnd cb )
+void adcRegisterEndCb ( pfnAdcEnd_t cb )
 {
    convEndCB = cb; 
 }
@@ -132,8 +157,9 @@ void adcRegisterEndCb ( pfnAdcEnd cb )
 ISR ( ADCA_CH0_vect )
 {  
    DEB_3_CLR();
-   if ( NULL != convEndCB )
+
+   if ( NULL != convEndCB )   
    {
-      convEndCB (  (uint16_t)ADCA.CH0RES );      
+      convEndCB ();      
    }   
 }

@@ -9,53 +9,64 @@
 #include "common.h"
 
 
-#define NUMBER_OF_MEAS  25       // Number of measurements for additional averaging
+#define NUMBER_OF_MEAS  5      // Number of measurements for additional averaging
 #define DIVIDER         1000     // Input voltage divider ( 1:1 -> 1000 )
 
 volatile uint16_t detVal = 0;    // Measured voltage on detector output
 
-static void endOfMeas ( uint16_t val );
+static void endOfMeas ( void );
+
+
+
 
 
 
 //****************************************************************************************
 int main(void)
 {     
-   
    PORTA.DIRSET = CFG_PULSE_PIN_MASK;  // Pulse pin as output
-   PULSE_SET();                        // Cleared - inverted logic
+   PULSE_CLR();                        // Cleared - inverted logic
    boardInit();                        // Board peripherals initialization 
-      
+     
    adcRegisterEndCb( endOfMeas );      // Registering CB
-   //timerSHARP();                       // Starting measuring loop
+   timerSHARP();                       // Starting measuring loop
    
-   pdcLine( "Dupcia", 0);
-   while(1){;}
-
+   while(1);
 }
 
+
+
+
+
+
+
+
+
 //****************************************************************************************
-static void endOfMeas ( uint16_t val )
+static void endOfMeas ( void )
 {
    
-   
+   //LOG_UINT ( "", 0, ADCA.CH0RES );
    static uint8_t measNum;     // Number of sample
    static uint32_t measSum;    // For averaging
    
-   measSum += val;
+   measSum += ADCA.CH0RES;
    measNum ++;
    
    if ( NUMBER_OF_MEAS == measNum )
    {
-      detVal = (((measSum / NUMBER_OF_MEAS)*DIVIDER)/65535);   // For 16b res
+      measSum = (((measSum / NUMBER_OF_MEAS)*DIVIDER)/65535);   // For 16b res
+     
+
+      LOG_UINT ( "", 0, measSum );      
+      LOG_BIN ( "", 0, measSum, 16 ); 
+      
+      DEB_1_TGL();
       measSum = 0;
       measNum = 0;
-      //LOG_UINT ( "Result [mV]:  ", 14, (uint16_t) detVal );
-      LOG_UINT ( "", 0, (uint16_t) detVal );
-      
       
    }   
    
-    
+
 }
 

@@ -313,7 +313,7 @@ void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
       pdcSend( DC_DATA, charTab[ ((ch-0x20)*5) + X ] );	// Finding index of char in table
    }
    
-   pdcSend( DC_DATA, 0x00 );			// One pixel spacing after char   
+   pdcSend( DC_DATA, 0x00 );			// One pixel of spacing after char   
 }
 
 
@@ -325,7 +325,7 @@ void pdcLine( char ch[14], uint8_t pos_Y )
    
    for( uint8_t i = 0; i < 14; i++ )
    {      
-      if( ch[i] < 0x20 || ch[i] > 0x7F)
+      if( (ch[i] < 0x20) || (ch[i] > 0x7F) )
       {
          pdcChar( ' ', pos_Y, i );
       }
@@ -360,7 +360,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
       temp_ch = temp_val % 10;
       temp_ch += 0x30;			// Number -> ASCII
       
-      pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	//!!?!?!?!?!?!?!??!?!
+      pdcChar( temp_ch, pos_Y, (pos_X+len-k) );
       temp_val /= 10;
    }
 
@@ -371,9 +371,9 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
          pdcChar( ' ', pos_Y, (pos_X+length-k) );         
       }
    }
-   else{	/*ERROR!!!!!! */ }
-   
-}
+   else{	/*ERROR!!!!!!*/ }
+
+}   
 
 
 // *************************************************************************

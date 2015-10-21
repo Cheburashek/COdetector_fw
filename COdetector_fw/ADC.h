@@ -13,22 +13,28 @@
    GLOBAL INCLUDES
 */
 
+#include "common.h"
+
 /*****************************************************************************************
    GLOBAL DEFINITIONS
 */
 
+
+#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single convertion
+#define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
+#define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
 /*****************************************************************************************
    GLOBAL TYPEDEFS
 */
 
-typedef void (*pfnAdcEnd) (uint16_t); 
+typedef void (*pfnAdcEnd_t) (void); 
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
-void adcRegisterEndCb( pfnAdcEnd cb );
-void adcStartChToGnd ( ADC_CH_MUXPOS_t ch );
+void adcRegisterEndCb( pfnAdcEnd_t cb );
+void adcStartChToGnd ( void );
 void adcInit ( void );
 
 

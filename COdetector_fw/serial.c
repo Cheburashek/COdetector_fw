@@ -26,11 +26,15 @@
    
 #elif ( F_CPU == F_CPU_2MHZ )
    #define BSEL_BAUD_VAL 54                // 57600bps @ 2MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11000000)   //  -4
+   #define BSCALE_BAUD_VAL (0b11000000)    //  -4
 
 #elif ( F_CPU == F_CPU_8MHZ )
    #define BSEL_BAUD_VAL 110               // 57600bps @ 8MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b10110000)   //  -5
+   #define BSCALE_BAUD_VAL (0b10110000)    //  -5
+   
+#elif ( F_CPU == F_CPU_32MHZ )
+   #define BSEL_BAUD_VAL 137               //57600bps @ 32MHz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b11110000)    // -1
 
 #else 
    #error "F_CPU is not defined correctly!"
@@ -141,30 +145,57 @@ void serialSendC ( const uint8_t* data, uint8_t len )
 void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
 {
    char temp[10];
-      
+     
    uint8_t numLen = 0;
    uint32_t tempVal = val;
    
    if ( 0 == val )
    {
       numLen = 1;
+      temp[0] = 0x30;   // 0
    }
    else
-   {     
-      while ( tempVal ) 
+   {
+      while ( tempVal )
       {
+         numLen++;
          tempVal /= 10;
-         numLen++;      
-      }  
+      }
+      
+      for ( uint8_t i = numLen; i >> 0; i-- )
+      {       
+         temp[i-1] = (val % 10) + 0x30;  // ASCII
+         val /= 10;
+      }      
    }
    
       
-   (void) utoa ( (unsigned int)val, temp, 10 );
+   //(void) utoa ( (unsigned int)val, temp, 10 );
    
    serialSendC ( (const uint8_t*) txt, len );
    serialSendC ( (const uint8_t*) temp, numLen );
    serialSendC ( (const uint8_t*) "\n", 2 );
    
+}
+
+
+//****************************************************************************************
+// 
+void serialLogBinaryC ( uint8_t* txt, uint8_t len, uint32_t val, uint8_t bitsNum )
+{
+   uint32_t tempVal = val;   
+   char temp[bitsNum];   
+   
+   for ( uint8_t i = 1; i <= bitsNum; i++ ) 
+   {
+      temp[bitsNum-i] = (val & 0x01) + 0x30;
+      val >>= 1;     
+   }
+   
+   
+   serialSendC ( (const uint8_t*) txt, len );
+   serialSendC ( (const uint8_t*) temp, bitsNum );
+   serialSendC ( (const uint8_t*) "\n", 2 );
 }
 
 

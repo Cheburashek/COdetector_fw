@@ -1,4 +1,4 @@
-ADC.d ADC.o: .././ADC.c .././ADC.h .././common.h \
+boardCfg.d boardCfg.o: .././boardCfg.c .././boardCfg.h .././common.h \
  c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\io.h \
  c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\sfr_defs.h \
  c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\inttypes.h \
@@ -19,9 +19,9 @@ ADC.d ADC.o: .././ADC.c .././ADC.h .././common.h \
  c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\math.h \
  c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\lib\gcc\avr\4.8.1\include\stdbool.h \
  c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\stdlib.h \
- .././boardCfg.h .././serial.h .././SPI.h .././PDC8544.h .././timers.h
+ .././serial.h .././SPI.h .././PDC8544.h .././ADC.h .././timers.h
 
-.././ADC.h:
+.././boardCfg.h:
 
 .././common.h:
 
@@ -65,12 +65,12 @@ c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-g
 
 c:\program\ files\ (x86)\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\stdlib.h:
 
-.././boardCfg.h:
-
 .././serial.h:
 
 .././SPI.h:
 
 .././PDC8544.h:
+
+.././ADC.h:
 
 .././timers.h:

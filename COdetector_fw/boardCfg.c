@@ -66,9 +66,17 @@ void boardInit ( void )
       CCP=CCP_IOREG_gc;                          // Protected register
       CLK.CTRL = CLK_SCLKSEL_RC8M_gc;            // 32khz internal
       LOG_TXT ( ">>clock<<  Clock 8MHZ\n", 23 );
+      
+   #elif ( F_CPU == F_CPU_32MHZ )
+      OSC.CTRL |= OSC_RC32MEN_bm;               // Enabling 32kHz clock
+      while (!(OSC.STATUS & OSC_RC32MRDY_bm));  // Waiting for clock ready
+      CCP=CCP_IOREG_gc;                         // Protected register
+      CLK.CTRL = CLK_SCLKSEL_RC32M_gc;          // 32khz internal
+      OSC.CTRL = OSC_RC32MEN_bm;                // Disabling other clocks
+      LOG_TXT ( ">>clock<<   Clock 32MHZ\n", 25 );
+      
    #else
       #error "Clock is not set!"
-
    #endif
    
    

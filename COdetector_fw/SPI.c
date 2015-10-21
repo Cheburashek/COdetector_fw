@@ -65,7 +65,7 @@ void spiInit ( void )
    // TODO: DMA?
    
    SPIC.CTRL =  SPI_MASTER_bm;    // Master mode  
-   #if ( F_CPU == F_CPU_32KHZ )   
+   #if ( F_CPU == F_CPU_32MHZ )   
       SPIC.CTRL |= SPI_PRESCALER_DIV16_gc; // Max 4MHz at PDC8544
    #else
       SPIC.CTRL |=  SPI_CLK2X_bm;   // 2x clock

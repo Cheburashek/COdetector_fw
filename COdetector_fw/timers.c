@@ -84,7 +84,7 @@ void timerSHARP ( void )
 
 ISR ( TCC4_CCA_vect )
 {
-   PULSE_CLR();          // PULSE up    
+   PULSE_SET();          // PULSE up    
 }
 
 
@@ -100,7 +100,7 @@ ISR ( TCC4_CCB_vect )
 ISR ( TCC4_CCC_vect )
 {
    DEB_2_CLR();         // only for test
-   PULSE_SET();         // PULSE down   
+   PULSE_CLR();         // PULSE down   
    
-   TCC4.CTRLGSET = TC45_CMD_RESTART_gc;   // Restarting timer - continous
+   TCC4.CTRLGSET = TC45_CMD_RESTART_gc;   // Restarting timer - continuous
 }

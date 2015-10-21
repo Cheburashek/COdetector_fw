@@ -13,8 +13,12 @@
 /*****************************************************************************************
    GLOBAL INCLUDES
 */
+
+// TODO: Cross includes to remove
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+
 #include <util/delay.h>
 
 #include <stddef.h>
@@ -26,6 +30,8 @@
 #include "SPI.h"
 #include "PDC8544.h"
 #include "ADC.h"
+#include "timers.h"
+
 
  
 /*****************************************************************************************
