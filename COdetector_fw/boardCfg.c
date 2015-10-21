@@ -85,10 +85,10 @@ void boardInit ( void )
       serialInitC();
    #endif
 
-   //spiInit();
-   //pdcInit();
+   spiInit();
+   pdcInit();
    adcInit();
-   timerInit();
+   //timerInit();
   
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();

@@ -39,7 +39,7 @@
 #define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN0_gc
 
 // IO:   (PORTA)
-#define CFG_PULSE_PIN_MASK       PIN1_bm
+
 
 
 
@@ -105,10 +105,7 @@
 #define DEB_2_TGL()     PORTD.OUTTGL = PIN6_bm
 #define DEB_3_TGL()     PORTD.OUTTGL = PIN7_bm
 
-// IO pulse output:
 
-#define PULSE_SET()     PORTA.OUTSET = CFG_PULSE_PIN_MASK
-#define PULSE_CLR()     PORTA.OUTCLR = CFG_PULSE_PIN_MASK
 
 /*****************************************************************************************
    GLOBAL DEFINES

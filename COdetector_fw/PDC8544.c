@@ -171,9 +171,9 @@ static void pdcClearLine( uint8_t pos_Y );
 static void pdcReset( void )
 {   
    RST_LO();
-   _delay_ms(15);
-   RST_HI();
-   _delay_us(5);   
+   _delay_ms(5);  // TODO: delay not ok
+   RST_HI();   
+   _delay_ms(5);   
 }
 
 // *************************************************************************
@@ -307,7 +307,7 @@ void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
    
    pdcSetRow( pos_Y   );				// Setting active row
    pdcSetCol( pos_X*6 ); 
-   
+   _delay_ms (100);
    for( X = 0; X < 5; X++ )
    {            
       pdcSend( DC_DATA, charTab[ ((ch-0x20)*5) + X ] );	// Finding index of char in table
@@ -346,7 +346,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    k = 0;
    char temp_ch;
    
-   if( temp_val > 65535 ){ /*ERROR!!!!*/}
+   if( temp_val > 65535 ){ /*ERROR!!!!*/ }
    
    for( len = 0; temp_val != 0; len++ )
    {	// Length of input "string"
@@ -360,7 +360,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
       temp_ch = temp_val % 10;
       temp_ch += 0x30;			// Number -> ASCII
       
-      pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	//!!?!?!?!?!?!?!??!?!
+      pdcChar( temp_ch, pos_Y, (pos_X+len/*-k*/) );	//!!?!?!?!?!?!?!??!?!
       temp_val /= 10;
    }
 
@@ -368,7 +368,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    {      
       for( k = 1; k <= (length - len); k++ )
       {
-         pdcChar( ' ', pos_Y, (pos_X+length-k) );         
+         pdcChar( ' ', pos_Y, (pos_X+length/*-k*/) );         
       }
    }
    else{	/*ERROR!!!!!! */ }
