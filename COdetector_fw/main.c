@@ -9,10 +9,10 @@
 /*
 
 - 20ms sampling - AC line glitch rejection
-
+- for initialization - fast 2MHz, after - 32kHz ( e.g. fast cleaning LCD RAM )
 */
 
-// Problems to opowiedziec:
+// Problems to include in txt:
 /*
 
 - adc auto offset calibration - temporary manual
@@ -20,10 +20,10 @@
 */
 
 
+// TODO: timestamps : RTC
+
 
 #include "common.h"
-
-
 
 #define DIVIDER         1000     // Input voltage divider ( 1:1 -> 1000 )
 
@@ -42,12 +42,11 @@ int main(void)
    boardInit();                        // Board peripherals initialization       
    adcRegisterEndCb( endOfMeas );      // Registering CB
 
-   pdcLine( "Heszek!       ", 2 );
+   while(1)
+   {
 
-   while(1){
-      
-      for ( uint32_t i = 0; i < 1000; i++ ){}         
-      
+     for ( uint32_t i = 0; i < 100000; i++ ){}   
+              
       adcStartChToGnd();
       
    }
@@ -58,10 +57,9 @@ int main(void)
 static void endOfMeas ( uint16_t val )
 {
 
-   measVal = ((((uint32_t)val)*DIVIDER)/65535);   // For 16b res
+  // measVal = ((((uint32_t)val)*DIVIDER)/65535);   // For 16b res
 
-   LOG_UINT ( "Result [mV]:  ", 14, (uint16_t) measVal );
-   pdcUint ( measVal, 0, 0, 1 );
+
 }   
    
     

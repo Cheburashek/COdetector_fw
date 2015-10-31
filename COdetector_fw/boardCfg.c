@@ -49,18 +49,18 @@ void boardInit ( void )
    PORTD.DIRSET = PIN7_bm;   
    
 
-   // Clocks:
+      // Clocks:
    #if ( F_CPU == F_CPU_32KHZ )
       OSC.CTRL |= OSC_RC32KEN_bm;               // Enabling 32kHz clock
-      while (!(OSC.STATUS & OSC_RC32KRDY_bm));  // Waiting for clock ready
+      while (!(OSC.STATUS & OSC_RC32KRDY_bm));  // Waiting for clock
       CCP=CCP_IOREG_gc;                         // Protected register
       CLK.CTRL = CLK_SCLKSEL_RC32K_gc;          // 32khz internal
       OSC.CTRL = OSC_RC32KEN_bm;                // Disabling other clocks
       LOG_TXT ( ">>clock<<   Clock 32kHZ\n", 25 );
       
    #elif ( F_CPU == F_CPU_32MHZ )   
-      OSC.CTRL |= OSC_RC32MEN_bm;               // Enabling 32kHz clock
-      while (!(OSC.STATUS & OSC_RC32MRDY_bm));  // Waiting for clock ready
+      OSC.CTRL |= OSC_RC32MEN_bm;               // Enabling 32MHz clock
+      while (!(OSC.STATUS & OSC_RC32MRDY_bm));  // Waiting for clock 
       CCP=CCP_IOREG_gc;                         // Protected register
       CLK.CTRL = CLK_SCLKSEL_RC32M_gc;          // 32khz internal
       OSC.CTRL = OSC_RC32MEN_bm;                // Disabling other clocks
@@ -78,17 +78,22 @@ void boardInit ( void )
       #error "Clock is not set!"
 
    #endif
+
    
-     
+   
+   
+   
    // Initializations:
    #ifdef LOG_USARTC0
       serialInitC();
-   #endif
+   #endif  
+      
+      spiInit();
+      pdcInit();
+      adcInit();
+      timerInit();
 
-   spiInit();
-   pdcInit();
-   adcInit();
-   //timerInit();
+
   
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();

@@ -18,6 +18,13 @@
 #include "common.h"
 
 
+/*****************************************************************************************
+   GLOBAL CONSTANTS
+*/
+
+
+#define RTC_PERIOD_S 10       // Max 2047s
+
 
 /*****************************************************************************************
    GLOBAL CONFIGURATION DEFINES
@@ -41,17 +48,8 @@
 // IO:   (PORTA)
 
 
-
-
-
-// Timer:
-
 /*** Interrupts priority ****/ 
-// TODO: there should be all interrupts prioritized:
 
-/* Data Register Empty Interrupt Level
- * Transmit Complete Interrupt level
- * Receive Complete Interrupt level */
 #define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
@@ -66,7 +64,8 @@
 #define CFG_PRIO_TC4_CCBLVL  TC45_CCBINTLVL_HI_gc
 #define CFG_PRIO_TC4_CCCLVL  TC45_CCCINTLVL_HI_gc
 
-
+// RTC intlvl
+#define CFG_PRIO_RTC_OVFL    RTC_OVFINTLVL_HI_gc
 
 /*****************************************************************************************
    GLOBAL MACROS AND DEFINITIONS
@@ -91,7 +90,7 @@
 #define PRIO_ALL_LEVELS_DISABLE()     ( PMIC_CTRL &= ~0x07             )
 
 
-
+#define ENTER_CRITICAL_SECTION( actInt )      uint
 
 #define DEB_1_SET()     PORTD.OUTSET = PIN5_bm
 #define DEB_2_SET()     PORTD.OUTSET = PIN6_bm

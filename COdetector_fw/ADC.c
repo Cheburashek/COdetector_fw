@@ -7,10 +7,10 @@
 
 
 // TODO: automatic offset calibration
+// TODO: gain error calibration
 // TODO: DMA ?
-// TODO: eventsystem
+// TODO: eventsystem?
 
-// TODO: API to select channel with should start conversion
 
 
 /*****************************************************************************************
@@ -27,7 +27,7 @@
    LOCAL DEFINITIONS
 */
 
-#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single coversion
+#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single conversion
 #define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
 #define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
 
@@ -72,9 +72,11 @@ void adcInit ( void )
    ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
                 ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
                   
-   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;       // Number of samples (averaging) - 16bit
+   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_16X_gc ;       // Number of samples (averaging) - 16bit
 
-   ADCA.PRESCALER = ADC_PRESCALER_DIV4_gc;
+   ADCA.SAMPCTRL = 0x00;
+   
+   ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
    
    ADC_EN();                                    // Enabling ADC block
    //adcOffCalibration ();

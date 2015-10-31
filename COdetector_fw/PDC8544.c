@@ -185,6 +185,8 @@ void pdcInit( void )
    pdcReset(); 
    
    
+   // TODO: add fast clearing whole RAM
+   
    pdcSend( DC_CMD, 0x21 );	// Extended cmd
    pdcSend( DC_CMD, 0xE0 );	// Bias
    pdcSend( DC_CMD, 0x04 );	// Temp. control
@@ -192,13 +194,15 @@ void pdcInit( void )
    pdcSend( DC_CMD, 0x20 );	// Basic cmd   / horizontal addressing
    pdcSend( DC_CMD, 0x0C );	// Normal mode
 
+  // pdcClearLine( 0 );
+
    LOG_TXT ( ">>init<<   PDC8544 initialized\n", 32 );   
 }
 
 
 // *************************************************************************
 // Function to set callback in SPI.c (end of transmission)
-static void pdcChipDisable ( void )
+inline static void pdcChipDisable ( void )
 {
    SCE_HI();
 }
@@ -301,13 +305,13 @@ void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
 
    uint8_t X = 0;
    
-   if( ch < 0x20 || ch > 0x7F ){ /*ERROR!!!!!!*/ }
-   if( pos_X > 13 ){ /*ERROR!!!!!!*/ }
-   if( pos_Y > 5  ){ /*ERROR!!!!!!*/ }
+   //if( ch < 0x20 || ch > 0x7F ){ /*ERROR!!!!!!*/ }
+   //if( pos_X > 13 ){ /*ERROR!!!!!!*/ }
+   //if( pos_Y > 5  ){ /*ERROR!!!!!!*/ }
    
    pdcSetRow( pos_Y   );				// Setting active row
    pdcSetCol( pos_X*6 ); 
-   _delay_ms (100);
+
    for( X = 0; X < 5; X++ )
    {            
       pdcSend( DC_DATA, charTab[ ((ch-0x20)*5) + X ] );	// Finding index of char in table
@@ -355,12 +359,14 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    
    temp_val = val;
    
+     
+    
    for( k = 1; k <= len; k++ )
    {      
       temp_ch = temp_val % 10;
       temp_ch += 0x30;			// Number -> ASCII
       
-      pdcChar( temp_ch, pos_Y, (pos_X+len/*-k*/) );	//!!?!?!?!?!?!?!??!?!
+      pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	
       temp_val /= 10;
    }
 
@@ -368,7 +374,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    {      
       for( k = 1; k <= (length - len); k++ )
       {
-         pdcChar( ' ', pos_Y, (pos_X+length/*-k*/) );         
+         pdcChar( ' ', pos_Y, (pos_X+length-k) );         
       }
    }
    else{	/*ERROR!!!!!! */ }

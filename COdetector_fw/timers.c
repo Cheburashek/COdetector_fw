@@ -21,16 +21,12 @@
    LOCAL DEFINITIONS
 */
 
-// Max 15ms !
-
-#define CYCLE_PERIOD_US     10000
-#define MEAS_DELAY_US       (CYCLE_PERIOD_US + 280)
-#define PULSE_TIME_US       (CYCLE_PERIOD_US + 320)
-
 
 /*****************************************************************************************
    LOCAL VARIABLES
 */
+
+static pfnRTC rtcCB = NULL;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -46,63 +42,52 @@
 */
 
 
-void timerInit ( void )
+void timerInit (void )
 {
-
-   TCC4.CTRLA = 0x04;   // Div clk by 8 for 4MHz @ 32MHz
+   // RTC:
    
-   TCC4.INTCTRLB = CFG_PRIO_TC4_CCALVL |
-                   CFG_PRIO_TC4_CCBLVL |
-                   CFG_PRIO_TC4_CCCLVL;  
-                   
-   TCC4.CTRLGSET = TC4_STOP_bm;  // STOP  
-
-   //TCC4.CTRLGSET = TC45_CMD_RESTART_gc;
-}
-
-// TODO: channel as enum
-void timerSingleUs( uint16_t us )
-{
-   TCC4.CCABUF = us;   
-
-   TCC4.CTRLGSET = TC45_CMD_RESTART_gc;
+   if ( !(OSC.CTRL & OSC_RC32KEN_bm) )          // If disabled
+   {
+      OSC.CTRL |= OSC_RC32KEN_bm;               // Enabling 32kHz clock
+      while (!(OSC.STATUS & OSC_RC32KRDY_bm));  // Waiting for clock   
+   }   
    
-}
-
-
-
-void timerSHARP ( void )
-{
-   // Measuring init:
-      
-   TCC4.CCABUF = (uint16_t)CYCLE_PERIOD_US*4;
-   TCC4.CCBBUF = (uint16_t)MEAS_DELAY_US*4;
-   TCC4.CCCBUF = (uint16_t)PULSE_TIME_US*4;
-      
-   TCC4.CTRLGCLR = TC4_STOP_bm;     // START
-   TCC4.CTRLGSET = TC45_CMD_RESTART_gc;
-}
-
-
-ISR ( TCC4_CCA_vect )
-{
-    
-}
-
-
-ISR ( TCC4_CCB_vect )
-{   
-   DEB_3_SET();         // only for test
-   DEB_2_SET();         // only for test
-   adcStartChToGnd();   // ADC start;   
-}
-
-
-
-ISR ( TCC4_CCC_vect )
-{
-   DEB_2_CLR();         // only for test
-    
+   while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}      // Wait until SYNCBUSY is cleared
+   RTC.PER = RTC_PERIOD_S * 31,25;                // 32ms period
    
-   TCC4.CTRLGSET = TC45_CMD_RESTART_gc;   // Restarting timer - continous
+   RTC.INTCTRL = CFG_PRIO_RTC_OVFL;     // from boardCfg.h
+   
+   while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}  // Wait until SYNCBUSY is cleared 
+   RTC.CTRL = RTC_PRESCALER_DIV1024_gc;      // For 1s resolution
+
+   
+   CLK.RTCCTRL = CLK_RTCEN_bm           // RTC source enabled
+               | CLK_RTCSRC_RCOSC32_gc;     // 32k ULP for RTC
+   
+
+
+   LOG_TXT ( ">>init<<   Timer initialized\n", 30 );
 }
+
+
+//****************************************************************************************
+void timerRegisterRtcCB ( pfnRTC cb )
+{
+   rtcCB = cb;   
+}
+
+
+//****************************************************************************************
+ISR ( RTC_OVF_vect )
+{
+   DEB_2_TGL();
+   
+   if ( NULL != rtcCB )
+   {
+      rtcCB();
+   }
+}
+
+
+
+
