@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "boardCfg.h"
 #include "serial.h"
@@ -27,6 +28,7 @@
 #include "PDC8544.h"
 #include "ADC.h"
 #include "timers.h"
+
 
  
 /*****************************************************************************************

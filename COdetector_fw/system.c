@@ -20,11 +20,34 @@
    LOCAL DEFINITIONS
 */
 
+#define LCD_ACTMEAS_POS_Y 1
+
+
+/*****************************************************************************************
+   LOCAL TYPEDEFS
+*/
+
+// Structure describing time:
+typedef struct
+{
+   uint16_t year;
+   uint8_t  month;
+   uint8_t  day;
+   uint8_t  hour;
+   uint8_t  min;
+   uint8_t  sec;
+   
+} timeStruct_t;
+
+
 /*****************************************************************************************
    LOCAL VARIABLES
 */
 
 static volatile uint16_t actMeas;
+static timeStruct_t sysTime;
+
+
 
 
 /*****************************************************************************************
@@ -33,8 +56,13 @@ static volatile uint16_t actMeas;
 
 static void systemPeriodicRefresh ( void );
 
+static void systemDisplayVals ( void );
+
 static void systemDisplayBackground ( void );
 
+static void systemTimeTickUpdate ( void );
+
+static void systemSerialLog ( void );
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
@@ -42,32 +70,70 @@ static void systemDisplayBackground ( void );
 
 static void systemPeriodicRefresh ( void )
 {   
-   static uint16_t actMeasOld;
-   
-   if ( actMeasOld != actMeas )
-   {
-      actMeasOld = actMeas;
-      pdcUint( actMeas, 1, 5, 7 );
 
-   }
    
-   LOG_UINT ( "Result [mV]: ", 13, actMeas );
+
+     
+   systemTimeTickUpdate();
+   systemSerialLog();  
+   systemDisplayVals();
+   
+   adcStartChToGnd();
 }
 
 
 //****************************************************************************************
 static void systemDisplayVals ( void )
 {
-
-    
+   
+   // Time:
+   char str[14] = {"              "};
+   sprintf ( str, "%.2u:%.2u:%.2u", sysTime.hour, sysTime.min, sysTime.sec );
+   pdcLine( str, 0 );
+   
+   // Measured values:
+   pdcUint ( actMeas, LCD_ACTMEAS_POS_Y, 6, 5 );
 }
 
 //****************************************************************************************
 static void systemDisplayBackground ( void )
 {
-   pdcLine ( "Act:        mV", 1 );
+   pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
 
 }
+
+//****************************************************************************************
+static void systemTimeTickUpdate ( void )
+{
+   sysTime.sec ++;
+   if ( sysTime.sec >=60 )  
+   { 
+      sysTime.sec = 0;
+      sysTime.min ++; 
+   }
+   if ( sysTime.min >=60 )
+   { 
+      sysTime.min = 0;
+      sysTime.hour ++; 
+   } 
+   if ( sysTime.hour >=24 ) 
+   { 
+      sysTime.hour = 0;
+      sysTime.day ++; 
+   } 
+      
+   // TODO: days, months...
+}
+
+
+
+//****************************************************************************************
+static void systemSerialLog ( void )
+{
+   char strToLog [64];
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[mV] \n", sysTime.hour, sysTime.min, sysTime.sec, actMeas );
+   LOG_TXT ( strToLog, len );
+} 
 
 
 
@@ -81,7 +147,7 @@ static void systemDisplayBackground ( void )
 void systemInit ( void ) 
 {
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
-   timerRegisterRtcCB ( adcStartChToGnd );
+   timerRegisterRtcCB ( systemPeriodicRefresh );
    
    systemDisplayBackground();
    
@@ -94,7 +160,5 @@ void systemInit ( void )
 //****************************************************************************************
 void systemMeasEnd ( uint16_t val )
 {
-   actMeas = ((((uint32_t)val)*ADC_DIVIDER)/65535);   // For 16b res
-   
-   systemPeriodicRefresh();
+   actMeas = ((((uint32_t)val)*ADC_DIVIDER)/65535);   // For 16b res  
 }

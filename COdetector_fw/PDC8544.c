@@ -6,7 +6,7 @@
  */ 
 
 
-// TODO: optiumalization : pixels which not change should not be written again
+// TODO: optimalization : pixels which not change should not be written again
 // TODO: power down mode ?
 
 
@@ -225,7 +225,7 @@ static void pdcSend( uint8_t DC, uint8_t data )
    
    //spiSend( &data, 1 );
    
-   // Very, very temporary and bad: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+   // Very, very temporary and bad: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1oneonejedenein
    SPIC.DATA = data;
    while ( !SPIC.STATUS & SPI_IF_bm ){}
    (void)SPIC.DATA; 
@@ -350,7 +350,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    k = 0;
    char temp_ch;
    
-   if( temp_val > 65535 ){ /*ERROR!!!!*/ }
+   if( temp_val > 65535 ){ /*ERROR!!!!*/ } 
    
    for( len = 0; temp_val != 0; len++ )
    {	// Length of input "string"
