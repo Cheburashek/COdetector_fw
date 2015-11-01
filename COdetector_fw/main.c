@@ -21,11 +21,11 @@
 
 
 // TODO: timestamps : RTC
-
+// TODO: clk in lopo
 
 #include "common.h"
 
-#define DIVIDER         1000     // Input voltage divider ( 1:1 -> 1000 )
+
 
 
 
@@ -40,27 +40,15 @@ int main(void)
 {     
    
    boardInit();                        // Board peripherals initialization       
-   adcRegisterEndCb( endOfMeas );      // Registering CB
 
    while(1)
    {
 
-     for ( uint32_t i = 0; i < 100000; i++ ){}   
-              
-      adcStartChToGnd();
-      
    }
 
 }
 
-//****************************************************************************************
-static void endOfMeas ( uint16_t val )
-{
 
-  // measVal = ((((uint32_t)val)*DIVIDER)/65535);   // For 16b res
-
-
-}   
    
     
 

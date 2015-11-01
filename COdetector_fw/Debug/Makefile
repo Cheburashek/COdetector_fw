@@ -43,6 +43,7 @@ C_SRCS +=  \
 ../main.c \
 ../serial.c \
 ../SPI.c \
+../system.c \
 ../timers.c
 
 
@@ -59,6 +60,7 @@ PDC8544.o \
 main.o \
 serial.o \
 SPI.o \
+system.o \
 timers.o
 
 OBJS_AS_ARGS +=  \
@@ -68,6 +70,7 @@ PDC8544.o \
 main.o \
 serial.o \
 SPI.o \
+system.o \
 timers.o
 
 C_DEPS +=  \
@@ -77,6 +80,7 @@ PDC8544.d \
 main.d \
 serial.d \
 SPI.d \
+system.d \
 timers.d
 
 C_DEPS_AS_ARGS +=  \
@@ -86,6 +90,7 @@ PDC8544.d \
 main.d \
 serial.d \
 SPI.d \
+system.d \
 timers.d
 
 OUTPUT_FILE_PATH +=COdetector_fw.elf
@@ -117,10 +122,12 @@ LINKER_SCRIPT_DEP+=
 
 
 
+
+
 ./%.o: .././%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.8.1
-	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1061\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DF_CPU_32MHZ=32000000U -DF_CPU_8MHZ=8000000U -DF_CPU_2MHZ=2000000U -DF_CPU_32KHZ=32768U -DDEBUG -DLOG_USARTC0 -DF_CPU=F_CPU_32KHZ  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atxmega32e5 -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1061\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DF_CPU_32MHZ=32000000U -DF_CPU_8MHZ=8000000U -DF_CPU_2MHZ=2000000U -DF_CPU_32KHZ=32768U -DDEBUG -DLOG_USARTC0 -DF_CPU=F_CPU_8MHZ  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atxmega32e5 -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 

@@ -184,8 +184,7 @@ void pdcInit( void )
 
    pdcReset(); 
    
-   
-   // TODO: add fast clearing whole RAM
+ 
    
    pdcSend( DC_CMD, 0x21 );	// Extended cmd
    pdcSend( DC_CMD, 0xE0 );	// Bias
@@ -194,7 +193,7 @@ void pdcInit( void )
    pdcSend( DC_CMD, 0x20 );	// Basic cmd   / horizontal addressing
    pdcSend( DC_CMD, 0x0C );	// Normal mode
 
-  // pdcClearLine( 0 );
+   pdcClearRAM();
 
    LOG_TXT ( ">>init<<   PDC8544 initialized\n", 32 );   
 }
@@ -224,10 +223,12 @@ static void pdcSend( uint8_t DC, uint8_t data )
       break;
    }
    
-   spiSend( &data, 1 );
+   //spiSend( &data, 1 );
    
-   //_delay_us(100);	  
-     
+   // Very, very temporary and bad: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+   SPIC.DATA = data;
+   while ( !SPIC.STATUS & SPI_IF_bm ){}
+   (void)SPIC.DATA; 
 }
 
 // *************************************************************************
@@ -246,7 +247,6 @@ static void pdcSetRow( uint8_t addr_Y )
 // Function to set X -> Column x5
 static void pdcSetCol( uint8_t addr_X )
 {
-
    if( addr_X > 83 ){ /*ERROR!!!!!!*/ }
    
    addr_X += 0x80;	// Adding Set X address of RAM command

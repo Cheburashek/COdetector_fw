@@ -72,9 +72,9 @@ void adcInit ( void )
    ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
                 ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
                   
-   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_16X_gc ;       // Number of samples (averaging) - 16bit
+   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;       // Number of samples (averaging) - 16bit
 
-   ADCA.SAMPCTRL = 0x00;
+   ADCA.SAMPCTRL = 0x08;   // For 8Mhz clock only!
    
    ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
    

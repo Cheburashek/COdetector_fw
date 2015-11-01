@@ -27,6 +27,9 @@
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
+void systemInit ( void );
+
+void systemMeasEnd ( uint16_t val );
 
 
 

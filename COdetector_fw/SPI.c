@@ -65,10 +65,11 @@ void spiInit ( void )
    SPIC.CTRL = ( SPI_CLK2X_bm    |     // Clock Double
                  SPI_MASTER_bm   );    // Master mode               
    
-   SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h              
+  // SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h     
+
                                 
    LOG_TXT ( ">>init<<   SPI initialized\n", 28 );
-   
+   SPI_EN(); // wywalic
 }
 
 //****************************************************************************************
@@ -94,7 +95,7 @@ void spiSend ( const uint8_t* data, uint16_t len )
    else
    {
       // Overflow or data too big
-      DEB_2_SET();
+      DEB_3_SET();
    }
    
 }

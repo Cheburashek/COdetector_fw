@@ -23,8 +23,8 @@
 */
 
 
-#define RTC_PERIOD_S 10       // Max 2047s
-
+#define RTC_PERIOD_S       1       // Max 2047s
+#define ADC_DIVIDER        1000     // Input voltage divider ( 1:1 -> 1000 )
 
 /*****************************************************************************************
    GLOBAL CONFIGURATION DEFINES
@@ -53,7 +53,7 @@
 #define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
-#define CFG_PRIO_SPI         SPI_INTLVL_MED_gc // not working on HI int - why?
+#define CFG_PRIO_SPI         SPI_INTLVL_LO_gc // not working on HI int - why?
 
 // ADC intlvl:
 #define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc
