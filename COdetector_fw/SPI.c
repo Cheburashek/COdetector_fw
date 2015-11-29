@@ -52,11 +52,14 @@ void spiInit ( void )
 {
    
    // Pins as output: 
-   PORTC.DIRSET |= ( CFG_RST_PIN_MASK  |
+   PORTC.DIRSET = ( CFG_RST_PIN_MASK  |
                      CFG_SCE_PIN_MASK  |
                      CFG_DC_PIN_MASK   |
                      CFG_MOSI_PIN_MASK |
                      CFG_SCK_PIN_MASK  ); 
+   
+   PORTC.DIRSET = PIN4_bm;
+   PORTC.OUTCLR = PIN4_bm;
    
    // Unbuffered mode (simple tx use)
    SPIC.CTRLB = SPI_SSD_bm;      // Slave select disable (master mode) 
