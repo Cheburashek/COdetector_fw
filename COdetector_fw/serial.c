@@ -71,35 +71,35 @@ static bool initFlag = FALSE;
 
 //****************************************************************************************
 // Serial on PORTC initialization:
-void serialInitC ( void )
+void serialInitD ( void )
 {
    // PORTC configuration:
    
-   PORTC.REMAP &= ~PORT_USART0_bm;       // Don't remap ports from 0-3 to 4-7   
-   PORTC.DIRSET = CFG_TXC0_PIN_MASK;     // Output for Tx (pin must be manually set to output)
-   PORTC.DIRCLR = CFG_RXC0_PIN_MASK;     // Input for Rx
+   PORTD.REMAP &= ~PORT_USART0_bm;       // Don't remap ports from 0-3 to 4-7   
+   PORTD.DIRSET = CFG_TXD0_PIN_MASK;     // Output for Tx (pin must be manually set to output)
+   PORTD.DIRCLR = CFG_RXD0_PIN_MASK;     // Input for Rx
    
    // CTRLC:
-   USARTC0.CTRLC =  ( USART_CMODE_ASYNCHRONOUS_gc |    // Asynchronous transfer mode
+   USARTD0.CTRLC =  ( USART_CMODE_ASYNCHRONOUS_gc |    // Asynchronous transfer mode
                       USART_PMODE_DISABLED_gc     |    // Parity mode disabled
                       USART_CHSIZE_8BIT_gc        );   // 8b per frame                   
                       
-   USARTC0.CTRLC &= ~USART_SBMODE_bm;  // Stop bit disabled
+   USARTD0.CTRLC &= ~USART_SBMODE_bm;  // Stop bit disabled
    
    // Baud rate
        
-   USARTC0.BAUDCTRLA =  BSEL_BAUD_VAL;           // 8 LSB of BSEL
-   USARTC0.BAUDCTRLB =  BSCALE_BAUD_VAL | ((BSEL_BAUD_VAL >> 8) & 0x0F) ;           // 4 MSB of BSEL and BSCALE    
+   USARTD0.BAUDCTRLA =  BSEL_BAUD_VAL;           // 8 LSB of BSEL
+   USARTD0.BAUDCTRLB =  BSCALE_BAUD_VAL | ((BSEL_BAUD_VAL >> 8) & 0x0F) ;           // 4 MSB of BSEL and BSCALE    
        
         
    // Priorities from common.h:
-   USARTC0.CTRLA = CFG_PRIO_USARTC0;  
+   USARTD0.CTRLA = CFG_PRIO_USARTD0;  
          
-   USARTC0.CTRLB |= ( USART_TXEN_bm |    // Transmitter enabled
+   USARTD0.CTRLB |= ( USART_TXEN_bm |    // Transmitter enabled
                       //USART_RXEN_bm |    // Receiver enabled
                       USART_CLK2X_bm );  // Enabling 2x clock    
                        
-   USARTC0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
+   USARTD0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
    
    LOG_TXT ( ">>init<<   Serial initialized\n", 31 );
    
@@ -110,7 +110,7 @@ void serialInitC ( void )
 //****************************************************************************************
 // Serial on PORTC send (add to buffer and start triggering tx):
 
-void serialSendC ( const uint8_t* data, uint8_t len )
+void serialSendD ( const uint8_t* data, uint8_t len )
 {
    
    // TODO: Critical section  here
@@ -125,14 +125,13 @@ void serialSendC ( const uint8_t* data, uint8_t len )
       
       if ( (txBuff == txTail) && (TRUE == initFlag) )       // Initial send
       {        
-         USARTC0.DATA = *txTail;    // First character sent starts transmission
+         USARTD0.DATA = *txTail;    // First character sent starts transmission
          txTail++;
       }                
    }
    else
    {
-      // Overflow or data too big  
-      DEB_3_SET();    
+      // Overflow or data too big     
    }
    
 }
@@ -140,7 +139,7 @@ void serialSendC ( const uint8_t* data, uint8_t len )
 
 //****************************************************************************************
 // TODO: modify this
-void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
+void serialLogUintD ( uint8_t* txt, uint8_t len, uint32_t val )
 {
    char temp[10];
       
@@ -163,9 +162,9 @@ void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
       
    (void) utoa ( (unsigned int)val, temp, 10 );
    
-   serialSendC ( (const uint8_t*) txt, len );
-   serialSendC ( (const uint8_t*) temp, numLen );
-   serialSendC ( (const uint8_t*) "\n", 2 );
+   serialSendD ( (const uint8_t*) txt, len );
+   serialSendD ( (const uint8_t*) temp, numLen );
+   serialSendD ( (const uint8_t*) "\n", 2 );
    
 }
 
@@ -173,23 +172,24 @@ void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val )
 //****************************************************************************************
 // Serial Tx complete ISR ( tx flag is cleared automatically):
 
-ISR ( USARTC0_TXC_vect )
+ISR ( USARTD0_TXC_vect )
 {             
    if ( txTail < txHead )
    {
-      USARTC0.DATA = *txTail;
+      USARTD0.DATA = *txTail;
       txTail++;      
    }
    else // All of data from buffer is send
    {
       txTail = txBuff;
       txHead = txTail;    
-   } 
+   }    
+   
 }
 
 
 
 //****************************************************************************************
-ISR ( USARTC0_RXC_vect )
+ISR ( USARTD0_RXC_vect )
 {   
 }

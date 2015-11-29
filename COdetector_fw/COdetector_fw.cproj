@@ -108,7 +108,7 @@
       <Value>F_CPU_2MHZ=2000000U</Value>
       <Value>F_CPU_32KHZ=32768U</Value>
       <Value>DEBUG</Value>
-      <Value>LOG_USARTC0</Value>
+      <Value>LOG_USARTD0</Value>
       <Value>F_CPU=F_CPU_8MHZ</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>

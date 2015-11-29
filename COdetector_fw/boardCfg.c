@@ -84,8 +84,8 @@ void boardInit ( void )
 
    
    // Initializations:
-   #ifdef LOG_USARTC0
-      serialInitC();
+   #ifdef LOG_USARTD0
+      serialInitD();
    #endif  
       
    CFG_GLOBAL_INT_ENABLE();

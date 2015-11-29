@@ -53,12 +53,14 @@ void timerInit (void )
    }   
    
    while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}      // Wait until SYNCBUSY is cleared
-   RTC.PER = RTC_PERIOD_S * 31,25;                // 32ms period
+      
+      
+   RTC.PER = RTC_PERIOD_S * 128;                // 32ms period
    
    RTC.INTCTRL = CFG_PRIO_RTC_OVFL;     // from boardCfg.h
    
    while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}  // Wait until SYNCBUSY is cleared 
-   RTC.CTRL = RTC_PRESCALER_DIV1024_gc;      // For 1s resolution
+   RTC.CTRL = RTC_PRESCALER_DIV256_gc;      // For 1s resolution
 
    
    CLK.RTCCTRL = CLK_RTCEN_bm           // RTC source enabled

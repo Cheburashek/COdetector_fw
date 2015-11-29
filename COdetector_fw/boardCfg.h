@@ -30,27 +30,27 @@
    GLOBAL CONFIGURATION DEFINES
 */
 
-// UARTC0 pins ( PORTC ):
-#define CFG_TXC0_PIN_MASK        PIN3_bm  
-#define CFG_RXC0_PIN_MASK        PIN2_bm
+// UARTC0 pins ( PORTD ):
+#define CFG_TXD0_PIN_MASK        PIN3_bm  
+#define CFG_RXD0_PIN_MASK        PIN2_bm
 
 // SPI pins (for lcd3310) ( PORTC ):
 #define CFG_RST_PIN_MASK         PIN0_bm 
 #define CFG_SCE_PIN_MASK         PIN1_bm
-#define CFG_DC_PIN_MASK          PIN4_bm
+#define CFG_DC_PIN_MASK          PIN2_bm
 #define CFG_SCK_PIN_MASK         PIN5_bm
 #define CFG_MOSI_PIN_MASK        PIN7_bm
 
 // ADC pins (PORTA):
-#define CFG_ADC_PIN_MASK         PIN0_bm
-#define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN0_gc
+#define CFG_ADC_PIN_MASK         PIN4_bm
+#define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN4_gc
 
 // IO:   (PORTA)
 
 
 /*** Interrupts priority ****/ 
 
-#define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
+#define CFG_PRIO_USARTD0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
 #define CFG_PRIO_SPI         SPI_INTLVL_LO_gc // not working on HI int - why?

@@ -24,11 +24,12 @@
 */
 
 // LOGS:
-#ifdef LOG_USARTC0
-   #define LOG_TXT( txt, len )         serialSendC( (const uint8_t*)txt, (uint8_t)len )
-   #define LOG_UINT( txt, len, val )  serialLogUintC ( (const uint8_t*)txt, (uint8_t)len, (uint32_t) val )
+#ifdef LOG_USARTD0
+   #define LOG_TXT( txt, len )         serialSendD( (const uint8_t*)txt, (uint8_t)len )
+   #define LOG_UINT( txt, len, val )   serialLogUintD ( (const uint8_t*)txt, (uint8_t)len, (uint32_t) val )
 #else 
    #define LOG_TXT( txt, len )         // NULL
+   #define LOG_UINT( txt, len, val )   // NULL
 #endif
 
    
@@ -36,11 +37,11 @@
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
-void serialInitC ( void );
+void serialInitD ( void );
 
-void serialSendC ( const uint8_t* data, uint8_t len );
+void serialSendD ( const uint8_t* data, uint8_t len );
 
-void serialLogUintC ( uint8_t* txt, uint8_t len, uint32_t val );
+void serialLogUintD ( uint8_t* txt, uint8_t len, uint32_t val );
 
 
 #endif /* SERIAL_H_ */

@@ -23,6 +23,8 @@
 // TODO: timestamps : RTC
 // TODO: clk in lopo
 
+// TODO: add temperature measurement 
+
 #include "common.h"
 
 
@@ -41,8 +43,19 @@ int main(void)
    
    boardInit();                        // Board peripherals initialization       
 
+   PORTA_DIRSET = PIN7_bm;
+   PORTA_DIRSET = PIN6_bm;
+
+
+   PORTA_OUTCLR = PIN6_bm; // bcklght
+
    while(1)
    {
+      for ( uint32_t i = 0; i < 160000; i++ ){}
+      PORTA_OUTTGL = PIN7_bm;
+      
+      //LOG_TXT ("Dupa 1000", 9 ); // TODO: StrLen    
+
 
    }
 
