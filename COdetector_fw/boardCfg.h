@@ -26,6 +26,8 @@
 #define RTC_PERIOD_S       1       // Max 2047s
 #define ADC_DIVIDER        1000     // Input voltage divider ( 1:1 -> 1000 )
 
+
+
 /*****************************************************************************************
    GLOBAL CONFIGURATION DEFINES
 */

@@ -25,11 +25,13 @@
 
 // LOGS:
 #ifdef LOG_USARTD0
-   #define LOG_TXT( txt, len )         serialSendD( (const uint8_t*)txt, (uint8_t)len )
-   #define LOG_UINT( txt, len, val )   serialLogUintD ( (const uint8_t*)txt, (uint8_t)len, (uint32_t) val )
+   #define LOG_TXT( txt )              serialSendD( (const uint8_t*)txt, (sizeof(txt)-1) )
+   #define LOG_TXT_WL( txt, len )      serialSendD( (const uint8_t*)txt, len )
+   #define LOG_UINT( txt, val )        serialLogUintD ( (const uint8_t*)txt, (sizeof(txt)-1), (uint32_t) val )
 #else 
-   #define LOG_TXT( txt, len )         // NULL
-   #define LOG_UINT( txt, len, val )   // NULL
+   #define LOG_TXT( txt )              // NULL
+   #define LOG_TXT_WL( txt, len )      // NULL
+   #define LOG_UINT( txt, val )        // NULL
 #endif
 
    

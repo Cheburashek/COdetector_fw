@@ -58,7 +58,7 @@ void spiInit ( void )
                      CFG_MOSI_PIN_MASK |
                      CFG_SCK_PIN_MASK  ); 
    
-   PORTC.DIRSET = PIN4_bm;
+   PORTC.DIRSET = PIN4_bm; // Imoportant: Slave select is there!
    PORTC.OUTCLR = PIN4_bm;
    
    // Unbuffered mode (simple tx use)
@@ -71,7 +71,7 @@ void spiInit ( void )
   // SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h     
 
                                 
-   LOG_TXT ( ">>init<<   SPI initialized\n", 28 );
+   LOG_TXT ( ">>init<<   SPI initialized\n" );
    SPI_EN(); // wywalic
 }
 

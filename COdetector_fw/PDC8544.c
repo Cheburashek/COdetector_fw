@@ -195,7 +195,7 @@ void pdcInit( void )
 
    pdcClearRAM();
 
-   LOG_TXT ( ">>init<<   PDC8544 initialized\n", 32 );   
+   LOG_TXT ( ">>init<<   PDC8544 initialized\n");   
 }
 
 

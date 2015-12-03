@@ -42,7 +42,7 @@
 
 
 #define TX_BUF_LEN 256
-#define RX_BUF_LEN 128
+#define RX_BUF_LEN 1
 
 
 /*****************************************************************************************
@@ -101,7 +101,7 @@ void serialInitD ( void )
                        
    USARTD0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
    
-   LOG_TXT ( ">>init<<   Serial initialized\n", 31 );
+   LOG_TXT ( ">>init<<   Serial initialized\n");
    
    initFlag = TRUE;
 }

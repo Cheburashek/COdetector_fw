@@ -54,7 +54,7 @@ int main(void)
       for ( uint32_t i = 0; i < 160000; i++ ){}
       PORTA_OUTTGL = PIN7_bm;
       
-      //LOG_TXT ("Dupa 1000", 9 ); // TODO: StrLen    
+      //LOG_TXT ("Dupa 1000"); // TODO: StrLen    
 
 
    }

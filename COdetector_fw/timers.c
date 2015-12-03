@@ -68,7 +68,7 @@ void timerInit (void )
    
 
 
-   LOG_TXT ( ">>init<<   Timer initialized\n", 30 );
+   LOG_TXT ( ">>init<<   Timer initialized\n" );
 }
 
 

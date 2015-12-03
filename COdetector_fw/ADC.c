@@ -31,8 +31,8 @@
 #define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
 #define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
 
-#define ADC_OFF_MAN_CORR   175   // Manually measured offset in 12b storage
-
+#define ADC_OFF_MAN_CORR   102   // Manually measured offset in 12b storage
+#define ADC_GAIN_MAN_CORR  0x7DA   // 357page in manual
 /*****************************************************************************************
    LOCAL VARIABLES
 */
@@ -69,8 +69,8 @@ void adcInit ( void )
    // PORT:
    PORTA.DIRCLR = CFG_ADC_PIN_MASK;             // Input
    
-   ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
-                ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
+  ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
+              ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
                   
    ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;       // Number of samples (averaging) - 16bit
 
@@ -78,8 +78,7 @@ void adcInit ( void )
    
    ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
    
-   ADC_EN();                                    // Enabling ADC block
-   //adcOffCalibration ();
+
    
    ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Single ended input
    ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
@@ -88,14 +87,14 @@ void adcInit ( void )
    ADCA.CH0.OFFSETCORR0 = ADC_OFF_MAN_CORR & 0xFF;
    ADCA.CH0.OFFSETCORR1 = ADC_OFF_MAN_CORR >> 8;
    
-   ADCA.CH0.GAINCORR0 = 0x00;
-   ADCA.CH0.GAINCORR1 = 0x08;          // Gain correction x1  
+   ADCA.CH0.GAINCORR0 = ADC_GAIN_MAN_CORR & 0xFF;
+   ADCA.CH0.GAINCORR1 = ADC_GAIN_MAN_CORR >> 8;          // Gain correction x1  
        
    ADCA.CH0.CORRCTRL = 0x01;     // Correction enabled
                                
    ADC_EN();
    
-   LOG_TXT ( ">>init<<   ADC initialized\n", 28 );
+   LOG_TXT ( ">>init<<   ADC initialized\n" );
 }
  
  
@@ -153,5 +152,4 @@ ISR ( ADCA_CH0_vect )
    {       
       convEndCB (  (uint16_t)ADCA.CH0RES );      
    }  
-   
 }
