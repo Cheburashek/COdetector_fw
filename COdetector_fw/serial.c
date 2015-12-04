@@ -110,7 +110,7 @@ void serialInitD ( void )
 //****************************************************************************************
 // Serial on PORTC send (add to buffer and start triggering tx):
 
-void serialSendD ( const uint8_t* data, uint8_t len )
+void serialSendD ( uint8_t* data, uint8_t len )
 {
    
    // TODO: Critical section  here
@@ -162,9 +162,9 @@ void serialLogUintD ( uint8_t* txt, uint8_t len, uint32_t val )
       
    (void) utoa ( (unsigned int)val, temp, 10 );
    
-   serialSendD ( (const uint8_t*) txt, len );
-   serialSendD ( (const uint8_t*) temp, numLen );
-   serialSendD ( (const uint8_t*) "\n", 2 );
+   serialSendD ( (uint8_t*) txt, len );
+   serialSendD ( (uint8_t*) temp, numLen );
+   serialSendD ( (uint8_t*) "\n", 2 );
    
 }
 

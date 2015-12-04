@@ -43,12 +43,12 @@ typedef struct
    
 } timeStruct_t;
 
-typedef uint16_t meanQueueType_t;
+typedef uint16_t meanType_t;
 
 typedef struct
 {
-   meanQueueType_t* pStart;
-   meanQueueType_t* pHead;
+   meanType_t* pStart;
+   meanType_t* pHead;
    uint16_t len;
    bool firstOF;   
    
@@ -77,7 +77,7 @@ static meanQueue_t mean8hQ;
 static void systemPeriodicRefresh ( void );
 
 static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len );
-static void systemQueuePush (  meanQueue_t* pQueue, meanQueueType_t val );
+static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val );
 
 static uint16_t systemConvertFromRaw ( uint16_t raw );
 static void systemDisplayVals ( void );
@@ -121,11 +121,11 @@ static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len )
 
 //****************************************************************************************
 // Adding value to queue:
-static void systemQueuePush (  meanQueue_t* pQueue, meanQueueType_t val )
+static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val )
 {  
    *pQueue->pHead = val;
    
-   if ( pQueue->pHead < (pQueue->pStart + (pQueue->len/sizeof(meanQueueType_t))) )
+   if ( pQueue->pHead < (pQueue->pStart + pQueue->len) )
    {
       pQueue->pHead++;
    }
@@ -138,14 +138,26 @@ static void systemQueuePush (  meanQueue_t* pQueue, meanQueueType_t val )
 
 //****************************************************************************************
 // Calculating mean value from queue:
-static void systemQueueCalcMean ( pQueue )
+static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
 {
+   //TODO: critical section?
+   uint16_t len = pQueue->len;
+   meanType_t* pTemp = pQueue->pStart;
+   uint32_t tempVal = 0;
    
+   if ( false == pQueue->firstOF ) // When before first queue overflow
+   {
+      len = pQueue->pHead - pQueue->pStart;  // Use only stored data, not random values from memory
+   }
+   
+   for ( uint16_t i = 0; i < len; i++ )
+   {
+      tempVal += *pTemp;      
+      pTemp++;     
+   }
+
+   *buf = (meanType_t)(tempVal/len);   // Mean value      
 }
-
-
-
-
 
 
 
@@ -228,6 +240,27 @@ void systemInit ( void )
    systemQueueInit ( &mean1mQ, MEAN_1M_QUEUE_LEN );
    systemQueueInit ( &mean1hQ, MEAN_1H_QUEUE_LEN );
    systemQueueInit ( &mean8hQ, MEAN_8H_QUEUE_LEN );
+   
+   // TEST
+   
+   for ( uint16_t v = 0; v < MEAN_8H_QUEUE_LEN; v++ )
+   {      
+      systemQueuePush( &mean8hQ, v );
+   }   
+   
+   uint16_t val;
+   
+   systemQueueCalcMean( &mean8hQ, &val );
+
+   
+   LOG_UINT ( "mean: ", val );
+   LOG_UINT ( "len: ", mean8hQ.len );
+   LOG_UINT ( "OFf: ", mean8hQ.firstOF );
+   LOG_UINT ( "pS: ", (uint16_t)mean8hQ.pStart );
+   LOG_UINT ( "pH: ", (uint16_t)mean8hQ.pHead );
+   //TEST
+   
+   
    
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
