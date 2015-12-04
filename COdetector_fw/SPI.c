@@ -7,6 +7,12 @@
 
 // Only for receiving, clock frequency should be <4MHz
 
+
+//Do opisu: struktura do SPI - na czas wysy³ania bajtu potrzebne jest ustawienie odpowiednio pinu DC
+// co normalnie nie by³oby mo¿liwe, dlatego stworzy³em strukturê, która pozwala na wspó³bie¿ne wysy³anie bajtu
+// i ustawianie stowarzyszonego z nim stanu pinu Data/Config
+
+
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -27,9 +33,9 @@
 */
 
 // It's not a circular, but linear buffer!
-static uint8_t  txBuff [ TX_BUFF_LEN ];
-static uint8_t* txHead = txBuff;
-static uint8_t* txTail = txBuff;
+static spiEnhStruct_t  txBuff [ TX_BUFF_LEN ];
+static spiEnhStruct_t* txHead = txBuff;
+static spiEnhStruct_t* txTail = txBuff;
 
 
 static pfnTxEnd txEndCB = NULL;
@@ -52,54 +58,62 @@ void spiInit ( void )
 {
    
    // Pins as output: 
-   PORTC.DIRSET = ( CFG_RST_PIN_MASK  |
+   PORTC.DIRSET = (  CFG_RST_PIN_MASK  |
                      CFG_SCE_PIN_MASK  |
                      CFG_DC_PIN_MASK   |
                      CFG_MOSI_PIN_MASK |
                      CFG_SCK_PIN_MASK  ); 
    
-   PORTC.DIRSET = PIN4_bm; // Imoportant: Slave select is there!
-   PORTC.OUTCLR = PIN4_bm;
+   PORTC.DIRCLR= PIN4_bm;             // Important: Slave select is there!
+   PORTC.PIN4CTRL = PORT_OPC_PULLUP_gc;
    
-   // Unbuffered mode (simple tx use)
-   SPIC.CTRLB = SPI_SSD_bm;      // Slave select disable (master mode) 
+   SPIC.CTRLB = SPI_SSD_bm;            // Slave select disable (master mode), unbuffered mode   
    
-   // TODO: DMA?
    SPIC.CTRL = ( SPI_CLK2X_bm    |     // Clock Double
-                 SPI_MASTER_bm   );    // Master mode               
+                 SPI_MASTER_bm   );    // Master mode          
    
-  // SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h     
-
+   SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h    
                                 
-   LOG_TXT ( ">>init<<   SPI initialized\n" );
-   SPI_EN(); // wywalic
+   LOG_TXT ( ">>init<<   SPI initialized\n" );   
 }
 
 //****************************************************************************************
-void spiSend ( const uint8_t* data, uint16_t len )
+void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
 {
-   // TODO: Critical section  here
+   
+   // TODO: Critical section  here?
    if ( ((txBuff + TX_BUFF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )
       {
-         *txHead = *data;
+         *txHead = *dataStr;
          txHead++;
-         data++;
+         dataStr++;  // TODO: check if it could be as a txHead++ = dataStr++;
       }
       
       if ( txBuff == txTail )    // Initial send
       {
          SPI_EN();               // Enabling SPI
-         SPIC.DATA = *txTail;    // First character sent starts transmission
+         
+#ifdef ENHANCED_SPI
+         if ( txTail->outDC )
+         {
+            DC_HI();            
+         }
+         else
+         {
+            DC_LO();            
+         }
+#endif
+         SPIC.DATA = txTail->data;    // First character sent starts transmission
+         
          txTail++;
       }
    }
    else
    {
       // Overflow or data too big
-      DEB_3_SET();
-   }
+   }    
    
 }
 
@@ -117,10 +131,22 @@ ISR ( SPIC_INT_vect )
    // Is there critical section necessary ?
    if ( txTail < txHead )
    {
-      SPIC.DATA = *txTail;
+               
+ #ifdef ENHANCED_SPI
+      if ( txTail->outDC )
+      {
+         DC_HI();
+      }
+      else
+      {
+         DC_LO();
+      }
+ #endif
+ 
+      SPIC.DATA = txTail->data;
       txTail++;
    }
-   else // All of data from buffer are send
+   else // All of data from buffer is send
    {
       txTail = txBuff;
       txHead = txTail;

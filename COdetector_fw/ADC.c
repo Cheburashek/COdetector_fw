@@ -38,7 +38,7 @@
 */
 
 static pfnAdcEnd convEndCB = NULL;
-static void adcOffCalibration ( void );
+
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -132,7 +132,6 @@ void adcInit ( void )
 void adcStartChToGnd ( void )
 {
    ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS; 
-   DEB_1_SET(); 
    ADC_START();
 }
 
@@ -147,7 +146,6 @@ void adcRegisterEndCb ( pfnAdcEnd cb )
 //****************************************************************************************
 ISR ( ADCA_CH0_vect )
 {  
-   DEB_1_CLR();
    if ( NULL != convEndCB )
    {       
       convEndCB (  (uint16_t)ADCA.CH0RES );      

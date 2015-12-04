@@ -161,7 +161,7 @@ static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len )
    pQueue->pStart = malloc ( len );
    pQueue->pHead = pQueue->pStart;
    pQueue->len = len;
-      
+       
    if ( NULL == pQueue->pHead )
    {
       LOG_TXT ( "Cannot allocate queue!" );

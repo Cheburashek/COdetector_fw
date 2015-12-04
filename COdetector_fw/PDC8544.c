@@ -22,15 +22,9 @@
    LOCAL MACROS
 */
 
-#define DC_LO()      ( PORTC.OUTCLR = CFG_DC_PIN_MASK  )
-#define DC_HI()      ( PORTC.OUTSET = CFG_DC_PIN_MASK  )
-#define SCE_LO()     ( PORTC.OUTCLR = CFG_SCE_PIN_MASK )
-#define SCE_HI()     ( PORTC.OUTSET = CFG_SCE_PIN_MASK )
-#define RST_LO()     ( PORTC.OUTCLR = CFG_RST_PIN_MASK )
-#define RST_HI()     ( PORTC.OUTSET = CFG_RST_PIN_MASK )
 
-#define DC_DATA      1
-#define DC_CMD       0
+#define DC_DATA      true
+#define DC_CMD       false
 
 
 /*****************************************************************************************
@@ -154,7 +148,7 @@ static const uint8_t charTab[480] = {
 
 static void pdcChipDisable ( void );
 static void pdcReset( void );
-static void pdcSend( uint8_t DC, uint8_t data );
+static void pdcSend( bool DC, uint8_t data );
 static void pdcSetRow( uint8_t addr_Y );
 static void pdcSetCol( uint8_t addr_X );
 static void pdcClearRAM( void );
@@ -171,21 +165,19 @@ static void pdcClearLine( uint8_t pos_Y );
 static void pdcReset( void )
 {   
    RST_LO();
-   _delay_ms(5);  // TODO: delay not ok
+   _delay_ms(15);  
    RST_HI();   
-   _delay_ms(5);   
+   _delay_ms(15);   
 }
 
 // *************************************************************************
 // Function to configure PDC8544
 void pdcInit( void )
-{
+{     
    spiRegisterTxEndCB ( pdcChipDisable );
-
+   
    pdcReset(); 
-   
- 
-   
+     
    pdcSend( DC_CMD, 0x21 );	// Extended cmd
    pdcSend( DC_CMD, 0xE0 );	// Bias
    pdcSend( DC_CMD, 0x04 );	// Temp. control
@@ -208,27 +200,33 @@ inline static void pdcChipDisable ( void )
 
 // *************************************************************************
 // Function to send data
-static void pdcSend( uint8_t DC, uint8_t data )
+static void pdcSend( bool DC, uint8_t data )
 {
+   spiEnhStruct_t dataStr = {data, DC};
+   
+  //SPI_EN();
+   
    SCE_LO();
    
-   switch(DC)
-   {
-      case DC_DATA:
-         DC_HI();
-      break;
-      
-      case DC_CMD:
-         DC_LO();
-      break;
-   }
-   
-   //spiSend( &data, 1 );
+   //switch(DC)
+   //{
+      //case DC_DATA:
+         //dataStr.outDC = true;
+         //DC_HI();
+      //break;
+      //
+      //case DC_CMD:
+         //dataStr.outDC = false;
+         //DC_LO();
+      //break;
+   //}
+   //
+   spiSend( &dataStr, 1 );
    
    // Very, very temporary and bad: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1oneonejedenein
-   SPIC.DATA = data;
-   while ( !SPIC.STATUS & SPI_IF_bm ){}
-   (void)SPIC.DATA; 
+   //SPIC.DATA = data;
+   //while ( !SPIC.STATUS & SPI_IF_bm ){}
+   //(void)SPIC.DATA;
 }
 
 // *************************************************************************
@@ -302,13 +300,8 @@ static void pdcClearLine( uint8_t pos_Y )
 // Function to write a single char from a table
 void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
 {
-
    uint8_t X = 0;
-   
-   //if( ch < 0x20 || ch > 0x7F ){ /*ERROR!!!!!!*/ }
-   //if( pos_X > 13 ){ /*ERROR!!!!!!*/ }
-   //if( pos_Y > 5  ){ /*ERROR!!!!!!*/ }
-   
+    
    pdcSetRow( pos_Y   );				// Setting active row
    pdcSetCol( pos_X*6 ); 
 
@@ -359,26 +352,30 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    
    temp_val = val;
    
-     
-    
-   for( k = 1; k <= len; k++ )
-   {      
-      temp_ch = temp_val % 10;
-      temp_ch += 0x30;			// Number -> ASCII
+   if ( 0x00 == val )
+   {         
+      pdcChar( 0x30, pos_Y, pos_X ); 
+   } 
+   else
+   {
+      for( k = 1; k <= len; k++ )
+      {      
+         temp_ch = temp_val % 10;
+         temp_ch += 0x30;			// Number -> ASCII
       
-      pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	
-      temp_val /= 10;
-   }
-
-   if( len != length )
-   {      
-      for( k = 1; k <= (length - len); k++ )
-      {
-         pdcChar( ' ', pos_Y, (pos_X+length-k) );         
+         pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	
+         temp_val /= 10;
       }
-   }
-   else{	/*ERROR!!!!!! */ }
-   
+
+      if( len != length )
+      {      
+         for( k = 1; k <= (length - len); k++ )
+         {
+            pdcChar( ' ', pos_Y, (pos_X+length-k) );         
+         }
+      }
+      else{	/*ERROR!!!!!! */ }
+   }     
 }
 
 

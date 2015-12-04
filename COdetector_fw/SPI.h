@@ -19,11 +19,22 @@
    GLOBAL DEFINITIONS
 */
 
+#define ENHANCED_SPI
+
 /*****************************************************************************************
    GLOBAL TYPEDEFS
 */
 
 typedef void (*pfnTxEnd) (void);
+
+// Struct with data to send and DC bit:
+typedef struct 
+{
+   uint8_t data;
+   bool outDC;
+   
+} spiEnhStruct_t;
+
 
 /*****************************************************************************************
    GLOBAL MACROS
@@ -38,7 +49,7 @@ typedef void (*pfnTxEnd) (void);
 
 void spiInit ( void );
 
-void spiSend ( const uint8_t* data, uint16_t len );
+void spiSend ( spiEnhStruct_t* dataStr, uint16_t len );
 
 void spiRegisterTxEndCB ( pfnTxEnd cb);
 

@@ -104,20 +104,27 @@
 #define PRIO_HI_LEVEL_DISABLE()       ( PMIC_CTRL &= ~PMIC_HILVLEN_bm  )
 #define PRIO_ALL_LEVELS_DISABLE()     ( PMIC_CTRL &= ~0x07             )
 
+// Critical sections:
 
-#define ENTER_CRITICAL_SECTION( actInt )      uint
+#define ENTER_CRIT_ALL()      {  uint8_t actInt = PMIC_CTRL;\
+                                  PRIO_ALL_LEVELS_DISABLE();
 
-#define DEB_1_SET()     PORTD.OUTSET = PIN5_bm
-#define DEB_2_SET()     PORTD.OUTSET = PIN6_bm
-#define DEB_3_SET()     PORTD.OUTSET = PIN7_bm
+#define ENTER_CRIT_HI()       {  uint8_t actInt = PMIC_CTRL;\
+                                 PRIO_LOW_LEVEL_DISABLE();\
+                                 PRIO_MED_LEVEL_DISABLE();    
 
-#define DEB_1_CLR()     PORTD.OUTCLR = PIN5_bm
-#define DEB_2_CLR()     PORTD.OUTCLR = PIN6_bm
-#define DEB_3_CLR()     PORTD.OUTCLR = PIN7_bm
+#define ENTER_CRIT_MED()      {  uint8_t actInt = PMIC_CTRL;\
+                                 PRIO_LOW_LEVEL_DISABLE();                               
+                                                                                        
+#define EXIT_CRITICAL()          PMIC_CTRL = actInt;         }                               
 
-#define DEB_1_TGL()     PORTD.OUTTGL = PIN5_bm
-#define DEB_2_TGL()     PORTD.OUTTGL = PIN6_bm
-#define DEB_3_TGL()     PORTD.OUTTGL = PIN7_bm
+// Macros for PDC8544:
+#define DC_LO()      ( PORTC.OUTCLR = CFG_DC_PIN_MASK  )
+#define DC_HI()      ( PORTC.OUTSET = CFG_DC_PIN_MASK  )
+#define SCE_LO()     ( PORTC.OUTCLR = CFG_SCE_PIN_MASK )
+#define SCE_HI()     ( PORTC.OUTSET = CFG_SCE_PIN_MASK )
+#define RST_LO()     ( PORTC.OUTCLR = CFG_RST_PIN_MASK )
+#define RST_HI()     ( PORTC.OUTSET = CFG_RST_PIN_MASK )
 
 
 

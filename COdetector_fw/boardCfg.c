@@ -16,7 +16,7 @@
 */
 
 /*****************************************************************************************
-   LOCAL DEFINITIONS
+   LOCAL DEFINITIONS}
 */
 
 /*****************************************************************************************
@@ -91,7 +91,7 @@ void boardInit ( void )
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();
    
-   ioInit();
+   //ioInit();
    spiInit();
    pdcInit();
    adcInit();
