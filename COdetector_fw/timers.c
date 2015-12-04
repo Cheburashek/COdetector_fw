@@ -5,8 +5,8 @@
  *  Author: Chebu
  */ 
 
-
-// only for dr
+// Do opisu:
+//wybralem 32,768 kHz jako zrodlo RTC, bo mala roznica poboru energii a dokladniejszy
 
 /*****************************************************************************************
    LOCAL INCLUDES
@@ -55,16 +55,14 @@ void timerInit (void )
    while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}      // Wait until SYNCBUSY is cleared
       
       
-   RTC.PER = RTC_PERIOD_S * 128;                // 32ms period
+   RTC.PER = RTC_PERIOD_S * 1024;                // 1ms period
    
-   RTC.INTCTRL = CFG_PRIO_RTC_OVFL;     // from boardCfg.h
+   RTC.INTCTRL = CFG_PRIO_RTC_OVFL;            // from boardCfg.h  
+      
+   RTC.CTRL = RTC_PRESCALER_DIV1_gc;         
    
-   while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}  // Wait until SYNCBUSY is cleared 
-   RTC.CTRL = RTC_PRESCALER_DIV256_gc;      // For 1s resolution
-
-   
-   CLK.RTCCTRL = CLK_RTCEN_bm           // RTC source enabled
-               | CLK_RTCSRC_RCOSC32_gc;     // 32k ULP for RTC
+   CLK.RTCCTRL = CLK_RTCEN_bm                // RTC source enabled
+               | CLK_RTCSRC_RCOSC_gc;        // 1024kHz from 32k768Hz
    
 
 
@@ -81,9 +79,7 @@ void timerRegisterRtcCB ( pfnRTC cb )
 
 //****************************************************************************************
 ISR ( RTC_OVF_vect )
-{
-   DEB_2_TGL();
-   
+{   
    if ( NULL != rtcCB )
    {
       rtcCB();

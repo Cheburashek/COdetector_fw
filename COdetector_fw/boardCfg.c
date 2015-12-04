@@ -86,17 +86,18 @@ void boardInit ( void )
    // Initializations:
    #ifdef LOG_USARTD0
       serialInitD();
-   #endif  
+   #endif  (((((((((((((((((((((((((((((())))))))
       
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();
    
+   ioInit();
    spiInit();
    pdcInit();
    adcInit();
    timerInit();
    systemInit();
-
+   
    
    LOG_TXT ( ">>init<<   Board initialized\n" );
    

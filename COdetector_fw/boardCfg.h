@@ -23,7 +23,7 @@
 */
 
 
-#define RTC_PERIOD_S       1       // Max 2047s
+#define RTC_PERIOD_S       1        // Should be 1,3,5 or 15 [s]
 #define ADC_DIVIDER        1000     // Input voltage divider ( 1:1 -> 1000 )
 
 
@@ -47,7 +47,20 @@
 #define CFG_ADC_PIN_MASK         PIN4_bm
 #define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN4_gc
 
-// IO:   (PORTA)
+// IO pins (PORTD):   
+#define CFG_BUZZ_PIN_MASK        PIN1_bm
+#define CFG_BT1_PIN_MASK         PIN7_bm
+#define CFG_BT2_PIN_MASK         PIN6_bm    
+#define CFG_BT3_PIN_MASK         PIN5_bm 
+#define CFG_USB_CON_PIN_MASK     PIN4_bm 
+
+
+// IO pins (PORTA):  
+#define CFG_LED_PIN_MASK        PIN7_bm
+#define CFG_BCKLGHT_PIN_MASK    PIN6_bm
+
+
+
 
 
 /*** Interrupts priority ****/ 

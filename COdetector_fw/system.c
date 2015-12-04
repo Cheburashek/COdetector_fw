@@ -5,6 +5,12 @@
  *  Author: Chebu
  */ 
 
+
+// TODO: w czasie LoPo - co 5s, bez LoPo - 1s period
+
+// Do opisu:
+// Najpierw uruchamiam pomiar (20ms), aby jak najkrócej by³ wzbudzony uk³ad. 
+
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -20,11 +26,16 @@
    LOCAL DEFINITIONS
 */
 
+// Positions (Y) on LCD:
 #define LCD_ACTMEAS_POS_Y          1
+#define LCD_MEAN_1M_POS_Y          2
+#define LCD_MEAN_1H_POS_Y          3
+#define LCD_MEAN_8H_POS_Y          4
 
-#define MEAN_1M_QUEUE_LEN          12       // For 5 seconds * 1m  
-#define MEAN_1H_QUEUE_LEN          60       // For 1 minute * 1 hour
-#define MEAN_8H_QUEUE_LEN          480      // For 1 minute * 8 hours
+// Lengths of meaning queues:
+#define MEAN_1M_QUEUE_LEN          60/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
+#define MEAN_1H_QUEUE_LEN          60*MEAN_1M_QUEUE_LEN/4  // Meaning at every 15s for 1-hour         
+#define MEAN_8H_QUEUE_LEN          480                     // Meaning at every minute for 8-hour
 
 
 /*****************************************************************************************
@@ -69,6 +80,12 @@ static meanQueue_t mean1mQ;
 static meanQueue_t mean1hQ;
 static meanQueue_t mean8hQ;
 
+// Variables storing mean values:
+static meanType_t mean1mVal;
+static meanType_t mean1hVal;
+static meanType_t mean8hVal;
+
+
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
 */
@@ -78,6 +95,7 @@ static void systemPeriodicRefresh ( void );
 
 static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len );
 static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val );
+static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf );
 
 static uint16_t systemConvertFromRaw ( uint16_t raw );
 static void systemDisplayVals ( void );
@@ -86,21 +104,53 @@ static void systemTimeTickUpdate ( void );
 
 static void systemSerialLog ( void );
 
+
+
+
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
 */
 
+//****************************************************************************************
+// Periodic refresh (from RTC):
 static void systemPeriodicRefresh ( void )
 {   
-
+   static uint16_t ticks = 0;   
+   static bool initFlag = false;
    
-   actVal = systemConvertFromRaw ( rawVal );
-     
+   ioStatLED(true);        // Turning on status LED (blink driven by ADC measuring time)
+   adcStartChToGnd();      // Starting measure
+   
+   if ( initFlag )
+   {
+      actVal = systemConvertFromRaw ( rawVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]
+   
+      // Every tick:
+      systemQueuePush ( &mean1mQ, actVal );
+      systemQueueCalcMean ( &mean1mQ, &mean1mVal ); // For 1min meaning
+    
+      // Every 15 s:   
+      if ( 0 == (ticks % 15) )     
+      {
+         systemQueuePush ( &mean1hQ, mean1mVal );
+         systemQueueCalcMean ( &mean1hQ, &mean1hVal );  // For 1h meaning
+      }
+   
+      // Every 1 min :
+      if ( 0 == (ticks % 60)  )    
+      {
+         systemQueuePush ( &mean8hQ, mean1hVal );
+         systemQueueCalcMean ( &mean8hQ, &mean8hVal );  // For 8h meaning 
+         ticks = 0;
+      }
+   }   
+ 
    systemTimeTickUpdate();
    systemSerialLog();  
    systemDisplayVals();
    
-   adcStartChToGnd();
+   ticks += RTC_PERIOD_S;
+   initFlag = true;
 }
 
 //****************************************************************************************
@@ -182,19 +232,27 @@ static void systemDisplayVals ( void )
    
    // Measured values:
    pdcUint ( actVal, LCD_ACTMEAS_POS_Y, 6, 5 );
+   pdcUint ( mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
+   pdcUint ( mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
+   pdcUint ( mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );
+   
 }
 
 //****************************************************************************************
 static void systemDisplayBackground ( void )
 {
    pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
+   pdcLine ( "M1m:        mV", LCD_MEAN_1M_POS_Y );
+   pdcLine ( "M1h:        mV", LCD_MEAN_1H_POS_Y );
+   pdcLine ( "M8h:        mV", LCD_MEAN_8H_POS_Y );
 
 }
 
 //****************************************************************************************
 static void systemTimeTickUpdate ( void )
 {
-   sysTime.sec ++;
+   sysTime.sec += RTC_PERIOD_S;   // Period could be changed
+   
    if ( sysTime.sec >=60 )  
    { 
       sysTime.sec = 0;
@@ -241,7 +299,7 @@ void systemInit ( void )
    systemQueueInit ( &mean1hQ, MEAN_1H_QUEUE_LEN );
    systemQueueInit ( &mean8hQ, MEAN_8H_QUEUE_LEN );
    
-   // TEST
+   /* TEST
    
    for ( uint16_t v = 0; v < MEAN_8H_QUEUE_LEN; v++ )
    {      
@@ -258,7 +316,7 @@ void systemInit ( void )
    LOG_UINT ( "OFf: ", mean8hQ.firstOF );
    LOG_UINT ( "pS: ", (uint16_t)mean8hQ.pStart );
    LOG_UINT ( "pH: ", (uint16_t)mean8hQ.pHead );
-   //TEST
+   TEST*/
    
    
    
@@ -276,5 +334,6 @@ void systemInit ( void )
 //****************************************************************************************
 void systemMeasEnd ( uint16_t val )
 {
-   rawVal = val;   // For 16b res     
+   rawVal = val;
+   ioStatLED ( false ); // Turning off status LED  
 }
