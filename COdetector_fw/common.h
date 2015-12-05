@@ -23,12 +23,15 @@
 #include <stdio.h>
 
 #include "boardCfg.h"
+//#include "system.h"
 #include "serial.h"
-#include "SPI.h"
-#include "PDC8544.h"
-#include "ADC.h"
-#include "timers.h"
-#include "IO.h"
+//#include "SPI.h"
+//#include "PDC8544.h"
+//#include "ADC.h"
+//#include "timers.h"
+//#include "IO.h"
+//#include "interFace.h"
+
 
  
 /*****************************************************************************************

@@ -144,6 +144,12 @@
     <Compile Include="boardCfg.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="interFace.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="interFace.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="IO.c">
       <SubType>compile</SubType>
     </Compile>

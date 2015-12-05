@@ -11,6 +11,13 @@
 
 #include "boardCfg.h"
 #include "system.h"
+#include "serial.h"
+#include "SPI.h"
+#include "PDC8544.h"
+#include "ADC.h"
+#include "timers.h"
+#include "IO.h"
+#include "interFace.h"
 /*****************************************************************************************
    MACROS
 */
@@ -90,6 +97,7 @@ void boardInit ( void )
    adcInit();
    timerInit();
    systemInit();
+   ifInit();
    
    
    LOG_TXT ( ">>init<<   Board initialized\n" );
