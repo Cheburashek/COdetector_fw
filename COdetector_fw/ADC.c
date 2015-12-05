@@ -108,8 +108,8 @@ void adcInit ( void )
                       //ADC_CH_MUXNEGL_PIN0_gc ;
                       //
    //ADC_START();  
-   //while ( !ADCA.INTFLAGS ){;}
-   //ADCA.INTFLAGS = 0x01;         // Clearing this flag     
+   //while ( !ADCA.INTCTRLB ){;}
+   //ADCA.INTCTRLB = 0x01;         // Clearing this flag     
    //LOG_UINT ("rr ", 3, ADCA.CH0RES>>4 );
 //
    //uint16_t offTemp = ADCA.CH0RES >> 8;   // For 16b->12b
@@ -148,6 +148,6 @@ ISR ( ADCA_CH0_vect )
 {  
    if ( NULL != convEndCB )
    {       
-      convEndCB (  (uint16_t)ADCA.CH0RES );      
+      convEndCB (  (uint16_t)ADCA.CH0RES );            
    }  
 }

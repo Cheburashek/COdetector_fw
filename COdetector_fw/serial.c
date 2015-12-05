@@ -21,20 +21,20 @@
    LOCAL DEFINITIONS
 */
 #if ( F_CPU == F_CPU_32KHZ )
-   #define BSEL_BAUD_VAL 22               // 2400bps @ 32768Hz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b10110000)   // Should be between -7 to 7 in U2 // -5
+   #define BSEL_BAUD_VAL 22                // 2400bps @ 32768Hz & CLK2X enabled
+   #define BSCALE_BAUD_VAL (0b10110000)    // Should be between -7 to 7 in U2 // -5
    
 #elif ( F_CPU == F_CPU_2MHZ )
    #define BSEL_BAUD_VAL 54                // 57600bps @ 2MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11000000)   //  -4
+   #define BSCALE_BAUD_VAL (0b11000000)    //  -4
 
 #elif ( F_CPU == F_CPU_8MHZ )
-   #define BSEL_BAUD_VAL 137             // 57600bps @ 8MHz & CLK2X enabled
+   #define BSEL_BAUD_VAL 137               // 57600bps @ 8MHz & CLK2X enabled
    #define BSCALE_BAUD_VAL (0b11010000)    //  -3
    
 #elif ( F_CPU == F_CPU_32MHZ )
    #define BSEL_BAUD_VAL 137               // 57600bps @ 32MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11110000)   //  -1
+   #define BSCALE_BAUD_VAL (0b11110000)    //  -1
 
 #else 
    #error "F_CPU is not defined correctly!"

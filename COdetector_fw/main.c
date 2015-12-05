@@ -20,21 +20,13 @@
 */
 
 
-// TODO: timestamps : RTC
+
 // TODO: clk in lopo
+// TODO: add watchdog
 
 // TODO: add temperature measurement 
 
 #include "common.h"
-
-
-
-
-
-volatile uint16_t measVal = 0;    // Measured voltage on detector output
-
-static void endOfMeas ( uint16_t val );
-
 
 
 //****************************************************************************************
@@ -42,6 +34,7 @@ int main(void)
 {     
    
    boardInit();                        // Board peripherals initialization       
+  
 
    while(1)
    {
@@ -52,5 +45,4 @@ int main(void)
 
    
     
-
 

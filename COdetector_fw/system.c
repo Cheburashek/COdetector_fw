@@ -118,8 +118,13 @@ static void systemPeriodicRefresh ( void )
    static uint16_t ticks = 0;   
    static bool initFlag = false;
    
-   ioStatLED(true);        // Turning on status LED (blink driven by ADC measuring time)
-   adcStartChToGnd();      // Starting measure
+   
+   
+#ifdef STAT_LED_ON_ADC
+   ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
+#endif
+   
+   adcStartChToGnd();      // Starting measurement
    
    if ( initFlag )
    {
@@ -335,5 +340,8 @@ void systemInit ( void )
 void systemMeasEnd ( uint16_t val )
 {
    rawVal = val;
-   ioStatLED ( false ); // Turning off status LED  
-}
+   
+#ifdef STAT_LED_ON_ADC   
+   ioStatLedOff();      // State LED blinking
+#endif
+}  

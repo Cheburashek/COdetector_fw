@@ -16,16 +16,23 @@
 #include "common.h"
 
 /*****************************************************************************************
-   GLOBAL DEFINITIONS
+   GLOBAL DEFINITIONS & MACROS
 */
+
+
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
 void ioInit ( void );
-void ioBuzzer ( bool stat );
-void ioStatLED ( bool stat );
 
+void ioBuzzerOn ( void );
+void ioBuzzerOff ( void );
+void ioBuzzerTgl ( void );
+
+void ioStatLedOn ( void );
+void ioStatLedOff ( void );
+void ioStatLedTgl ( void );
 
 #endif /* IO_H_ */

@@ -40,14 +40,7 @@ void boardInit ( void )
    // TODO:
       // Low power pre-configuration:      
       // page 117 in manual (power reduction)!!!
-   
-   
-   
-   // Debug LEDs:
-   PORTD.DIRSET = PIN5_bm;
-   PORTD.DIRSET = PIN6_bm;
-   PORTD.DIRSET = PIN7_bm;   
-   
+  
 
       // Clocks:
    #if ( F_CPU == F_CPU_32KHZ )
@@ -86,12 +79,12 @@ void boardInit ( void )
    // Initializations:
    #ifdef LOG_USARTD0
       serialInitD();
-   #endif  (((((((((((((((((((((((((((((())))))))
+   #endif 
       
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();
    
-   //ioInit();
+   ioInit();
    spiInit();
    pdcInit();
    adcInit();

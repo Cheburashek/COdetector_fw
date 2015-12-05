@@ -46,8 +46,8 @@
 void ioInit ( void )
 {
    // Initial stats:
-   ioStatLED(false);
-   ioBuzzer(false);
+   ioStatLedOff();
+   ioBuzzerOff();
    
    // Outputs:
    PORTD.DIRSET = CFG_BUZZ_PIN_MASK;
@@ -79,29 +79,35 @@ void ioInit ( void )
 
 
 //****************************************************************************************
-// Driving buzzer:
-void ioBuzzer ( bool stat )
+// Driving buzzer ( not inline or macro because of using as a callback ):
+void ioBuzzerOn ( void )
 {
-   if ( stat )
-   {
-      PORTD.OUTSET =  CFG_BUZZ_PIN_MASK;  
-   }
-   else
-   {
-      PORTD.OUTCLR =  CFG_BUZZ_PIN_MASK; 
-   }   
+   PORTD.OUTSET =  CFG_BUZZ_PIN_MASK;
+}
+
+void ioBuzzerOff ( void )
+{
+   PORTD.OUTCLR =  CFG_BUZZ_PIN_MASK; 
+}
+
+void ioBuzzerTgl ( void )
+{
+   PORTD.OUTTGL =  CFG_BUZZ_PIN_MASK;
 }
 
 //****************************************************************************************
-// Driving status LED (Hi-off, Low-on):
-void ioStatLED ( bool stat )
+// Driving status LED ( not inline or macro because of using as a callback ):
+void ioStatLedOn ( void )
 {
-   if ( stat )
-   {
-      PORTA.OUTCLR =  CFG_LED_PIN_MASK;  
-   }
-   else
-   {
-      PORTA.OUTSET =  CFG_LED_PIN_MASK; 
-   }   
+   PORTA.OUTCLR =  CFG_LED_PIN_MASK;  
+}
+
+void ioStatLedOff ( void )
+{
+   PORTA.OUTSET =  CFG_LED_PIN_MASK;  
+}
+
+void ioStatLedTgl ( void )
+{
+   PORTA.OUTTGL =  CFG_LED_PIN_MASK;
 }
