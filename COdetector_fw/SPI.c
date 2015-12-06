@@ -27,7 +27,7 @@
    LOCAL DEFINITIONS
 */
 
-#define TX_BUFF_LEN 256  
+#define TX_BUFF_LEN 800 // TODO: circular 
 
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -35,8 +35,8 @@
 
 // It's not a circular, but linear buffer!
 static spiEnhStruct_t  txBuff [ TX_BUFF_LEN ];
-static spiEnhStruct_t* txHead = txBuff;
-static spiEnhStruct_t* txTail = txBuff;
+static volatile spiEnhStruct_t* txHead = txBuff;
+static volatile spiEnhStruct_t* txTail = txBuff;
 
 
 static pfnTxEnd txEndCB = NULL;
@@ -70,7 +70,7 @@ void spiInit ( void )
    
    SPIC.CTRLB = SPI_SSD_bm;            // Slave select disable (master mode), unbuffered mode   
    
-   SPIC.CTRL = ( /*SPI_CLK2X_bm    |*/     // Clock Double
+   SPIC.CTRL = ( SPI_CLK2X_bm    |     // Clock Double
                  SPI_MASTER_bm   );    // Master mode          
    
    SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h    
@@ -80,9 +80,7 @@ void spiInit ( void )
 
 //****************************************************************************************
 void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
-{
-   ENTER_CRIT_ALL();
-   
+{  
    if ( ((txBuff + TX_BUFF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )
@@ -111,12 +109,11 @@ void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
          txTail++;
       }
    }
-   else
+   else  // Overflow
    {
-      // Overflow or data too big
+      //while ( txHead != txTail ){;} // Waiting for free buffer // TODO: circular, this not work
+      LOG_TXT ( ">>warn<< SPI buffer OF\n" );
    }    
-   
-   EXIT_CRITICAL();
 }
 
 
@@ -130,7 +127,6 @@ void spiRegisterTxEndCB ( pfnTxEnd cb)
 //****************************************************************************************
 ISR ( SPIC_INT_vect )
 {
-   // Is there critical section necessary ?
    if ( txTail < txHead )
    {
                
@@ -152,7 +148,7 @@ ISR ( SPIC_INT_vect )
    {
       txTail = txBuff;
       txHead = txTail;
-      
+     
       if ( NULL != txEndCB )
       {
          txEndCB();         

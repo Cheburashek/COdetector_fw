@@ -35,9 +35,19 @@ typedef enum
 } eMainState_t;
 
 
+typedef enum
+{
+   START_CONF_O,
+   TIME_O_POS = 0x01,    // Also position on LCD
+   EXIT_O_POS = 0x04,
+   END_CONF_O
+   
+} eOptionsState_t;
+
 // Buttons:
 typedef enum
 {
+   BT_NULL,
    BT_LEFT = CFG_BT3_PIN_MASK,
    BT_OK = CFG_BT2_PIN_MASK,   
    BT_RIGHT = CFG_BT1_PIN_MASK
@@ -50,8 +60,9 @@ typedef enum
 
 void interInit ( void );
 void interDisplaySystemVals ( valsToDisp_t* pVal );
-void interOnButtons ( eButtons_t bt );
 
-
+void interOnRight ( void );
+void interOnOk ( void );
+void interOnLeft ( void );
 
 #endif /* INTERFACE_H_ */

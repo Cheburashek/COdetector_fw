@@ -26,6 +26,8 @@
 
 // TODO: add temperature measurement 
 
+// TODO: disable logs when no usb connected
+
 #include "common.h"
 
 

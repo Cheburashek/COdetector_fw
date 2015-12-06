@@ -116,10 +116,10 @@
                                   PRIO_ALL_LEVELS_DISABLE();
 
 #define ENTER_CRIT_HI()       {  uint8_t actInt = PMIC_CTRL;\
-                                 PRIO_HI_LEVEL_DISABLE();\
+                                 PRIO_HI_LEVEL_DISABLE();
                                      
 
-#define ENTER_CRIT_MED()      {  uint8_t actInt = PMIC_CTRL;\                                 
+#define ENTER_CRIT_MED()      {  uint8_t actInt = PMIC_CTRL;\
                                  PRIO_MED_LEVEL_DISABLE();                               
                                                                                         
 #define EXIT_CRITICAL()          PMIC_CTRL = actInt;         }                               

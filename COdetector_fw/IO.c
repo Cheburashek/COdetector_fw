@@ -143,17 +143,17 @@ ISR ( PORTD_INT_vect )
    // BT 1
    if ( CFG_BT1_PIN_MASK == PORTD.INTFLAGS )   
    {
-      interOnButtons ( BT_RIGHT ); 
+      interOnRight();
    }
    // BT 2
    if ( CFG_BT2_PIN_MASK == PORTD.INTFLAGS )
    {
-      interOnButtons ( BT_OK );
+      interOnOk();
    }
    // BT 3  
    if ( CFG_BT3_PIN_MASK == PORTD.INTFLAGS )
    {
-      interOnButtons ( BT_LEFT );
+      interOnLeft();
    }
    
    // USB connected

@@ -31,11 +31,14 @@
 #define LCD_BT_INFO_POS_Y          5
 
 
+#define LCD_OPTION_SIGN_POS_X      0
+
 /*****************************************************************************************
    LOCAL VARIABLES
 */
 
-eMainState_t actState = UNKNOWN_M_STATE;
+static eMainState_t mainActState = UNKNOWN_M_STATE;
+
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -43,10 +46,12 @@ eMainState_t actState = UNKNOWN_M_STATE;
 
 
 static void interDispValsBackground ( void );
-static void interMainStateMachine ( eMainState_t state );
+static void interMainStateMachineSet ( eMainState_t state );
 
 static void interStateHello ( void );
-static void interConfigMenu ( void );
+static void interDisplayConfig ( void );
+static void interChooseConfig ( eButtons_t bt );
+
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
@@ -54,7 +59,7 @@ static void interConfigMenu ( void );
 
 void interInit ( void )
 {
-   interMainStateMachine ( HELLO_M_STATE );  // Initial state
+   interMainStateMachineSet ( HELLO_M_STATE );  // Initial state
    //interDispValsBackground ();
    
    LOG_TXT ( ">>init<<   Interface initialized\n" );    
@@ -62,26 +67,26 @@ void interInit ( void )
 
 //****************************************************************************************
 // State machine for main activities:
-static void interMainStateMachine ( eMainState_t state )
+static void interMainStateMachineSet ( eMainState_t state )
 {
    switch ( state )
    {
       case HELLO_M_STATE:      
          LOG_TXT ( ">>state<<  Hello state\n" );
-         actState = HELLO_M_STATE;
+         mainActState = HELLO_M_STATE;
          interStateHello ();    
          break;
             
       case DISPVALS_M_STATE:
          LOG_TXT ( ">>state<<  Disp vals state\n" );    
-         actState = DISPVALS_M_STATE;         
-         interDispValsBackground();     // Main display values background                
+         mainActState = DISPVALS_M_STATE;         
+         interDispValsBackground ();     // Main display values background                
          break;
          
       case CONFIG_M_STATE:
          LOG_TXT ( ">>state<<  Config state\n" );
-         actState = CONFIG_M_STATE;
-         interConfigMenu ();         
+         mainActState = CONFIG_M_STATE;
+         interDisplayConfig ();         
          break;
          
          
@@ -118,7 +123,7 @@ static void interStateHello ( void )
     ioStatLedOff();
     _delay_ms ( 1600 );
     
-    interMainStateMachine( DISPVALS_M_STATE );    
+    interMainStateMachineSet( DISPVALS_M_STATE );    
 } 
 
 
@@ -128,21 +133,12 @@ static void interStateHello ( void )
 // Displaying values:
 static void interDispValsBackground ( void )
 {
-   pdcClearRAM();              // Clearing LCD  // TODO: change it to line
    pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
    pdcLine ( "M1m:        mV", LCD_MEAN_1M_POS_Y );
    pdcLine ( "M1h:        mV", LCD_MEAN_1H_POS_Y );
    pdcLine ( "M8h:        mV", LCD_MEAN_8H_POS_Y );
    pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );   // TODO: change graphics
 
-}
-
-
-//****************************************************************************************
-// Main config menu:
-static void interConfigMenu ( void )
-{
-   pdcClearRAM();              // Clearing LCD  // TODO: change it to line
 }
 
 
@@ -154,7 +150,7 @@ static void interConfigMenu ( void )
 // Displaying values:
 void interDisplaySystemVals ( valsToDisp_t* pVal )
 {
-   if ( DISPVALS_M_STATE == actState ) // Only when device is in appropriate state
+   if ( DISPVALS_M_STATE == mainActState ) // Only when device is in appropriate state
    {
       // Time:
       char str[14] = {"              "};
@@ -170,29 +166,126 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
    }        
 }
 
+//****************************************************************************************
+// Displaying configuration menu:
+void interDisplayConfig ( void )
+{
+   if ( CONFIG_M_STATE == mainActState )
+   {
+      pdcLine ( " CONFIG MENU  ", 0 );
+      pdcLine ( " Time set     ", TIME_O_POS );
+      pdcLine ( "              ", 2 );
+      pdcLine ( "              ", 3 );
+      pdcLine ( " EXIT         ", EXIT_O_POS );
+      pdcLine ( " -    OK    + ", LCD_BT_INFO_POS_Y );   // TODO: change graphics
+      interChooseConfig ( BT_NULL );                     // Set first option 
+   }
+}
+
+//****************************************************************************************
+// Get around config menu (by mainState):
+static void interChooseConfig ( eButtons_t bt )
+{
+   static eOptionsState_t stateTab[] = { START_CONF_O, TIME_O_POS, EXIT_O_POS, END_CONF_O };
+   static uint8_t state = 1;
+   
+   pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *
+   
+   switch ( bt )
+   {
+      case BT_LEFT:  // Decrease       
+         
+         state--;
+         if ( START_CONF_O == stateTab[state] ) 
+         {
+            state = sizeof(stateTab)/sizeof( eOptionsState_t ) - 2;            
+         }     
+      break;
+      
+      case BT_RIGHT: // Increase
+      
+         state++;
+         if ( END_CONF_O == stateTab[state] ) 
+         {
+            state =  1;
+         }                     
+      break;
+      
+      case BT_OK:    // Get in
+      
+         switch ( stateTab[state] )       
+         {
+            case TIME_O_POS:
+               
+            break;     
+              
+            case EXIT_O_POS:
+               interMainStateMachineSet ( DISPVALS_M_STATE );
+               state = START_CONF_O + 1;
+            break;  
+            
+            default:
+            break;
+         }  
+         
+      break;
+      
+      case BT_NULL:  // For initial option choose
+      break;   
+     
+      default:
+      break;
+         
+   }
+   pdcChar( '*', stateTab[state], LCD_OPTION_SIGN_POS_X  ); // Setting new *
+   
+}
+
 
 //****************************************************************************************
 // On button pressed:
-void interOnButtons ( eButtons_t bt )
+void interOnRight ( void )
 {
-   _delay_ms (25);         // Debouncing // TODO: another manner
+   _delay_ms (25);         // Debouncing // TODO: another manner    
    
-   if ( bt & ~PORTD.IN )    // Checking if it isn't glitch
+   if ( BT_RIGHT & ~PORTD.IN )    // Checking if it isn't a glitch
    {      
-      switch ( bt )
+      LOG_TXT ( ">>info<< RIGHT bt pressed\n" );
+      
+      switch ( mainActState )
       {
-         case BT_LEFT:
-         LOG_TXT ( ">>info<< LEFT bt pressed\n" );
+         case DISPVALS_M_STATE:
+            interMainStateMachineSet ( CONFIG_M_STATE );
          break;
          
-         case BT_OK:
-         LOG_TXT ( ">>info<< OK bt pressed\n" );
-         
+         case CONFIG_M_STATE:
+            interChooseConfig ( BT_RIGHT );
          break;
          
-         case BT_RIGHT:
-         LOG_TXT ( ">>info<< RIGHT bt pressed\n" );
+         default:
+         break;
+       }  
+   }   
+}
+
+//****************************************************************************************
+// On button pressed:
+void interOnLeft ( void )
+{
+   _delay_ms (25);         // Debouncing // TODO: another manner    
+   
+   if ( BT_LEFT & ~PORTD.IN )    // Checking if it isn't a glitch
+   {      
+      LOG_TXT ( ">>info<< LEFT bt pressed\n" );
+      
+      switch ( mainActState )
+      {
+         case  DISPVALS_M_STATE:
+            interMainStateMachineSet ( INFO_M_STATE );
+         break;
          
+         case CONFIG_M_STATE:
+            interChooseConfig ( BT_LEFT );
          break;
          
          default:
@@ -201,3 +294,28 @@ void interOnButtons ( eButtons_t bt )
    }   
 }
 
+//****************************************************************************************
+// On button pressed:
+void interOnOk ( void )
+{
+   _delay_ms (25);         // Debouncing // TODO: another manner    
+   
+   if ( BT_OK & ~PORTD.IN )    // Checking if it isn't a glitch
+   {      
+      LOG_TXT ( ">>info<< OK bt pressed\n" );
+      
+      switch ( mainActState )
+      {
+         case  DISPVALS_M_STATE:
+         interMainStateMachineSet ( ALARM_M_STATE );
+         break;
+         
+         case  CONFIG_M_STATE:
+         interChooseConfig ( BT_OK );
+         break;
+         
+         default:
+         break;
+      }
+   }   
+}

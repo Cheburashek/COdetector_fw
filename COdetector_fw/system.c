@@ -34,8 +34,8 @@
 
 // Lengths of meaning queues:
 #define MEAN_1M_QUEUE_LEN          60/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
-#define MEAN_1H_QUEUE_LEN          60*MEAN_1M_QUEUE_LEN/4  // Meaning at every 15s for 1-hour         
-#define MEAN_8H_QUEUE_LEN          480                     // Meaning at every minute for 8-hour
+#define MEAN_1H_QUEUE_LEN          60                      // Meaning at every 15s for 1-hour         
+#define MEAN_8H_QUEUE_LEN          96                      // Meaning at every 5 minutes for 8-hour
 
 
 /*****************************************************************************************
@@ -50,9 +50,19 @@ static volatile uint16_t rawVal;
 
 
 // Meaning queue:
-static meanQueue_t mean1mQ;
-static meanQueue_t mean1hQ;
-static meanQueue_t mean8hQ;
+static meanType_t mean1mTab[MEAN_1M_QUEUE_LEN];
+static meanType_t mean1hTab[MEAN_1H_QUEUE_LEN];
+static meanType_t mean8hTab[MEAN_8H_QUEUE_LEN];
+
+static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN, false };
+static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN, false };
+static meanQueue_t mean8hQ = { mean8hTab, mean8hTab, MEAN_8H_QUEUE_LEN, false };
+
+
+
+
+// Tables for static queue allocation:
+
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -65,7 +75,6 @@ static valsToDisp_t locVals;
 
 static void systemPeriodicRefresh ( void );
 
-static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len );
 static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val );
 static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf );
 
@@ -112,8 +121,8 @@ static void systemPeriodicRefresh ( void )
          systemQueueCalcMean ( &mean1hQ, &locVals.mean1hVal );  // For 1h meaning
       }
    
-      // Every 1 min :
-      if ( 0 == (ticks % 60)  )    
+      // Every 5 min :
+      if ( 0 == (ticks % 300)  )    
       {
          systemQueuePush ( &mean8hQ, locVals.mean1hVal );
          systemQueueCalcMean ( &mean8hQ, &locVals.mean8hVal );  // For 8h meaning 
@@ -127,22 +136,6 @@ static void systemPeriodicRefresh ( void )
    
    ticks += RTC_PERIOD_S;
    initFlag = true;
-}
-
-//****************************************************************************************
-// Initializing queue:
-
-static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len )
-{
-   pQueue->pStart = malloc ( len );
-   pQueue->pHead = pQueue->pStart;
-   pQueue->len = len;
-       
-   if ( NULL == pQueue->pHead )
-   {
-      LOG_TXT ( ">>err<< Cannot allocate queue!" );
-      while(1){;}      
-   }   
 }
 
 //****************************************************************************************
@@ -245,10 +238,6 @@ static void systemSerialLog ( void )
 //****************************************************************************************
 void systemInit ( void ) 
 {
-   
-   systemQueueInit ( &mean1mQ, MEAN_1M_QUEUE_LEN );
-   systemQueueInit ( &mean1hQ, MEAN_1H_QUEUE_LEN );
-   systemQueueInit ( &mean8hQ, MEAN_8H_QUEUE_LEN );
    
    /* TEST
    
