@@ -123,7 +123,7 @@ static void systemPeriodicRefresh ( void )
  
    systemTimeTickUpdate();
    systemSerialLog();  
-   ifDisplaySystemVals ( &locVals );
+   interDisplaySystemVals ( &locVals );
    
    ticks += RTC_PERIOD_S;
    initFlag = true;
@@ -140,7 +140,7 @@ static void systemQueueInit (  meanQueue_t* pQueue, uint16_t len )
        
    if ( NULL == pQueue->pHead )
    {
-      LOG_TXT ( "Cannot allocate queue!" );
+      LOG_TXT ( ">>err<< Cannot allocate queue!" );
       while(1){;}      
    }   
 }

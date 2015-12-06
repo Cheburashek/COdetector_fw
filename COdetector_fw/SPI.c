@@ -27,7 +27,7 @@
    LOCAL DEFINITIONS
 */
 
-#define TX_BUFF_LEN 600  // minimum is 6 rows * 84 columns in 3310 LCD 
+#define TX_BUFF_LEN 256  
 
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -81,8 +81,8 @@ void spiInit ( void )
 //****************************************************************************************
 void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
 {
+   ENTER_CRIT_ALL();
    
-   // TODO: Critical section  here?
    if ( ((txBuff + TX_BUFF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )
@@ -116,6 +116,7 @@ void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
       // Overflow or data too big
    }    
    
+   EXIT_CRITICAL();
 }
 
 

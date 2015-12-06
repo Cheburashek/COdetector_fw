@@ -91,13 +91,15 @@ void boardInit ( void )
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();
    
+   // Order is important:
    ioInit();
    spiInit();
    pdcInit();
+   interInit();   // With hello screen
    adcInit();
    timerInit();
    systemInit();
-   ifInit();
+   
    
    
    LOG_TXT ( ">>init<<   Board initialized\n" );

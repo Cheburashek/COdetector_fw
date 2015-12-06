@@ -22,10 +22,13 @@
 */
 
 void pdcInit( void );
+void pdcInvertMode ( bool stat );
 void pdcLine( char ch[14], uint8_t pos_Y );
 void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X );
 void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length );
 void pdcShort( short val, uint8_t pos_Y, uint8_t pos_X, uint8_t length );
 void pdcPicture( const uint8_t pic[504] );
+void pdcClearRAM( void );
+void pdcClearLine( uint8_t pos_Y );
 
 #endif /* PDC8544 */

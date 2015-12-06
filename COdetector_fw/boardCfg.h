@@ -26,7 +26,10 @@
 #define RTC_PERIOD_S       1        // Should be 1,3,5 or 15 [s]
 #define ADC_DIVIDER        1000     // Input voltage divider ( 1:1 -> 1000 )
 
+// Controlling:
 
+#define xSTAT_LED_ON_ADC
+#define xBUZZER_PERM
 
 /*****************************************************************************************
    GLOBAL CONFIGURATION DEFINES
@@ -47,13 +50,13 @@
 #define CFG_ADC_PIN_MASK         PIN4_bm
 #define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN4_gc
 
-// IO pins (PORTD):   
-#define CFG_BUZZ_PIN_MASK        PIN1_bm
+// IO pins (PORTD):  
 #define CFG_BT1_PIN_MASK         PIN7_bm
 #define CFG_BT2_PIN_MASK         PIN6_bm    
 #define CFG_BT3_PIN_MASK         PIN5_bm 
-#define CFG_USB_CON_PIN_MASK     PIN4_bm 
 
+#define CFG_USB_CON_PIN_MASK     PIN4_bm 
+#define CFG_BUZZ_PIN_MASK        PIN1_bm
 
 // IO pins (PORTA):  
 #define CFG_LED_PIN_MASK        PIN7_bm
@@ -74,7 +77,6 @@
 #define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc
 
 // Timer intlvl:
-//#define CFG_PRIO_TC4         TC45_OVFINTLVL_HI_gc
 #define CFG_PRIO_TC4_CCALVL  TC45_CCAINTLVL_HI_gc
 #define CFG_PRIO_TC4_CCBLVL  TC45_CCBINTLVL_HI_gc
 #define CFG_PRIO_TC4_CCCLVL  TC45_CCCINTLVL_HI_gc
@@ -82,6 +84,9 @@
 
 // RTC intlvl
 #define CFG_PRIO_RTC_OVFL    RTC_OVFINTLVL_HI_gc
+
+// PORTD intlvl
+#define CFG_PRIO_PORTD       PORT_INTLVL_HI_gc
 
 /*****************************************************************************************
    GLOBAL MACROS AND DEFINITIONS
@@ -111,13 +116,16 @@
                                   PRIO_ALL_LEVELS_DISABLE();
 
 #define ENTER_CRIT_HI()       {  uint8_t actInt = PMIC_CTRL;\
-                                 PRIO_LOW_LEVEL_DISABLE();\
-                                 PRIO_MED_LEVEL_DISABLE();    
+                                 PRIO_HI_LEVEL_DISABLE();\
+                                     
 
-#define ENTER_CRIT_MED()      {  uint8_t actInt = PMIC_CTRL;\
-                                 PRIO_LOW_LEVEL_DISABLE();                               
+#define ENTER_CRIT_MED()      {  uint8_t actInt = PMIC_CTRL;\                                 
+                                 PRIO_MED_LEVEL_DISABLE();                               
                                                                                         
 #define EXIT_CRITICAL()          PMIC_CTRL = actInt;         }                               
+
+
+
 
 // Macros for PDC8544:
 #define DC_LO()      ( PORTC.OUTCLR = CFG_DC_PIN_MASK  )

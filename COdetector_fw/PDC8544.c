@@ -151,8 +151,7 @@ static void pdcReset( void );
 static void pdcSend( bool DC, uint8_t data );
 static void pdcSetRow( uint8_t addr_Y );
 static void pdcSetCol( uint8_t addr_X );
-static void pdcClearRAM( void );
-static void pdcClearLine( uint8_t pos_Y );
+
 
 
 /*****************************************************************************************
@@ -170,26 +169,6 @@ static void pdcReset( void )
    _delay_ms(15);   
 }
 
-// *************************************************************************
-// Function to configure PDC8544
-void pdcInit( void )
-{     
-   spiRegisterTxEndCB ( pdcChipDisable );
-   
-   pdcReset(); 
-     
-   pdcSend( DC_CMD, 0x21 );	// Extended cmd
-   pdcSend( DC_CMD, 0xE0 );	// Bias
-   pdcSend( DC_CMD, 0x04 );	// Temp. control
-   pdcSend( DC_CMD, 0xCB );	// Set V
-   pdcSend( DC_CMD, 0x20 );	// Basic cmd   / horizontal addressing
-   pdcSend( DC_CMD, 0x0C );	// Normal mode
-
-   pdcClearRAM();
-
-   LOG_TXT ( ">>init<<   PDC8544 initialized\n");   
-}
-
 
 // *************************************************************************
 // Function to set callback in SPI.c (end of transmission)
@@ -204,29 +183,9 @@ static void pdcSend( bool DC, uint8_t data )
 {
    spiEnhStruct_t dataStr = {data, DC};
    
-  //SPI_EN();
-   
-   SCE_LO();
-   
-   //switch(DC)
-   //{
-      //case DC_DATA:
-         //dataStr.outDC = true;
-         //DC_HI();
-      //break;
-      //
-      //case DC_CMD:
-         //dataStr.outDC = false;
-         //DC_LO();
-      //break;
-   //}
-   //
-   spiSend( &dataStr, 1 );
-   
-   // Very, very temporary and bad: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1oneonejedenein
-   //SPIC.DATA = data;
-   //while ( !SPIC.STATUS & SPI_IF_bm ){}
-   //(void)SPIC.DATA;
+   SCE_LO();   
+
+   spiSend( &dataStr, 1 );   
 }
 
 // *************************************************************************
@@ -254,30 +213,67 @@ static void pdcSetCol( uint8_t addr_X )
 
 
 // *************************************************************************
+// API:
+// *************************************************************************
+
+// *************************************************************************
+// Function to configure PDC8544
+void pdcInit( void )
+{
+   spiRegisterTxEndCB ( pdcChipDisable );
+   
+   pdcReset();
+   
+   pdcSend( DC_CMD, 0x21 );	// Extended cmd
+   pdcSend( DC_CMD, 0xE0 );	// Bias
+   pdcSend( DC_CMD, 0x04 );	// Temp. control
+   pdcSend( DC_CMD, 0xCB );	// Set V
+   pdcSend( DC_CMD, 0x20 );	// Basic cmd   / horizontal addressing
+   pdcSend( DC_CMD, 0x0C );	// Normal mode
+
+   pdcClearRAM();
+
+   LOG_TXT ( ">>init<<   PDC8544 initialized\n");
+}
+
+// *************************************************************************
+// Function to set/clear invert video mode
+void pdcInvertMode ( bool stat )
+{
+   if ( !stat )
+   {
+      pdcSend( DC_CMD, 0x0C );	// Normal mode      
+   }
+   else
+   {
+      pdcSend( DC_CMD, 0x0D );	// Inverted mode
+   }
+}
+
+// *************************************************************************
 // Function to clear RAM of LCD
-static void pdcClearRAM( void )
+void pdcClearRAM( void )
 {
    uint8_t X = 0,
-           Y = 0;
+   Y = 0;
    
    pdcSetCol( 0x00 );
    
    for( Y = 0; Y < 6; Y++ )
-   {      
+   {
       pdcSetRow( Y );
       pdcSetCol( 0x00 );
       
       for( X = 0; X < 84; X++)
-      {         
-         pdcSend( DC_DATA, 0x00 );         
+      {
+         pdcSend( DC_DATA, 0x00 );
       }
    }
 }
 
-
 // *************************************************************************
 // Function to clear one line
-static void pdcClearLine( uint8_t pos_Y )
+void pdcClearLine( uint8_t pos_Y )
 {
 
    uint8_t X = 0;
@@ -286,15 +282,10 @@ static void pdcClearLine( uint8_t pos_Y )
    pdcSetCol( 0x00 );
    
    for( X = 0; X < 84; X++)
-   {      
-      pdcSend( DC_DATA, 0x00 );      
+   {
+      pdcSend( DC_DATA, 0x00 );
    }
 }
-
-
-// *************************************************************************
-// API:
-// *************************************************************************
 
 // *************************************************************************
 // Function to write a single char from a table

@@ -112,8 +112,8 @@ void serialInitD ( void )
 
 void serialSendD ( uint8_t* data, uint8_t len )
 {
+   ENTER_CRIT_ALL();
    
-   // TODO: Critical section  here
    if ( ((txBuff + TX_BUF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )
@@ -134,6 +134,7 @@ void serialSendD ( uint8_t* data, uint8_t len )
       // Overflow or data too big     
    }
    
+   EXIT_CRITICAL();
 }
 
 
