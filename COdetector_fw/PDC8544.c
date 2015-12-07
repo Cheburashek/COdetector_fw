@@ -185,7 +185,7 @@ static void pdcSend( bool DC, uint8_t data )
    
    SCE_LO();   
 
-   spiSend( &dataStr, 1 );   
+   spiSend( &dataStr );   
 }
 
 // *************************************************************************
@@ -341,13 +341,14 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
       temp_val /= 10;
    }
    
-   temp_val = val;
-   
+   temp_val = val;   
+
    if ( 0x00 == val )
-   {         
-      pdcChar( 0x30, pos_Y, pos_X ); 
-   } 
-   else
+   {
+      pdcChar( 0x30, pos_Y, pos_X );
+      len = 1;
+   }
+   else 
    {
       for( k = 1; k <= len; k++ )
       {      
@@ -357,16 +358,17 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
          pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	
          temp_val /= 10;
       }
-
-      if( len != length )
-      {      
-         for( k = 1; k <= (length - len); k++ )
-         {
-            pdcChar( ' ', pos_Y, (pos_X+length-k) );         
-         }
+   }
+      
+   if( len != length )
+   {      
+      for( k = 1; k <= (length - len); k++ )
+      {
+         pdcChar( ' ', pos_Y, (pos_X+length-k) );         
       }
-      else{	/*ERROR!!!!!! */ }
-   }     
+   }
+   else{	/*ERROR!!!!!! */ }
+     
 }
 
 

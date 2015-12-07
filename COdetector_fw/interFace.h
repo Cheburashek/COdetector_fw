@@ -21,6 +21,23 @@
    GLOBAL DEFINITIONS
 */
 
+/*****************************************************************************************
+   GLOBAL TYPEDEFS
+*/
+
+typedef struct
+{
+   uint16_t year;
+   uint8_t  month;
+   uint8_t  day;
+   uint8_t  hour;
+   uint8_t  min;
+   uint8_t  sec;
+   
+} timeStruct_t;
+
+
+
 // States:
 typedef enum
 {
@@ -28,6 +45,7 @@ typedef enum
    HELLO_M_STATE = 0x10,
    DISPVALS_M_STATE,
    CONFIG_M_STATE,
+   TIME_SET_M_STATE,
    INFO_M_STATE,
    ALARM_TEST_M_STATE,
    ALARM_M_STATE 
@@ -37,12 +55,22 @@ typedef enum
 
 typedef enum
 {
-   START_CONF_O,
    TIME_O_POS = 0x01,    // Also position on LCD
-   EXIT_O_POS = 0x04,
-   END_CONF_O
+   EXIT_O_POS = 0x04
    
 } eOptionsState_t;
+
+// Time:
+typedef enum
+{
+   YEAR_POS,
+   MONTH_POS,
+   DAY_POS,    // Also position on LCD  
+   HOUR_POS,
+   MIN_POS,
+   EXIT_T_POS
+   
+} eTimeSetState_t;
 
 // Buttons:
 typedef enum
@@ -60,6 +88,8 @@ typedef enum
 
 void interInit ( void );
 void interDisplaySystemVals ( valsToDisp_t* pVal );
+
+void interTimeTickUpdate ( void );
 
 void interOnRight ( void );
 void interOnOk ( void );

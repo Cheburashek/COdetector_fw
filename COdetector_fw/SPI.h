@@ -49,7 +49,7 @@ typedef struct
 
 void spiInit ( void );
 
-void spiSend ( spiEnhStruct_t* dataStr, uint16_t len );
+void spiSend ( spiEnhStruct_t* dataStr );
 
 void spiRegisterTxEndCB ( pfnTxEnd cb);
 

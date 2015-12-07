@@ -71,7 +71,7 @@
 #define CFG_PRIO_USARTD0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
-#define CFG_PRIO_SPI         SPI_INTLVL_LO_gc // not working on HI int - why?
+#define CFG_PRIO_SPI         SPI_INTLVL_MED_gc // not working on HI int - why?
 
 // ADC intlvl:
 #define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc

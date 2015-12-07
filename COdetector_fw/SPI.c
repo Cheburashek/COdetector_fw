@@ -18,7 +18,6 @@
 */
 #include "SPI.h"
 
-
 /*****************************************************************************************
    MACROS
 */
@@ -27,26 +26,45 @@
    LOCAL DEFINITIONS
 */
 
-#define TX_BUFF_LEN 800 // TODO: circular 
+#define TX_BUFF_LEN 256
+#define TX_BUFF_MAX_ADDR()       (txBuff + TX_BUFF_LEN) 
 
 /*****************************************************************************************
    LOCAL VARIABLES
 */
-
-// It's not a circular, but linear buffer!
+// Circular buffer:
 static spiEnhStruct_t  txBuff [ TX_BUFF_LEN ];
 static volatile spiEnhStruct_t* txHead = txBuff;
 static volatile spiEnhStruct_t* txTail = txBuff;
-
+static bool initFlag = false;
 
 static pfnTxEnd txEndCB = NULL;
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
 */
 
+static bool spiCheckCap ( void );
+
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
 */
+
+//****************************************************************************************
+// Check if there is place for new data
+static bool spiCheckCap ( void )
+{
+   if ( (txHead+1) != txTail )
+   {
+      return true;
+   }      
+   else if ( (txTail != txBuff) && ((txHead+1) != TX_BUFF_MAX_ADDR()) )   // If not at the end and start of buffer
+   {     
+      return true;
+   }           
+     
+   return false;
+}
+
 
 
 /*****************************************************************************************
@@ -75,24 +93,26 @@ void spiInit ( void )
    
    SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h    
                                 
+   SPI_EN();               // Enabling SPI    
+                     
+   initFlag = true;                                
    LOG_TXT ( ">>init<<   SPI initialized\n" );   
 }
 
 //****************************************************************************************
-void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
+void spiSend ( spiEnhStruct_t* dataStr )
 {  
-   if ( ((txBuff + TX_BUFF_LEN)-txHead) > len )  // If there's a place to copy data
-   {
-      for ( uint8_t i = 0; i < len; i++ )
-      {
-         *txHead = *dataStr;
-         txHead++;
-         dataStr++;  // TODO: check if it could be as a txHead++ = dataStr++;
-      }
+   if ( true == spiCheckCap() )  // If there's a place to copy data
+   {          
+      *txHead = *dataStr; 
+
       
-      if ( txBuff == txTail )    // Initial send
+      // When Head is going to exceed buffer size
+      if ( ++txHead == TX_BUFF_MAX_ADDR() ) { txHead = txBuff; }          
+        
+      if ( (txHead == txTail) && (true == initFlag) )    // Initial send
       {
-         SPI_EN();               // Enabling SPI
+         
          
 #ifdef ENHANCED_SPI
          if ( txTail->outDC )
@@ -106,7 +126,8 @@ void spiSend ( spiEnhStruct_t* dataStr, uint16_t len )
 #endif
          SPIC.DATA = txTail->data;    // First character sent starts transmission
          
-         txTail++;
+         // When Tail is going to exceed buffer size
+         if ( ++txTail == TX_BUFF_MAX_ADDR() ) { txTail = txBuff; }
       }
    }
    else  // Overflow
@@ -127,7 +148,7 @@ void spiRegisterTxEndCB ( pfnTxEnd cb)
 //****************************************************************************************
 ISR ( SPIC_INT_vect )
 {
-   if ( txTail < txHead )
+   if ( txTail != txHead )
    {
                
  #ifdef ENHANCED_SPI
@@ -140,21 +161,19 @@ ISR ( SPIC_INT_vect )
          DC_LO();
       }
  #endif
- 
+      LOG_UINT ( "Ia ",  (uint16_t)txTail );
+      LOG_UINT ( "Ic ",  txTail->data );
       SPIC.DATA = txTail->data;
-      txTail++;
+      
+      // When tail is going to exceed buffer size
+      if ( ++txTail == TX_BUFF_MAX_ADDR() ) { txTail = txBuff; }
    }
    else // All of data from buffer is send
    {
-      txTail = txBuff;
-      txHead = txTail;
-     
       if ( NULL != txEndCB )
       {
          txEndCB();         
       }
-      
-      SPI_DIS();     // Disabling SPI (only tx is used)
    }
  
 }

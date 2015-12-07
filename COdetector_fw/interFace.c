@@ -38,7 +38,7 @@
 */
 
 static eMainState_t mainActState = UNKNOWN_M_STATE;
-
+static timeStruct_t sysTime;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -48,22 +48,18 @@ static eMainState_t mainActState = UNKNOWN_M_STATE;
 static void interDispValsBackground ( void );
 static void interMainStateMachineSet ( eMainState_t state );
 
-static void interStateHello ( void );
+static void interDisplayHello ( void );
 static void interDisplayConfig ( void );
-static void interChooseConfig ( eButtons_t bt );
+static void interDisplayTimeSet ( void );
 
+static void interChooseConfig ( eButtons_t bt );
+static void interChooseTimeSet ( eButtons_t bt );
+static void interDisplayTimeSetUpdate ( void );
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
 */
 
-void interInit ( void )
-{
-   interMainStateMachineSet ( HELLO_M_STATE );  // Initial state
-   //interDispValsBackground ();
-   
-   LOG_TXT ( ">>init<<   Interface initialized\n" );    
-}
 
 //****************************************************************************************
 // State machine for main activities:
@@ -74,7 +70,7 @@ static void interMainStateMachineSet ( eMainState_t state )
       case HELLO_M_STATE:      
          LOG_TXT ( ">>state<<  Hello state\n" );
          mainActState = HELLO_M_STATE;
-         interStateHello ();    
+         interDisplayHello ();    
          break;
             
       case DISPVALS_M_STATE:
@@ -89,8 +85,10 @@ static void interMainStateMachineSet ( eMainState_t state )
          interDisplayConfig ();         
          break;
          
-         
-         
+      case TIME_SET_M_STATE:
+         LOG_TXT ( ">>state<<  Time set state\n" );
+         mainActState = TIME_SET_M_STATE;
+         interDisplayTimeSet ();
       default:
          break;
             
@@ -101,7 +99,7 @@ static void interMainStateMachineSet ( eMainState_t state )
 
 //****************************************************************************************
 // Hello screen:
-static void interStateHello ( void )
+static void interDisplayHello ( void )
 {
 
     pdcLine( " CO detector ", 0 );   //TODO: in pdc -> padding string with spaces
@@ -141,31 +139,6 @@ static void interDispValsBackground ( void )
 
 }
 
-
-/*****************************************************************************************
-   GLOBAL FUNCTIONS DEFINITIONS
-*/
-
-//****************************************************************************************
-// Displaying values:
-void interDisplaySystemVals ( valsToDisp_t* pVal )
-{
-   if ( DISPVALS_M_STATE == mainActState ) // Only when device is in appropriate state
-   {
-      // Time:
-      char str[14] = {"              "};
-      sprintf ( str, "%.2u:%.2u:%.2u", pVal->sysTime.hour, pVal->sysTime.min, pVal->sysTime.sec );
-      pdcLine( str, LCD_TIME_POS_Y );
-   
-      // Measured values:
-      pdcUint ( pVal->actVal, LCD_ACTMEAS_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );
-      
-   }        
-}
-
 //****************************************************************************************
 // Displaying configuration menu:
 void interDisplayConfig ( void )
@@ -182,33 +155,41 @@ void interDisplayConfig ( void )
    }
 }
 
+
 //****************************************************************************************
-// Get around config menu (by mainState):
+// Displaying time to be set:
+static void interDisplayTimeSet ( void )
+{
+   if ( TIME_SET_M_STATE == mainActState )
+   {
+      pdcLine ( " Day:         ", DAY_POS );
+      pdcLine ( " Month:       ", MONTH_POS );
+      pdcLine ( " Year:        ", YEAR_POS );
+      pdcLine ( " Hour:        ", HOUR_POS );
+      pdcLine ( " Min:         ", MIN_POS );
+      pdcLine ( " EXIT         ", EXIT_T_POS );
+      interChooseTimeSet ( BT_NULL );                     // Set first option
+   }
+}
+
+
+//****************************************************************************************
+// Get around config menu :
 static void interChooseConfig ( eButtons_t bt )
 {
-   static eOptionsState_t stateTab[] = { START_CONF_O, TIME_O_POS, EXIT_O_POS, END_CONF_O };
-   static uint8_t state = 1;
+   eOptionsState_t stateTab[] = { TIME_O_POS, EXIT_O_POS };
+   static uint8_t state = 0x00;
    
    pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *
    
    switch ( bt )
    {
-      case BT_LEFT:  // Decrease       
-         
-         state--;
-         if ( START_CONF_O == stateTab[state] ) 
-         {
-            state = sizeof(stateTab)/sizeof( eOptionsState_t ) - 2;            
-         }     
+      case BT_LEFT:  // Decrease              
+         if ( state-- == 0x00 ) {  state = sizeof(stateTab)/sizeof( eOptionsState_t ) - 1; }               
       break;
       
-      case BT_RIGHT: // Increase
-      
-         state++;
-         if ( END_CONF_O == stateTab[state] ) 
-         {
-            state =  1;
-         }                     
+      case BT_RIGHT: // Increase         
+         if ( state++ == sizeof(stateTab)/sizeof( eOptionsState_t ) - 1 )  { state = 0x00; }                     
       break;
       
       case BT_OK:    // Get in
@@ -216,12 +197,12 @@ static void interChooseConfig ( eButtons_t bt )
          switch ( stateTab[state] )       
          {
             case TIME_O_POS:
-               
+               interMainStateMachineSet ( TIME_SET_M_STATE );
             break;     
               
             case EXIT_O_POS:
                interMainStateMachineSet ( DISPVALS_M_STATE );
-               state = START_CONF_O + 1;
+               state = 0x00;  // Initial state
             break;  
             
             default:
@@ -243,6 +224,171 @@ static void interChooseConfig ( eButtons_t bt )
 
 
 //****************************************************************************************
+// Get around time set menu:
+static void interChooseTimeSet ( eButtons_t bt )
+{
+   eTimeSetState_t stateTab[] = {  YEAR_POS, MONTH_POS, DAY_POS, HOUR_POS, MIN_POS, EXIT_T_POS };
+   static uint8_t state = 0x00;
+   
+   switch ( bt )
+   {
+      case BT_RIGHT:   // Increase value    
+         switch ( stateTab[state] )
+         {
+            case YEAR_POS:               
+               if ( ++sysTime.year > 2500 ) { sysTime.year = 0; }          // TODO: calendar with non-linear days
+            break;
+            case MONTH_POS:
+               if ( ++sysTime.month > 12 ) { sysTime.month = 0; }
+            break;          
+            case DAY_POS:
+               if ( ++sysTime.day > 31 ) { sysTime.day = 0; }          
+            break;
+            case HOUR_POS:
+               if ( ++sysTime.hour > 23 ) { sysTime.hour = 0; }          
+            break;
+            case MIN_POS:
+               if ( ++sysTime.min > 59 ) { sysTime.min = 0; }         
+            break;            
+            case EXIT_T_POS:
+               state = 0x00;
+               interMainStateMachineSet( CONFIG_M_STATE );     // On exit back to config state
+            break;            
+            default:
+            break;                            
+         }
+         sysTime.sec = 0;  // Clearing secs
+      break;
+      
+      case BT_LEFT: // Decrease value    
+            switch ( stateTab[state] )
+            {
+               case YEAR_POS:
+                  if ( sysTime.year-- == 1993 ) { sysTime.year = 2150; }          // TODO: calendar with non-linear days
+               break;
+               case MONTH_POS:
+                  if ( sysTime.month-- == 0 ) { sysTime.month = 12; }
+               break;
+               case DAY_POS:
+                  if ( sysTime.day-- == 0 ) { sysTime.day = 31; }
+               break;
+               case HOUR_POS:
+                  if ( sysTime.hour-- == 0 ) { sysTime.hour = 0; }
+               break;
+               case MIN_POS:
+                  if ( sysTime.min-- == 0 ) { sysTime.min = 0; }
+               break;
+               case EXIT_T_POS:
+                  state = 0x00;
+                  interMainStateMachineSet( CONFIG_M_STATE );     // On exit back to config state
+               break;                          
+               default:
+               break;
+            }
+            sysTime.sec = 0;  // Clearing secs       
+      break;
+      
+      case BT_OK:    // Next value      
+         pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *         
+         if ( state++ == sizeof(stateTab)/sizeof( eOptionsState_t ) - 1 ) { state =  0; }
+         pdcChar( '*', stateTab[state], LCD_OPTION_SIGN_POS_X  ); // Setting new *         
+      break;
+      
+      case BT_NULL:  // For initial option choose
+         pdcChar( '*', stateTab[0x00], LCD_OPTION_SIGN_POS_X  ); // Setting initial *
+      break;   
+     
+      default:
+      break;
+         
+   }
+   
+   interDisplayTimeSetUpdate();  // Update time after setting
+}
+
+
+//****************************************************************************************
+static void interDisplayTimeSetUpdate ( void )
+{
+      pdcUint ( sysTime.year,  YEAR_POS,  7, 4 );
+      pdcUint ( sysTime.month, MONTH_POS, 7, 2 );
+      pdcUint ( sysTime.day,   DAY_POS,   7, 2 );
+      pdcUint ( sysTime.hour,  HOUR_POS,  7, 2 );
+      pdcUint ( sysTime.min,   MIN_POS,   7, 2 );
+}      
+
+/*****************************************************************************************
+   GLOBAL FUNCTIONS DEFINITIONS
+*/
+
+void interInit ( void )
+{
+   interMainStateMachineSet ( HELLO_M_STATE );  // Initial state
+   //interDispValsBackground ();
+   
+   LOG_TXT ( ">>init<<   Interface initialized\n" );
+}
+
+
+
+//****************************************************************************************
+// Displaying values:
+void interDisplaySystemVals ( valsToDisp_t* pVal )
+{
+   if ( DISPVALS_M_STATE == mainActState ) // Only when device is in appropriate state
+   {
+      // Time:
+      char str[14] = {"              "};
+      sprintf ( str, "%.2u:%.2u:%.2u", sysTime.hour,sysTime.min, sysTime.sec );
+      pdcLine( str, LCD_TIME_POS_Y );
+   
+      // Measured values:
+      pdcUint ( pVal->actVal, LCD_ACTMEAS_POS_Y, 6, 5 );
+      pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
+      pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
+      pdcUint ( pVal->mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );
+      
+   }      
+         
+   // Serial log:
+   char strToLog [64];
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[mV] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actVal );
+   LOG_TXT_WL ( strToLog, len );
+}
+
+
+
+//****************************************************************************************
+void interTimeTickUpdate ( void )
+{
+   sysTime.sec += RTC_PERIOD_S;   // Period could be changed
+   
+   if ( sysTime.sec >=60 )  
+   { 
+      sysTime.sec = 0;
+      sysTime.min ++; 
+   }
+   if ( sysTime.min >=60 )
+   { 
+      sysTime.min = 0;
+      sysTime.hour ++; 
+   } 
+   if ( sysTime.hour >=24 ) 
+   { 
+      sysTime.hour = 0;
+      sysTime.day ++; 
+   } 
+      
+   if ( TIME_SET_M_STATE == mainActState )
+   {
+      interDisplayTimeSetUpdate ();    // Updating time in time set menu
+   }      
+    
+   // TODO: days, months...
+}
+
+
+//****************************************************************************************
 // On button pressed:
 void interOnRight ( void )
 {
@@ -260,6 +406,10 @@ void interOnRight ( void )
          
          case CONFIG_M_STATE:
             interChooseConfig ( BT_RIGHT );
+         break;
+         
+         case TIME_SET_M_STATE:
+            interChooseTimeSet ( BT_RIGHT );
          break;
          
          default:
@@ -288,6 +438,10 @@ void interOnLeft ( void )
             interChooseConfig ( BT_LEFT );
          break;
          
+         case TIME_SET_M_STATE:
+            interChooseTimeSet ( BT_LEFT );
+         break;
+         
          default:
          break;
       }
@@ -307,13 +461,17 @@ void interOnOk ( void )
       switch ( mainActState )
       {
          case  DISPVALS_M_STATE:
-         interMainStateMachineSet ( ALARM_M_STATE );
+            interMainStateMachineSet ( ALARM_M_STATE );
          break;
          
          case  CONFIG_M_STATE:
-         interChooseConfig ( BT_OK );
+            interChooseConfig ( BT_OK );
          break;
          
+         case TIME_SET_M_STATE:
+            interChooseTimeSet ( BT_OK );
+         break;    
+              
          default:
          break;
       }

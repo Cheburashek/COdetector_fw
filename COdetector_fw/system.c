@@ -54,14 +54,11 @@ static meanType_t mean1mTab[MEAN_1M_QUEUE_LEN];
 static meanType_t mean1hTab[MEAN_1H_QUEUE_LEN];
 static meanType_t mean8hTab[MEAN_8H_QUEUE_LEN];
 
+// Tables for static queue allocation:
 static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN, false };
 static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN, false };
 static meanQueue_t mean8hQ = { mean8hTab, mean8hTab, MEAN_8H_QUEUE_LEN, false };
 
-
-
-
-// Tables for static queue allocation:
 
 
 // Structure with values to display on LCD:
@@ -80,9 +77,6 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf );
 
 static uint16_t systemConvertFromRaw ( uint16_t raw );
 
-static void systemTimeTickUpdate ( void );
-
-static void systemSerialLog ( void );
 
 
 
@@ -130,8 +124,7 @@ static void systemPeriodicRefresh ( void )
       }
    }   
  
-   systemTimeTickUpdate();
-   systemSerialLog();  
+   interTimeTickUpdate();
    interDisplaySystemVals ( &locVals );
    
    ticks += RTC_PERIOD_S;
@@ -179,8 +172,6 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
 }
 
 
-
-
 //****************************************************************************************
 static uint16_t systemConvertFromRaw ( uint16_t raw )
 {
@@ -188,46 +179,6 @@ static uint16_t systemConvertFromRaw ( uint16_t raw )
    
   return (uint16_t)rawData;
 }
-
-
-
-
-//****************************************************************************************
-static void systemTimeTickUpdate ( void )
-{
-   locVals.sysTime.sec += RTC_PERIOD_S;   // Period could be changed
-   
-   if ( locVals.sysTime.sec >=60 )  
-   { 
-      locVals.sysTime.sec = 0;
-      locVals.sysTime.min ++; 
-   }
-   if ( locVals.sysTime.min >=60 )
-   { 
-      locVals.sysTime.min = 0;
-      locVals.sysTime.hour ++; 
-   } 
-   if ( locVals.sysTime.hour >=24 ) 
-   { 
-      locVals.sysTime.hour = 0;
-      locVals.sysTime.day ++; 
-   } 
-      
-   // TODO: days, months...
-}
-
-
-
-//****************************************************************************************
-static void systemSerialLog ( void )
-{
-   char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[mV] \n", locVals.sysTime.hour, locVals.sysTime.min, locVals.sysTime.sec, locVals.actVal );
-   LOG_TXT_WL ( strToLog, len );
-   
-} 
-
-
 
 
 /*****************************************************************************************
@@ -266,7 +217,7 @@ void systemInit ( void )
    LOG_TXT ( ">>init<<   System initialized\n" );
 }
 
-//****************************************************************************************
+
 
 
 //****************************************************************************************

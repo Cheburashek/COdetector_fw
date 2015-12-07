@@ -28,6 +28,8 @@
 
 // TODO: disable logs when no usb connected
 
+// TODO: przytrzymanie przycisku
+
 #include "common.h"
 
 
