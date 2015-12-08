@@ -30,7 +30,7 @@ typedef void (*pfnAdcEnd) (uint16_t);
 */
 
 void adcRegisterEndCb( pfnAdcEnd cb );
-void adcStartChToGnd ( void );
+void adcStartSens ( void );
 void adcInit ( void );
 
 

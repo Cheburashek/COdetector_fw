@@ -295,7 +295,7 @@ static void interChooseTimeSet ( eButtons_t bt )
       break;
       
       case BT_NULL:  // For initial option choose
-         pdcChar( '*', stateTab[0x00], LCD_OPTION_SIGN_POS_X  ); // Setting initial *
+         pdcChar( '*', 0x00, LCD_OPTION_SIGN_POS_X  ); // Setting initial *
       break;   
      
       default:

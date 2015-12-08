@@ -56,32 +56,27 @@ static pfnAdcEnd convEndCB = NULL;
 //****************************************************************************************
 void adcInit ( void )
 {
-   /* Default settings
-      - unsigned mode
-      - 12b resolution, right-adjusted
-      - internal 1V ref
-      - clock divided by 4 (maybe change for low power)
-      - gain x1
-      - interrupt on complete conversion
-
-   */
-
    // PORT:
-   PORTA.DIRCLR = CFG_ADC_PIN_MASK;             // Input
+   PORTA.DIRCLR = CFG_ADC_SENS_PIN_MASK;        // Input
    
-  ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
-              ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
+   ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
+                ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
+                
+   ADCA.CTRLB &= ~ADC_CONMODE_bm;               // Unsigned mode
                   
-   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;       // Number of samples (averaging) - 16bit
+   ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;      // Number of samples (averaging) - 16bit
 
    ADCA.SAMPCTRL = 0x08;   // For 8Mhz clock only!
    
    ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
    
-
    
-   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Single ended input
+   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc |  // Single ended input
+                   ADC_CH_GAIN_1X_gc;                 // 1x gain
+                   
    ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
+   
+   ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc;                // Internal 1V reference              
    
    
    ADCA.CH0.OFFSETCORR0 = ADC_OFF_MAN_CORR & 0xFF;
@@ -129,7 +124,7 @@ void adcInit ( void )
 
 
 //****************************************************************************************
-void adcStartChToGnd ( void )
+void adcStartSens ( void )
 {
    ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS; 
    ADC_START();
@@ -150,4 +145,5 @@ ISR ( ADCA_CH0_vect )
    {       
       convEndCB (  (uint16_t)ADCA.CH0RES );            
    }  
+   LOG_UINT ("rtaw", (uint16_t)ADCA.CH0RES);
 }

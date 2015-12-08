@@ -51,7 +51,7 @@ void ioInit ( void )
    ioStatLedOff();
    ioBuzzerOff();
    
-   // UNUSED PINS (input and pullup):
+   // UNUSED PINS (input and pullup): //TODO: add the others
    PORTD.DIRCLR = PIN0_bm;
    PORTD.PIN0CTRL |= PORT_OPC_PULLUP_gc;
    

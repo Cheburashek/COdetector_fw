@@ -47,7 +47,7 @@
 #define CFG_MOSI_PIN_MASK        PIN7_bm
 
 // ADC pins (PORTA):
-#define CFG_ADC_PIN_MASK         PIN4_bm
+#define CFG_ADC_SENS_PIN_MASK    PIN4_bm
 #define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN4_gc
 
 // IO pins (PORTD):  
@@ -71,22 +71,22 @@
 #define CFG_PRIO_USARTD0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
 
 // SPI intlvl:
-#define CFG_PRIO_SPI         SPI_INTLVL_MED_gc // not working on HI int - why?
+#define CFG_PRIO_SPI         SPI_INTLVL_LO_gc 
 
 // ADC intlvl:
-#define CFG_PRIO_ADC         ADC_CH_INTLVL_MED_gc
+#define CFG_PRIO_ADC         ADC_CH_INTLVL_HI_gc
 
 // Timer intlvl:
-#define CFG_PRIO_TC4_CCALVL  TC45_CCAINTLVL_HI_gc
-#define CFG_PRIO_TC4_CCBLVL  TC45_CCBINTLVL_HI_gc
-#define CFG_PRIO_TC4_CCCLVL  TC45_CCCINTLVL_HI_gc
-#define CFG_PRIO_TC4_CCDLVL  TC45_CCDINTLVL_HI_gc
+#define CFG_PRIO_TC4_CCALVL  TC45_CCAINTLVL_MED_gc
+#define CFG_PRIO_TC4_CCBLVL  TC45_CCBINTLVL_MED_gc
+#define CFG_PRIO_TC4_CCCLVL  TC45_CCCINTLVL_MED_gc
+#define CFG_PRIO_TC4_CCDLVL  TC45_CCDINTLVL_MED_gc
 
 // RTC intlvl
 #define CFG_PRIO_RTC_OVFL    RTC_OVFINTLVL_HI_gc
 
 // PORTD intlvl
-#define CFG_PRIO_PORTD       PORT_INTLVL_HI_gc
+#define CFG_PRIO_PORTD       PORT_INTLVL_LO_gc
 
 /*****************************************************************************************
    GLOBAL MACROS AND DEFINITIONS

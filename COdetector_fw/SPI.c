@@ -26,7 +26,7 @@
    LOCAL DEFINITIONS
 */
 
-#define TX_BUFF_LEN 256
+#define TX_BUFF_LEN 64
 #define TX_BUFF_MAX_ADDR()       (txBuff + TX_BUFF_LEN) 
 
 /*****************************************************************************************
@@ -108,7 +108,7 @@ void spiSend ( spiEnhStruct_t* dataStr )
 
       
       // When Head is going to exceed buffer size
-      if ( ++txHead == TX_BUFF_MAX_ADDR() ) { txHead = txBuff; }          
+            
         
       if ( (txHead == txTail) && (true == initFlag) )    // Initial send
       {
@@ -125,10 +125,10 @@ void spiSend ( spiEnhStruct_t* dataStr )
          }
 #endif
          SPIC.DATA = txTail->data;    // First character sent starts transmission
-         
          // When Tail is going to exceed buffer size
          if ( ++txTail == TX_BUFF_MAX_ADDR() ) { txTail = txBuff; }
-      }
+      }      
+      if ( ++txHead == TX_BUFF_MAX_ADDR() ) { txHead = txBuff; }    
    }
    else  // Overflow
    {
@@ -161,10 +161,8 @@ ISR ( SPIC_INT_vect )
          DC_LO();
       }
  #endif
-      LOG_UINT ( "Ia ",  (uint16_t)txTail );
-      LOG_UINT ( "Ic ",  txTail->data );
-      SPIC.DATA = txTail->data;
-      
+ 
+      SPIC.DATA = txTail->data;      
       // When tail is going to exceed buffer size
       if ( ++txTail == TX_BUFF_MAX_ADDR() ) { txTail = txBuff; }
    }

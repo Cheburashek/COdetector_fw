@@ -98,7 +98,7 @@ static void systemPeriodicRefresh ( void )
    ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
 #endif
    
-   adcStartChToGnd();      // Starting measurement
+   adcStartSens();      // Starting measurement
    
    if ( initFlag )
    {

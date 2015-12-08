@@ -32,16 +32,19 @@
 
 #include "common.h"
 
-
+#include "ADC.h"
 //****************************************************************************************
 int main(void)
 {     
    
-   boardInit();                        // Board peripherals initialization       
-  
-
+   boardInit();                        // Board peripherals initialization      
+    
+ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS; 
    while(1)
    {
+      ADCA.CTRLA |= ADC_START_bm;
+      _delay_ms(1500);
+      
    }
 
 }

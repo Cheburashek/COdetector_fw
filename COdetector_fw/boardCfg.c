@@ -92,13 +92,13 @@ void boardInit ( void )
    PRIO_ALL_LEVELS_ENABLE();
    
    // Order is important:
-   ioInit();
-   spiInit();
-   pdcInit();
-   interInit();   // With hello screen
+   //ioInit();
+   //spiInit();
+   //pdcInit();
+   //interInit();   // With hello screen
    adcInit();
-   timerInit();
-   systemInit();
+   //timerInit();
+   //systemInit();
    
    
    
