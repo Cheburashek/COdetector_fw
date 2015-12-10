@@ -46,7 +46,7 @@ int main(void)
    
    boardInit();                        // Board peripherals initialization      
     
-    ioBcklghtOff();
+    ioBcklghtOn();
 
 register8_t* reg = 0x0200;
    while(1)

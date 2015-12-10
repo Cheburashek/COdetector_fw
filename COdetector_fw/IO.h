@@ -19,7 +19,9 @@
    GLOBAL DEFINITIONS & MACROS
 */
 
-
+#define IO_GET_USB_CONN()     ( (PORTD.IN & CFG_USB_CON_PIN_MASK) == CFG_USB_CON_PIN_MASK )
+#define IO_RISING_EDGE_USB()    (  PORTD.PIN4CTRL |= PORT_ISC_RISING_gc )
+#define IO_FALLING_EDGE_USB()    (  PORTD.PIN4CTRL |= PORT_ISC_FALLING_gc )
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS

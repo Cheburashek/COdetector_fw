@@ -22,15 +22,15 @@
    LOCAL DEFINITIONS
 */
 
-// Positions (Y) on LCD:
-#define LCD_TIME_POS_Y             0
+
+#define LCD_HEADER_POS_Y             0
 #define LCD_ACTMEAS_POS_Y          1
 #define LCD_MEAN_1M_POS_Y          2
 #define LCD_MEAN_1H_POS_Y          3
 #define LCD_MEAN_8H_POS_Y          4
 #define LCD_BT_INFO_POS_Y          5
 
-
+// Positions (X) on LCD:
 #define LCD_OPTION_SIGN_POS_X      0
 
 /*****************************************************************************************
@@ -131,6 +131,7 @@ static void interDisplayHello ( void )
 // Displaying values:
 static void interDispValsBackground ( void )
 {
+   pdcLine ( "              ", 0 );
    pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
    pdcLine ( "M1m:        mV", LCD_MEAN_1M_POS_Y );
    pdcLine ( "M1h:        mV", LCD_MEAN_1H_POS_Y );
@@ -337,13 +338,23 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
 {
    if ( DISPVALS_M_STATE == mainActState ) // Only when device is in appropriate state
    {
-      // Time:
+      // Time & Vbatt:
       char str[14] = {"              "};
-      sprintf ( str, "%.2u:%.2u:%.2u", sysTime.hour,sysTime.min, sysTime.sec );
-      pdcLine( str, LCD_TIME_POS_Y );
-   
+      
+      
+      if ( pVal->usbPlugged ) // If USB plugged in
+      {
+         sprintf ( str, "%.2u:%.2u:%.2u   USB", sysTime.hour,sysTime.min, sysTime.sec );
+      }
+      else
+      {
+         sprintf ( str, "%.2u:%.2u:%.2u  %.4u", sysTime.hour,sysTime.min, sysTime.sec, pVal->actBattVal );
+      }
+      pdcLine( str, LCD_HEADER_POS_Y );
+
+      
       // Measured values:
-      pdcUint ( pVal->actVal, LCD_ACTMEAS_POS_Y, 6, 5 );
+      pdcUint ( pVal->actSensVal, LCD_ACTMEAS_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
       pdcUint ( pVal->mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );
@@ -352,8 +363,8 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          
    // Serial log:
    char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[mV] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actVal );
-   LOG_TXT_WL ( strToLog, len );
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[mV] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
+   LOG_TXT_WL ( strToLog, len ); // Sensor value with timestamp
 }
 
 

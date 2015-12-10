@@ -26,7 +26,7 @@
    LOCAL DEFINITIONS
 */
 
-#define TX_BUFF_LEN 128
+#define TX_BUFF_LEN 64
 #define TX_BUFF_MAX_ADDR()       (txBuff + TX_BUFF_LEN) 
 
 /*****************************************************************************************

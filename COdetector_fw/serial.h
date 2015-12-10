@@ -16,11 +16,7 @@
 #include "common.h"
 
 /*****************************************************************************************
-   GLOBAL DEFINITIONS
-*/
-
-/*****************************************************************************************
-   GLOBAL MACROS
+   GLOBAL DEFINITIONS & MACROS
 */
 
 // LOGS:
@@ -34,6 +30,8 @@
    #define LOG_UINT( txt, val )        // NULL
 #endif
 
+#define SERIAL_TX_EN()        ( USARTD0.CTRLB |= USART_TXEN_bm  )
+#define SERIAL_TX_DIS()       ( USARTD0.CTRLB &= ~USART_TXEN_bm  )
    
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS

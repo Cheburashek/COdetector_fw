@@ -29,7 +29,7 @@
 
 
 
-#define ADC_OFF_MAN_CORR   102   // Manually measured offset in 12b storage
+#define ADC_OFF_MAN_CORR   105   // Manually measured offset in 12b storage
 #define ADC_GAIN_MAN_CORR  0x7DA   // 357page in manual
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -56,6 +56,8 @@ void adcInit ( void )
 {
    // PORT:
    PORTA.DIRCLR = CFG_ADC_SENS_PIN_MASK;        // Input
+   PORTA.DIRCLR = CFG_ADC_VBATT_PIN_MASK;        // Input
+   
    
    ADCA.CH0.INTFLAGS = 0xFF;                          // Clearing int flags
    ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
@@ -93,14 +95,22 @@ void adcInit ( void )
        
    ADCA.CH0.CORRCTRL = 0x01;     // Correction enabled
                                
-   ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS;
-   
-   
-   
    LOG_TXT ( ">>init<<   ADC initialized\n" );
 }
  
  
+//****************************************************************************************
+void adcStartChannel ( eAdcChan_t ch )
+{
+   ADCA.CH0.MUXCTRL = ch;
+   ADCA.CTRLA |= ADC_START_bm;
+}
+
+//****************************************************************************************
+eAdcChan_t adcGetChan ( void )
+{
+   return ADCA.CH0.MUXCTRL;
+}
 
 
 

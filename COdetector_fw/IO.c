@@ -72,22 +72,31 @@ void ioInit ( void )
    PORTD.PIN5CTRL |= PORT_ISC_FALLING_gc;     // Button 3
    PORTD.PIN6CTRL |= PORT_ISC_FALLING_gc;     // Button 2
    PORTD.PIN7CTRL |= PORT_ISC_FALLING_gc;     // Button 1
-   PORTD.PIN4CTRL |= PORT_ISC_LEVEL_gc;       // USB connected -> Low input level for interrupt            
+   
+   if ( IO_GET_USB_CONN() )   // If USB plugged in
+   {
+      IO_FALLING_EDGE_USB();
+   }
+   else
+   {
+      IO_RISING_EDGE_USB();
+   }
     
    // Pull's:
-   PORTD.PIN5CTRL |= PORT_OPC_PULLUP_gc;    // Button 3
+   PORTD.PIN5CTRL |= PORT_OPC_PULLUP_gc;      // Button 3
    PORTD.PIN6CTRL |= PORT_OPC_PULLUP_gc;      // Button 2
    PORTD.PIN7CTRL |= PORT_OPC_PULLUP_gc;      // Button 1   
    PORTD.PIN4CTRL |= PORT_OPC_PULLDOWN_gc;    // USB connected
    
-   PORTD.INTFLAGS = 0xFF;                    // Clear all pins flags
+   PORTD.INTFLAGS = 0xFF;                     // Clear all pins flags
    
-   PORTD.INTCTRL = CFG_PRIO_PORTD;           // Global PORTD int priority
+   PORTD.INTCTRL = CFG_PRIO_PORTD;            // Global PORTD int priority
    
-   PORTD.INTMASK = CFG_BT1_PIN_MASK |
+   PORTD.INTMASK =  CFG_BT1_PIN_MASK |
                     CFG_BT2_PIN_MASK |
-                    CFG_BT3_PIN_MASK;               
-   
+                    CFG_BT3_PIN_MASK |               
+                    CFG_USB_CON_PIN_MASK;
+         
    LOG_TXT ( ">>init<<   IO initialized\n" );
 }
 
@@ -170,7 +179,7 @@ ISR ( PORTD_INT_vect )
    // USB connected
    if ( CFG_USB_CON_PIN_MASK == PORTD.INTFLAGS )
    {
-      
+       systemUSBStateChanged ();
    }
    
    PORTD.INTFLAGS = 0xFF;                  // Clear all pins flags

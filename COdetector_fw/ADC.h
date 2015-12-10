@@ -18,13 +18,22 @@
 /*****************************************************************************************
    GLOBAL DEFINITIONS
 */
-#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single conversion
+
+
+
 #define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
 #define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS
 */
+
+typedef enum
+{
+   SENS = CFG_ADC_SENS_MUXPOS,
+   VBATT = CFG_ADC_VBATT_MUXPOS
+   
+} eAdcChan_t;
 
 typedef void (*pfnAdcEnd) (uint16_t); 
 
@@ -33,7 +42,8 @@ typedef void (*pfnAdcEnd) (uint16_t);
 */
 
 void adcRegisterEndCb( pfnAdcEnd cb );
-
+void adcStartChannel ( eAdcChan_t ch );
+eAdcChan_t adcGetChan ( void );
 void adcInit ( void );
 
 

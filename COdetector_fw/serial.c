@@ -95,9 +95,9 @@ void serialInitD ( void )
    // Priorities from common.h:
    USARTD0.CTRLA = CFG_PRIO_USARTD0;  
          
-   USARTD0.CTRLB |= ( USART_TXEN_bm |    // Transmitter enabled
-                      //USART_RXEN_bm |    // Receiver enabled
-                      USART_CLK2X_bm );  // Enabling 2x clock    
+   USARTD0.CTRLB |= USART_CLK2X_bm ;  // Enabling 2x clock    
+                       
+   SERIAL_TX_EN();
                        
    USARTD0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
    

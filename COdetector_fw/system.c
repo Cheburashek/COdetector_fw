@@ -19,6 +19,7 @@
 #include "timers.h"
 #include "ADC.h"
 #include "interFace.h"
+#include "IO.h"
 
 
 
@@ -46,8 +47,8 @@
    LOCAL VARIABLES
 */
 
-static volatile uint16_t rawVal;
-
+static volatile uint16_t rawSensVal;
+static volatile uint16_t rawBattVal;
 
 // Meaning queue:
 static meanType_t mean1mTab[MEAN_1M_QUEUE_LEN];
@@ -59,7 +60,8 @@ static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN, false };
 static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN, false };
 static meanQueue_t mean8hQ = { mean8hTab, mean8hTab, MEAN_8H_QUEUE_LEN, false };
 
-
+// Flags:
+static bool vBattFlag = TRUE;    // For adc measurement triggering
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -75,7 +77,8 @@ static void systemPeriodicRefresh ( void );
 static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val );
 static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf );
 
-static uint16_t systemConvertFromRaw ( uint16_t raw );
+static uint16_t systemConvRawSens ( uint16_t raw );
+static uint16_t systemConvRawBatt ( uint16_t raw );
 
 
 
@@ -90,29 +93,29 @@ static uint16_t systemConvertFromRaw ( uint16_t raw );
 static void systemPeriodicRefresh ( void )
 {   
    static uint16_t ticks = 0;   
-   static bool initFlag = false;
-   
-   
    
 #ifdef STAT_LED_ON_ADC
    ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
 #endif
    
-   ADC_START();      // Starting measurement
+   adcStartChannel (SENS);      // Starting sensor voltage measurement
 
-   if ( initFlag )
+
    {
-      locVals.actVal = systemConvertFromRaw ( rawVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]
-   
-      // Every tick:
-      systemQueuePush ( &mean1mQ, locVals.actVal );
-      systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal ); // For 1min meaning
+      // Every tick: // TODO: maybe another manner?
+
+      
+      locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
+      systemQueuePush ( &mean1mQ, locVals.actSensVal );
+      systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );     // For 1min meaning
     
       // Every 15 s:   
       if ( 0 == (ticks % 15) )     
       {
          systemQueuePush ( &mean1hQ, locVals.mean1mVal );
          systemQueueCalcMean ( &mean1hQ, &locVals.mean1hVal );  // For 1h meaning
+         locVals.actBattVal = systemConvRawBatt ( rawBattVal );
+         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
       }
    
       // Every 5 min :
@@ -128,7 +131,6 @@ static void systemPeriodicRefresh ( void )
    interDisplaySystemVals ( &locVals );
    
    ticks += RTC_PERIOD_S;
-   initFlag = true;
 }
 
 //****************************************************************************************
@@ -173,13 +175,22 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
 
 
 //****************************************************************************************
-static uint16_t systemConvertFromRaw ( uint16_t raw )
+// Converting from raw sensor value
+static uint16_t systemConvRawSens ( uint16_t raw )
 {
-  uint32_t rawData = (((uint32_t)raw) * ADC_DIVIDER) / 65535; // for 1 [mV] resolution @16b 
+  uint32_t rawData = (((uint32_t)raw) * ADC_SENS_MULTI_MV) / 65535; // for 1 [mV] resolution @16b 
    
   return (uint16_t)rawData;
 }
 
+//****************************************************************************************
+// Converting from raw vBatt value
+static uint16_t systemConvRawBatt ( uint16_t raw )
+{
+   uint32_t rawData = (((uint32_t)raw) * ADC_VBATT_MULTI_MV) / 65535; // for 1 [mV] resolution @16b
+   
+   return (uint16_t)rawData;
+}
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
@@ -210,21 +221,62 @@ void systemInit ( void )
    TEST*/
    
    
-   
+   systemUSBStateChanged();   // Initial check of USB state
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
+   
+   adcStartChannel (SENS);   // Initial measurements
    
    LOG_TXT ( ">>init<<   System initialized\n" );
 }
 
+//****************************************************************************************
+// After changing USB connection state:
 
+void systemWakeUp ( void )
+{
+      
+}
+
+
+void systemUSBStateChanged ( void )
+{
+   _delay_ms(30);  // Glitch
+   
+   if ( IO_GET_USB_CONN() )   // If USB plugged in
+   {
+      locVals.lpFlag = FALSE;
+      locVals.usbPlugged = TRUE;
+      IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
+   }
+   else
+   {
+      locVals.lpFlag = TRUE;
+      locVals.usbPlugged = FALSE;
+      IO_RISING_EDGE_USB();  // Rising edge sense - now pin state is low
+   }
+}
 
 
 //****************************************************************************************
 void systemMeasEnd ( uint16_t val )
 {
-   rawVal = val;
    
+   if ( SENS == adcGetChan() )
+   {
+      rawSensVal = val;
+      if ( vBattFlag )
+      {          
+         adcStartChannel ( VBATT ); // Battery voltage measurement start
+         vBattFlag = FALSE;
+      }         
+   }
+   else if ( VBATT == adcGetChan() )
+   {
+      rawBattVal = val;      
+   }
+   
+
 #ifdef STAT_LED_ON_ADC   
    ioStatLedOff();      // State LED blinking
 #endif

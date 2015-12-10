@@ -23,8 +23,9 @@
 */
 
 
-#define RTC_PERIOD_S       1        // Should be 1,3,5 or 15 [s]
-#define ADC_DIVIDER        1000     // Input voltage divider ( 1:1 -> 1000 )
+#define RTC_PERIOD_S           1        // Should be 1,3,5 or 15 [s]
+#define ADC_SENS_MULTI_MV      1000     // By input voltage divider ( 1:1 -> 1000 )
+#define ADC_VBATT_MULTI_MV     5652
 
 // Controlling:
 
@@ -52,7 +53,9 @@
 
 // ADC pins (PORTA):
 #define CFG_ADC_SENS_PIN_MASK    PIN4_bm
-#define CFG_ADC_MUXPOS           ADC_CH_MUXPOS_PIN4_gc
+#define CFG_ADC_SENS_MUXPOS      ADC_CH_MUXPOS_PIN4_gc // Sensor channel
+#define CFG_ADC_VBATT_PIN_MASK   PIN0_bm
+#define CFG_ADC_VBATT_MUXPOS     ADC_CH_MUXPOS_PIN0_gc // Sensor channel
 
 // IO pins (PORTD):  
 #define CFG_BT1_PIN_MASK         PIN7_bm

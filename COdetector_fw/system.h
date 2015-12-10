@@ -40,10 +40,13 @@ typedef struct
 
 typedef struct 
 {
-   uint16_t actVal;
+   uint16_t actSensVal;
+   uint16_t actBattVal;
    meanType_t mean1mVal;
    meanType_t mean1hVal;
    meanType_t mean8hVal;
+   bool usbPlugged;
+   bool lpFlag;
       
 } valsToDisp_t;
 
@@ -52,9 +55,8 @@ typedef struct
 */
 
 void systemInit ( void );
-
+void systemUSBStateChanged ( void );
 void systemMeasEnd ( uint16_t val );
-
 
 
 #endif /* SYSTEM_H_ */
