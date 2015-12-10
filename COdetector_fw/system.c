@@ -98,8 +98,8 @@ static void systemPeriodicRefresh ( void )
    ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
 #endif
    
-   adcStartSens();      // Starting measurement
-   
+   ADC_START();      // Starting measurement
+
    if ( initFlag )
    {
       locVals.actVal = systemConvertFromRaw ( rawVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]

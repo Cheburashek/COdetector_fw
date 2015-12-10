@@ -26,7 +26,7 @@
    LOCAL DEFINITIONS
 */
 
-#define TX_BUFF_LEN 64
+#define TX_BUFF_LEN 128
 #define TX_BUFF_MAX_ADDR()       (txBuff + TX_BUFF_LEN) 
 
 /*****************************************************************************************
@@ -77,11 +77,12 @@ void spiInit ( void )
 {
    
    // Pins as output: 
-   PORTC.DIRSET = (  CFG_RST_PIN_MASK  |
-                     CFG_SCE_PIN_MASK  |
+   PORTC.DIRSET = (  CFG_SCE_PIN_MASK  |
                      CFG_DC_PIN_MASK   |
                      CFG_MOSI_PIN_MASK |
-                     CFG_SCK_PIN_MASK  ); 
+                     CFG_SCK_PIN_MASK  );
+   
+   PORTA.DIRSET = CFG_RST_PIN_MASK;
    
    PORTC.DIRCLR= PIN4_bm;             // Important: Slave select is there!
    PORTC.PIN4CTRL = PORT_OPC_PULLUP_gc;
@@ -106,14 +107,8 @@ void spiSend ( spiEnhStruct_t* dataStr )
    {          
       *txHead = *dataStr; 
 
-      
-      // When Head is going to exceed buffer size
-            
-        
       if ( (txHead == txTail) && (true == initFlag) )    // Initial send
-      {
-         
-         
+      {      
 #ifdef ENHANCED_SPI
          if ( txTail->outDC )
          {
@@ -132,7 +127,6 @@ void spiSend ( spiEnhStruct_t* dataStr )
    }
    else  // Overflow
    {
-      //while ( txHead != txTail ){;} // Waiting for free buffer // TODO: circular, this not work
       LOG_TXT ( ">>warn<< SPI buffer OF\n" );
    }    
 }

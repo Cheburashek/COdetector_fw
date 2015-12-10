@@ -174,7 +174,7 @@ static void pdcReset( void )
 // Function to set callback in SPI.c (end of transmission)
 inline static void pdcChipDisable ( void )
 {
-   SCE_HI();
+   //SCE_HI();
 }
 
 // *************************************************************************
@@ -183,8 +183,6 @@ static void pdcSend( bool DC, uint8_t data )
 {
    spiEnhStruct_t dataStr = {data, DC};
    
-   SCE_LO();   
-
    spiSend( &dataStr );   
 }
 
@@ -221,8 +219,10 @@ static void pdcSetCol( uint8_t addr_X )
 void pdcInit( void )
 {
    spiRegisterTxEndCB ( pdcChipDisable );
-   
+  
    pdcReset();
+   
+   SCE_LO();   // TODO:
    
    pdcSend( DC_CMD, 0x21 );	// Extended cmd
    pdcSend( DC_CMD, 0xE0 );	// Bias

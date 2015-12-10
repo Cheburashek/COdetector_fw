@@ -27,9 +27,7 @@
    LOCAL DEFINITIONS
 */
 
-#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single conversion
-#define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
-#define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
+
 
 #define ADC_OFF_MAN_CORR   102   // Manually measured offset in 12b storage
 #define ADC_GAIN_MAN_CORR  0x7DA   // 357page in manual
@@ -59,24 +57,32 @@ void adcInit ( void )
    // PORT:
    PORTA.DIRCLR = CFG_ADC_SENS_PIN_MASK;        // Input
    
+   ADCA.CH0.INTFLAGS = 0xFF;                          // Clearing int flags
+   ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
+   
+   ADC_EN();
+   
    ADCA.CTRLB = ADC_CURRLIMIT_HIGH_gc  |        // High current limit, max. sampling rate 75kSPS
                 ADC_RESOLUTION_MT12BIT_gc;      // More than 12-bit right adjusted result, when (SAPNUM>0)
+   
+   ADCA.CTRLB &= ~(ADC_CONMODE_bm |             // Unsigned mode
+                   ADC_FREERUN_bm);             // Single conversion
+   
+   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc |  // Single ended input
+                   ADC_CH_GAIN_1X_gc;                 // 1x gain
+   
+   ADCA.EVCTRL = 0x00;                          // Ensuring that event system is disabled for ADC
+      
+   
                 
-   ADCA.CTRLB &= ~ADC_CONMODE_bm;               // Unsigned mode
-                  
+   
    ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;      // Number of samples (averaging) - 16bit
 
    ADCA.SAMPCTRL = 0x08;   // For 8Mhz clock only!
    
    ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
-   
-   
-   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc |  // Single ended input
-                   ADC_CH_GAIN_1X_gc;                 // 1x gain
-                   
-   ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
-   
-   ADCA.REFCTRL = ADC_REFSEL_INTVCC_gc;                // Internal 1V reference              
+      
+   ADCA.REFCTRL = ADC_REFSEL_INT1V_gc;                // Internal 1V reference              
    
    
    ADCA.CH0.OFFSETCORR0 = ADC_OFF_MAN_CORR & 0xFF;
@@ -87,48 +93,15 @@ void adcInit ( void )
        
    ADCA.CH0.CORRCTRL = 0x01;     // Correction enabled
                                
-   ADC_EN();
+   ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS;
+   
+   
    
    LOG_TXT ( ">>init<<   ADC initialized\n" );
 }
  
  
 
-////****************************************************************************************
-//static void adcOffCalibration ( void )
-//{   
-   //ADCA.CH0.CTRL = ADC_CH_INPUTMODE_DIFFWGAINL_gc;    // Only for calibration
-   //
-   //ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc |         // Connect to one pin - offset cal
-                      //ADC_CH_MUXNEGL_PIN0_gc ;
-                      //
-   //ADC_START();  
-   //while ( !ADCA.INTCTRLB ){;}
-   //ADCA.INTCTRLB = 0x01;         // Clearing this flag     
-   //LOG_UINT ("rr ", 3, ADCA.CH0RES>>4 );
-//
-   //uint16_t offTemp = ADCA.CH0RES >> 8;   // For 16b->12b
-//
-//
-   //ADCA.CH0.OFFSETCORR0 = offTemp & 0xFF; 
-   //ADCA.CH0.OFFSETCORR1 = offTemp >> 8;  
-     //
-   //ADCA.CH0.GAINCORR0 = 0x00;
-   //ADCA.CH0.GAINCORR1 = 0x08;          // Gain correction x1
-   //
-   //ADCA.CH0.CORRCTRL = 0x01;     // Correction enabled
-   //
-   //LOG_UINT ( ">>adc<<  Offset calibration: ", 30, (((uint16_t)ADCA.CH0.OFFSETCORR1)<<8)+ADCA.CH0.OFFSETCORR0 );
-//}
-
-
-
-//****************************************************************************************
-void adcStartSens ( void )
-{
-   ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS; 
-   ADC_START();
-}
 
 
 //****************************************************************************************
@@ -145,5 +118,4 @@ ISR ( ADCA_CH0_vect )
    {       
       convEndCB (  (uint16_t)ADCA.CH0RES );            
    }  
-   LOG_UINT ("rtaw", (uint16_t)ADCA.CH0RES);
 }

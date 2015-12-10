@@ -19,6 +19,9 @@
 
 */
 
+// BIG PROBLEM!!!
+// UStawienie pind0 na HI (input) robi to samo dziadostwo co ustawienie na hi (output) na pinc0 !! -zmiana Urev dla ADC
+//
 
 
 // TODO: clk in lopo
@@ -33,18 +36,31 @@
 #include "common.h"
 
 #include "ADC.h"
+#include "PDC8544.h"
+#include "IO.h"
+
+
 //****************************************************************************************
 int main(void)
 {     
    
    boardInit();                        // Board peripherals initialization      
     
-ADCA.CH0.MUXCTRL = CFG_ADC_MUXPOS; 
+    ioBcklghtOff();
+
+register8_t* reg = 0x0200;
    while(1)
    {
-      ADCA.CTRLA |= ADC_START_bm;
-      _delay_ms(1500);
       
+
+      //uint8_t* pnt = (uint8_t*)&ADCA;
+     //
+     //
+    //LOG_UINT ("r  ", (uint8_t)*reg );   
+    //reg++;  
+      //_delay_ms(100);
+      //ADC_START();
+      //LOG_UINT("raw ", ADCA.CH0RES);
    }
 
 }

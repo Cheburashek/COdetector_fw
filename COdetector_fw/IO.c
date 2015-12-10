@@ -52,16 +52,16 @@ void ioInit ( void )
    ioBuzzerOff();
    
    // UNUSED PINS (input and pullup): //TODO: add the others
-   PORTD.DIRCLR = PIN0_bm;
-   PORTD.PIN0CTRL |= PORT_OPC_PULLUP_gc;
+  
+
    
    
    // Outputs:
    PORTD.DIRSET = CFG_BUZZ_PIN_MASK;
    
    PORTA.DIRSET = CFG_LED_PIN_MASK |
-                  CFG_BCKLGHT_PIN_MASK;                   
-                  
+                  CFG_BCKLGHT_PIN_MASK;
+   
    // Inputs:
    PORTD.DIRCLR = CFG_BT1_PIN_MASK |
                   CFG_BT2_PIN_MASK |
@@ -133,6 +133,17 @@ void ioStatLedTgl ( void )
 }
 
 
+//****************************************************************************************
+// Driving backlight LED ( not inline or macro because of using as a callback ):
+void ioBcklghtOn ( void )
+{
+   PORTA.OUTCLR = CFG_BCKLGHT_PIN_MASK;
+}
+
+void ioBcklghtOff ( void )
+{
+   PORTA.OUTSET = CFG_BCKLGHT_PIN_MASK;
+}
 
 
 //****************************************************************************************

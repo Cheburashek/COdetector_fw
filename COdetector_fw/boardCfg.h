@@ -40,11 +40,15 @@
 #define CFG_RXD0_PIN_MASK        PIN2_bm
 
 // SPI pins (for lcd3310) ( PORTC ):
-#define CFG_RST_PIN_MASK         PIN0_bm 
+
 #define CFG_SCE_PIN_MASK         PIN1_bm
 #define CFG_DC_PIN_MASK          PIN2_bm
 #define CFG_SCK_PIN_MASK         PIN5_bm
 #define CFG_MOSI_PIN_MASK        PIN7_bm
+
+// SPI pins (for lcd3310) ( PORTA ):
+#define CFG_RST_PIN_MASK         PIN1_bm 
+
 
 // ADC pins (PORTA):
 #define CFG_ADC_SENS_PIN_MASK    PIN4_bm
@@ -132,8 +136,8 @@
 #define DC_HI()      ( PORTC.OUTSET = CFG_DC_PIN_MASK  )
 #define SCE_LO()     ( PORTC.OUTCLR = CFG_SCE_PIN_MASK )
 #define SCE_HI()     ( PORTC.OUTSET = CFG_SCE_PIN_MASK )
-#define RST_LO()     ( PORTC.OUTCLR = CFG_RST_PIN_MASK )
-#define RST_HI()     ( PORTC.OUTSET = CFG_RST_PIN_MASK )
+#define RST_LO()     ( PORTA.OUTCLR = CFG_RST_PIN_MASK )
+#define RST_HI()     ( PORTA.OUTSET = CFG_RST_PIN_MASK )
 
 
 

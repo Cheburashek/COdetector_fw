@@ -18,6 +18,9 @@
 /*****************************************************************************************
    GLOBAL DEFINITIONS
 */
+#define ADC_START()        ( ADCA.CTRLA |= ADC_START_bm   )       // Start single conversion
+#define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
+#define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS
@@ -30,7 +33,7 @@ typedef void (*pfnAdcEnd) (uint16_t);
 */
 
 void adcRegisterEndCb( pfnAdcEnd cb );
-void adcStartSens ( void );
+
 void adcInit ( void );
 
 

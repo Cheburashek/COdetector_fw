@@ -35,4 +35,7 @@ void ioStatLedOn ( void );
 void ioStatLedOff ( void );
 void ioStatLedTgl ( void );
 
+void ioBcklghtOn ( void );
+void ioBcklghtOff ( void );
+
 #endif /* IO_H_ */
