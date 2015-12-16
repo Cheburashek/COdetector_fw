@@ -17,6 +17,7 @@
    GLOBAL DEFINITIONS
 */
 
+
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
@@ -30,5 +31,8 @@ void pdcShort( short val, uint8_t pos_Y, uint8_t pos_X, uint8_t length );
 void pdcPicture( const uint8_t pic[504] );
 void pdcClearRAM( void );
 void pdcClearLine( uint8_t pos_Y );
+
+void pdcPowerDown ( void );
+void pdcPowerOn ( void );
 
 #endif /* PDC8544 */

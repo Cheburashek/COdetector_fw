@@ -327,7 +327,6 @@ void interInit ( void )
    interMainStateMachineSet ( HELLO_M_STATE );  // Initial state
    //interDispValsBackground ();
    
-   LOG_TXT ( ">>init<<   Interface initialized\n" );
 }
 
 
@@ -351,14 +350,12 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          sprintf ( str, "%.2u:%.2u:%.2u  %.4u", sysTime.hour,sysTime.min, sysTime.sec, pVal->actBattVal );
       }
       pdcLine( str, LCD_HEADER_POS_Y );
-
       
       // Measured values:
       pdcUint ( pVal->actSensVal, LCD_ACTMEAS_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );
-      
+      pdcUint ( pVal->mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );      
    }      
          
    // Serial log:

@@ -233,7 +233,6 @@ void pdcInit( void )
 
    pdcClearRAM();
 
-   LOG_TXT ( ">>init<<   PDC8544 initialized\n");
 }
 
 // *************************************************************************
@@ -410,4 +409,19 @@ void pdcPicture( const uint8_t pic[504] )
          pdcSend( DC_DATA, pic[ 84*Y + X ] );         
       }
    }
+}
+
+
+// *************************************************************************
+// Function to set power down mode
+void pdcPowerDown ( void )
+{
+   pdcSend ( DC_CMD, 0x24 ); // Enter power down mode
+}
+
+// *************************************************************************
+// Function to wake up
+void pdcPowerOn ( void )
+{
+   pdcSend ( DC_CMD, 0x20 ); // Exit power down mode
 }

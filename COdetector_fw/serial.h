@@ -19,6 +19,8 @@
    GLOBAL DEFINITIONS & MACROS
 */
 
+typedef void (*pTempEnd_t) ( uint16_t val );
+
 // LOGS:
 #ifdef LOG_USARTD0
    #define LOG_TXT( txt )              serialSendD( (uint8_t*)txt, (sizeof(txt)-1) )
@@ -30,14 +32,31 @@
    #define LOG_UINT( txt, val )        // NULL
 #endif
 
-#define SERIAL_TX_EN()        ( USARTD0.CTRLB |= USART_TXEN_bm  )
-#define SERIAL_TX_DIS()       ( USARTD0.CTRLB &= ~USART_TXEN_bm  )
+#ifdef DATA_USARTD0
+   #define DATA_TXT( txt )              serialSendD( (uint8_t*)txt, (sizeof(txt)-1) )
+   #define DATA_TXT_WL( txt, val )        serialLogUintD ( (uint8_t*)txt, (sizeof(txt)-1), (uint32_t) val )
+   #define DATA_UINT( txt, val )        serialLogUintD ( (uint8_t*)txt, (sizeof(txt)-1), (uint32_t) val ))
+#else
+   #define DATA_TXT( txt )
+   #define DATA_TXT_WL( txt )   
+   #define DATA_UINT( txt, val ) 
+#endif
+
+
+#define SERIAL_D_TX_EN()        ( USARTD0.CTRLB |= USART_TXEN_bm  )
+#define SERIAL_D_TX_DIS()       ( USARTD0.CTRLB &= ~USART_TXEN_bm  )
+
+#define SERIAL_C_TX_EN()        ( USARTC0.CTRLB |= USART_TXEN_bm  )
+#define SERIAL_C_TX_DIS()       ( USARTC0.CTRLB &= ~USART_TXEN_bm  )
+#define SERIAL_C_RX_EN()        ( USARTC0.CTRLB |= USART_RXEN_bm  )
+#define SERIAL_C_RX_DIS()       ( USARTC0.CTRLB &= ~USART_RXEN_bm  )
    
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
 void serialInitD ( void );
+void serialInitC ( void );
 
 void serialSendD ( uint8_t* data, uint8_t len );
 

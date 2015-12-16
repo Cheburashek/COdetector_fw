@@ -93,11 +93,8 @@ void spiInit ( void )
                  SPI_MASTER_bm   );    // Master mode          
    
    SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h    
-                                
-   SPI_EN();               // Enabling SPI    
-                     
+                                                    
    initFlag = true;                                
-   LOG_TXT ( ">>init<<   SPI initialized\n" );   
 }
 
 //****************************************************************************************
@@ -109,6 +106,8 @@ void spiSend ( spiEnhStruct_t* dataStr )
 
       if ( (txHead == txTail) && (true == initFlag) )    // Initial send
       {      
+         SPI_EN();
+         
 #ifdef ENHANCED_SPI
          if ( txTail->outDC )
          {
@@ -162,6 +161,7 @@ ISR ( SPIC_INT_vect )
    }
    else // All of data from buffer is send
    {
+      SPI_DIS ();
       if ( NULL != txEndCB )
       {
          txEndCB();         

@@ -21,8 +21,9 @@
    GLOBAL DEFINITIONS
 */
 
-
-
+ // Prescaler 1024 (so 8MHz/1024-> 7812 ticks for 1s):
+#define TIMER_TCC4_EN()      ( TCC4.CTRLA |= TC45_CLKSEL_DIV1024_gc )   
+#define TIMER_TCC4_DIS()      ( TCC4.CTRLA |= TC45_CLKSEL_OFF_gc )   
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS

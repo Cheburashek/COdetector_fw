@@ -102,12 +102,7 @@ void timerInit (void )
                   TC45_CCDMODE_COMP_gc;
    
    TCC4.PER = 0xFFFF;
-   
-   TCC4.CTRLA |= TC45_CLKSEL_DIV1024_gc;     // Prescaler 1024 (so 8MHz/1024-> 7812 ticks for 1s)
-   
-  
-                  
-   LOG_TXT ( ">>init<<   Timers initialized\n" );            
+           
 }
 
 

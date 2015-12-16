@@ -21,8 +21,12 @@
 
 
 
-#define ADC_EN()           ( ADCA.CTRLA |= ADC_ENABLE_bm  )
-#define ADC_DIS()          ( ADCA.CTRLA &= ~ADC_ENABLE_bm )
+#define ADC_EN()             PR.PRPA &= ~PR_ADC_bm;\
+                             ADCA.CTRLA |= ADC_ENABLE_bm;
+                               
+                             
+#define ADC_DIS()            ADCA.CTRLA &= ~ADC_ENABLE_bm; \
+                             PR.PRPA |= PR_ADC_bm; 
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS
@@ -44,6 +48,7 @@ typedef void (*pfnAdcEnd) (uint16_t);
 void adcRegisterEndCb( pfnAdcEnd cb );
 void adcStartChannel ( eAdcChan_t ch );
 eAdcChan_t adcGetChan ( void );
+void adcLowPowerClock ( bool mode );
 void adcInit ( void );
 
 

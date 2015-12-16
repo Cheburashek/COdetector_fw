@@ -29,31 +29,35 @@
 
 // Controlling:
 
-#define xSTAT_LED_ON_ADC
+#define STAT_LED_ON_ADC
 #define xBUZZER_PERM
 
 /*****************************************************************************************
    GLOBAL CONFIGURATION DEFINES
 */
 
-// UARTC0 pins ( PORTD ):
+// UARTD0 pins ( PORTD ):
 #define CFG_TXD0_PIN_MASK        PIN3_bm  
 #define CFG_RXD0_PIN_MASK        PIN2_bm
 
-// SPI pins (for lcd3310) ( PORTC ):
+// UARTC0 pins ( PORTC ):
+#define CFG_TXC0_PIN_MASK        PIN3_bm
+#define CFG_RXC0_PIN_MASK        PIN2_bm
 
+// SPI pins (for lcd3310) ( PORTC ):
 #define CFG_SCE_PIN_MASK         PIN1_bm
-#define CFG_DC_PIN_MASK          PIN2_bm
+#define CFG_DC_PIN_MASK          PIN3_bm
 #define CFG_SCK_PIN_MASK         PIN5_bm
 #define CFG_MOSI_PIN_MASK        PIN7_bm
 
 // SPI pins (for lcd3310) ( PORTA ):
-#define CFG_RST_PIN_MASK         PIN1_bm 
+#define CFG_RST_PIN_MASK         PIN1_bm
 
 
 // ADC pins (PORTA):
 #define CFG_ADC_SENS_PIN_MASK    PIN4_bm
 #define CFG_ADC_SENS_MUXPOS      ADC_CH_MUXPOS_PIN4_gc // Sensor channel
+
 #define CFG_ADC_VBATT_PIN_MASK   PIN0_bm
 #define CFG_ADC_VBATT_MUXPOS     ADC_CH_MUXPOS_PIN0_gc // Sensor channel
 
@@ -75,7 +79,11 @@
 
 /*** Interrupts priority ****/ 
 
+// USARTD0 intlvl:
 #define CFG_PRIO_USARTD0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_OFF_gc )    
+
+// USARTC0 intlvl:
+#define CFG_PRIO_USARTC0    ( USART_DREINTLVL_OFF_gc | USART_TXCINTLVL_MED_gc | USART_RXCINTLVL_MED_gc )  
 
 // SPI intlvl:
 #define CFG_PRIO_SPI         SPI_INTLVL_LO_gc 
@@ -153,6 +161,10 @@
    GLOBAL FUNCTIONS DECLARATIONS
 */
 void boardInit ( void );
+void boardPeriEnable ( void );
+void boardPeriDisable ( void );
 
+void boardGoSleep ( void );
+void boardWakeUp ( void );
 
 #endif /* BOARDCFG_H_ */

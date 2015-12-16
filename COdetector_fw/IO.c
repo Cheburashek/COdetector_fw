@@ -49,13 +49,11 @@ void ioInit ( void )
 {
    // Initial stats:
    ioStatLedOff();
+   ioBcklghtOff();
    ioBuzzerOff();
    
    // UNUSED PINS (input and pullup): //TODO: add the others
   
-
-   
-   
    // Outputs:
    PORTD.DIRSET = CFG_BUZZ_PIN_MASK;
    
@@ -96,8 +94,7 @@ void ioInit ( void )
                     CFG_BT2_PIN_MASK |
                     CFG_BT3_PIN_MASK |               
                     CFG_USB_CON_PIN_MASK;
-         
-   LOG_TXT ( ">>init<<   IO initialized\n" );
+        
 }
 
 

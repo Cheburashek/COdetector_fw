@@ -226,19 +226,18 @@ void systemInit ( void )
    timerRegisterRtcCB ( systemPeriodicRefresh );
    
    adcStartChannel (SENS);   // Initial measurements
-   
-   LOG_TXT ( ">>init<<   System initialized\n" );
+
 }
 
-//****************************************************************************************
-// After changing USB connection state:
+
 
 void systemWakeUp ( void )
 {
       
 }
 
-
+//****************************************************************************************
+// After changing USB connection state:
 void systemUSBStateChanged ( void )
 {
    _delay_ms(30);  // Glitch
@@ -248,9 +247,13 @@ void systemUSBStateChanged ( void )
       locVals.lpFlag = FALSE;
       locVals.usbPlugged = TRUE;
       IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
+      
+      //boardWakeUp ();
    }
    else
-   {
+   {      
+      //boardGoSleep ();
+      
       locVals.lpFlag = TRUE;
       locVals.usbPlugged = FALSE;
       IO_RISING_EDGE_USB();  // Rising edge sense - now pin state is low
@@ -261,7 +264,7 @@ void systemUSBStateChanged ( void )
 //****************************************************************************************
 void systemMeasEnd ( uint16_t val )
 {
-   
+   ADC_DIS();
    if ( SENS == adcGetChan() )
    {
       rawSensVal = val;
@@ -280,4 +283,5 @@ void systemMeasEnd ( uint16_t val )
 #ifdef STAT_LED_ON_ADC   
    ioStatLedOff();      // State LED blinking
 #endif
+   
 }  

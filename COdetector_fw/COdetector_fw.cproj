@@ -110,6 +110,7 @@
       <Value>DEBUG</Value>
       <Value>LOG_USARTD0</Value>
       <Value>F_CPU=F_CPU_8MHZ</Value>
+      <Value>DATA_USARTD0</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>

@@ -33,34 +33,42 @@
 
 // TODO: przytrzymanie przycisku
 
+
+
+// 32k zawsze w³¹czone, 8Mhz tylko do SPI przy wy³¹czonym lopo
+
+// pierwsze chciua³em ca³kiem osobno tworzyc modu³y, czas nie ozwoliu³
+
+
 #include "common.h"
 
+
+//tests:
 #include "ADC.h"
+
 #include "PDC8544.h"
 #include "IO.h"
+#include "serial.h"
+
 
 
 //****************************************************************************************
 int main(void)
 {     
+   //CCP=CCP_SPM_gc; 
+   //SLEEP.CTRL |= SLEEP_SMODE_PDOWN_gc | SLEEP_SEN_bm;  // Power saving enabled
    
    boardInit();                        // Board peripherals initialization      
-    
-    ioBcklghtOn();
-
-register8_t* reg = 0x0200;
+   
+   ioBcklghtOn();
+   
    while(1)
    {
-      
+      //
+      //serialTempMeasStart();
 
-      //uint8_t* pnt = (uint8_t*)&ADCA;
-     //
-     //
-    //LOG_UINT ("r  ", (uint8_t)*reg );   
-    //reg++;  
       //_delay_ms(100);
-      //ADC_START();
-      //LOG_UINT("raw ", ADCA.CH0RES);
+
    }
 
 }

@@ -95,13 +95,13 @@ void adcInit ( void )
        
    ADCA.CH0.CORRCTRL = 0x01;     // Correction enabled
                                
-   LOG_TXT ( ">>init<<   ADC initialized\n" );
 }
  
  
 //****************************************************************************************
 void adcStartChannel ( eAdcChan_t ch )
 {
+   ADC_EN();
    ADCA.CH0.MUXCTRL = ch;
    ADCA.CTRLA |= ADC_START_bm;
 }
@@ -119,6 +119,7 @@ void adcRegisterEndCb ( pfnAdcEnd cb )
 {
    convEndCB = cb; 
 }
+
 
 
 //****************************************************************************************

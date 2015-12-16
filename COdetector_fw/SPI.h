@@ -40,8 +40,12 @@ typedef struct
    GLOBAL MACROS
 */
 
-#define SPI_EN()    ( SPIC.CTRL |= SPI_ENABLE_bm  )
-#define SPI_DIS()   ( SPIC.CTRL &= ~SPI_ENABLE_bm )
+#define SPI_EN()      PR.PRPC &= ~PR_SPI_bm;\
+                      SPIC.CTRL |= SPI_ENABLE_bm;
+                      
+                      
+#define SPI_DIS()     SPIC.CTRL &= ~SPI_ENABLE_bm;\
+                      PR.PRPC |= PR_SPI_bm;
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
