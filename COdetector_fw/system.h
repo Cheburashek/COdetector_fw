@@ -59,5 +59,5 @@ void systemInit ( void );
 void systemUSBStateChanged ( void );
 void systemMeasEnd ( uint16_t val );
 void systemMeasPermFlagSet ( bool stat );
-
+void systemResetMeasRes ( void );
 #endif /* SYSTEM_H_ */

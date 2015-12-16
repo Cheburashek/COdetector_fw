@@ -85,7 +85,7 @@ static void systemCheckTresholds ( void );
 
 static uint16_t systemConvRawSens ( uint16_t raw );
 static uint16_t systemConvRawBatt ( uint16_t raw );
-
+static void systemQueueReset (  meanQueue_t* pQueue );
 
 
 
@@ -158,6 +158,21 @@ static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val )
    {
       pQueue->pHead = pQueue->pStart; 
    }   
+}
+
+//****************************************************************************************
+// Reset queue:
+static void systemQueueReset ( meanQueue_t* pQueue )
+{  
+   meanType_t* pTemp = pQueue->pStart;
+   
+   for ( uint8_t i = 0; i < pQueue->len; i++ )
+   {
+      *pTemp = 0x00;
+      pTemp ++;
+   }
+   
+   pQueue->pHead = pQueue->pStart;
 }
 
 //****************************************************************************************
@@ -317,4 +332,21 @@ void systemMeasEnd ( uint16_t val )
 void systemMeasPermFlagSet ( bool stat )
 {
    measPermFlag = stat;
+}
+
+//****************************************************************************************
+void systemResetMeasRes ( void )
+{
+   locVals.actSensVal = 0x00;
+   locVals.mean1mVal = 0x00; 
+   locVals.mean15mVal = 0x00;
+   locVals.mean1hVal = 0x00;
+   locVals.mean2hVal = 0x00;
+   
+   // Reset Queues:
+   systemQueueReset ( &mean1mQ );
+   systemQueueReset ( &mean15mQ );
+   systemQueueReset ( &mean1hQ );
+   systemQueueReset ( &mean2hQ );
+   
 }

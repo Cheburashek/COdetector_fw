@@ -63,7 +63,8 @@ static void interDisplayTimeSetUpdate ( void );
 static void interAlarmSirene ( bool stat );
 
 static void interAlarmCBHi ( void );
-static void interAlarmCBLo ( void );
+
+static void interSwitchSeqAlarm ( void );
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
@@ -335,6 +336,10 @@ static void interAlarmSirene ( bool stat )
 
 static void interAlarmCBHi ( void )
 {
+   static bool negFlag = FALSE;
+   pdcInvertMode( negFlag );
+   negFlag ^= 1;
+
    ioBuzzerTgl();
    ioStatLedTgl();   
 
@@ -454,28 +459,30 @@ void interAlarmStage ( eAlarmStages_t stage  )
 
    pdcLine ( "  ! ALARM !   ", 0);
    pdcClearLine( 1 );
-   pdcLine ( "CO level for: ", 2 );
-
+   pdcLine ( "CO level for: ", 1 );
+   pdcLine ( "exceeded      ", 4 );
+   pdcLine ( "     ppm      ", 5 );
+   
    switch ( stage )
    {
       case ALARM_STAGE_1M:
-      pdcLine ( "1 min  >       ", 3 );
-      pdcUint ( TRESH_1M_PPM, 3, 9, 4 );
+      pdcLine ( "1 min meaning", 2 );
+      pdcUint ( TRESH_1M_PPM, 5, 0, 4 );
       break;
    
       case ALARM_STAGE_15M:
-      pdcLine ( "15 min >       ", 3 );
-      pdcUint ( TRESH_15M_PPM, 3, 9, 4 );
+      pdcLine ( "15 min mean. ", 2 );
+      pdcUint ( TRESH_15M_PPM, 5, 0, 4 );
       break;
    
       case ALARM_STAGE_1H:
-      pdcLine ( "  1 h  >      ", 3 );
-      pdcUint ( TRESH_1H_PPM, 3, 9, 4 );
+      pdcLine ( "1 h meaning  ", 2 );
+      pdcUint ( TRESH_1H_PPM, 5, 0, 4 );
       break;
    
       case ALARM_STAGE_2H:
-      pdcLine ( "  2 h  >      ", 3 );
-      pdcUint ( TRESH_2H_PPM, 3, 9, 4 );
+      pdcLine ( "2 h meaning  ", 2 );
+      pdcUint ( TRESH_2H_PPM, 5, 0, 4 );
       break;
    
       default:
@@ -485,8 +492,28 @@ void interAlarmStage ( eAlarmStages_t stage  )
 
 }
 
-
-
+//****************************************************************************************
+static void interSwitchSeqAlarm ( void )
+{
+   
+   uint16_t i = 0;
+   
+   while ( ~PORTD.IN & ( BT_RIGHT | BT_LEFT | BT_OK ) )  // When all buttons pressed
+   {
+     _delay_ms(1);
+     i++;
+     if ( 2000 == i )
+     {
+         interAlarmSirene ( FALSE );
+         systemMeasPermFlagSet ( TRUE ); // Enabling measurements while alarm
+         interMainStateMachineSet( DISPVALS_M_STATE );
+         systemResetMeasRes ();
+         pdcInvertMode ( FALSE );
+         break;
+     }
+          
+   }
+}
 
 
 
@@ -515,6 +542,10 @@ void interOnRight ( void )
          
          case TIME_SET_M_STATE:
             interChooseTimeSet ( BT_RIGHT );
+         break;
+         
+         case ALARM_M_STATE:
+            interSwitchSeqAlarm ();
          break;
          
          default:
@@ -547,6 +578,11 @@ void interOnLeft ( void )
             interChooseTimeSet ( BT_LEFT );
          break;
          
+         case ALARM_M_STATE:
+            interSwitchSeqAlarm ();
+         break;
+         
+         
          default:
          break;
       }
@@ -575,7 +611,11 @@ void interOnOk ( void )
          
          case TIME_SET_M_STATE:
             interChooseTimeSet ( BT_OK );
-         break;    
+         break;  
+         
+         case ALARM_M_STATE:
+            interSwitchSeqAlarm ();
+         break;           
               
          default:
          break;
