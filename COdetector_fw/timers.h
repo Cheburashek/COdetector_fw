@@ -22,8 +22,8 @@
 */
 
  // Prescaler 1024 (so 8MHz/1024-> 7812 ticks for 1s):
-#define TIMER_TCC4_EN()      ( TCC4.CTRLA |= TC45_CLKSEL_DIV1024_gc )   
-#define TIMER_TCC4_DIS()      ( TCC4.CTRLA |= TC45_CLKSEL_OFF_gc )   
+#define TIMER_TCC5_EN()      ( TCC5.CTRLA |= TC45_CLKSEL_DIV1024_gc )   
+#define TIMER_TCC5_DIS()      ( TCC5.CTRLA |= TC45_CLKSEL_OFF_gc )   
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS
@@ -40,6 +40,15 @@ typedef struct
    
 } channelStruct_t;
 
+typedef enum
+{
+   CHA,
+   CHB,
+   CHC,
+   CHD,
+   TIM_ERROR = 0xFF
+   
+} eChanNr_t;
 
 
 
@@ -51,6 +60,8 @@ void timerInit ( void );
 void timerRegisterRtcCB ( pfnTimerCB_t cb );
 
 // Fail when couldn't find free channel:
-uint8_t timerRegisterAndStart ( pfnTimerCB_t chCB, uint16_t period, bool rptFlag );
+eChanNr_t timerRegisterAndStart ( pfnTimerCB_t chCB, uint16_t period, bool rptFlag );
+void timerDeregister ( eChanNr_t ch );
+
 
 #endif /* TIMERS_H_ */

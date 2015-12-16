@@ -32,14 +32,7 @@
    LOCAL TYPEDEFS
 */
 
-typedef enum
-{
-   CHA,
-   CHB,
-   CHC,
-   CHD
-      
-} eChanNr_t;
+
 
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -48,7 +41,7 @@ typedef enum
 static pfnTimerCB_t rtcCB = NULL;
 
 // Channels descriptors
-static channelStruct_t chStruct[ TIMER_NUMBER_OF_CHANS ] = 
+static channelStruct_t chStruct[] = 
 {
    { NULL, 0x00, false },
    { NULL, 0x00, false },
@@ -100,6 +93,13 @@ void timerInit (void )
                   TC45_CCDMODE_COMP_gc |
                   TC45_CCDMODE_COMP_gc |
                   TC45_CCDMODE_COMP_gc;
+                  
+   
+   // WYWA:LA WUSIWUELKTALCHz!!
+   WEXC.OUTOVDIS = 0xFF;   // Disabling outputs
+   
+   TCC4.CTRLA |= TC45_CLKSEL_DIV1024_gc;     // Prescaler 1024 (so 8MHz/1024-> 7812 ticks for 1s)
+
    
    TCC4.PER = 0xFFFF;
            
@@ -114,29 +114,31 @@ void timerRegisterRtcCB ( pfnTimerCB_t cb )
 
 
 //****************************************************************************************
-uint8_t timerRegisterAndStart ( pfnTimerCB_t chCB, uint16_t period, bool rptFlag )
+eChanNr_t timerRegisterAndStart ( pfnTimerCB_t chCB, uint16_t period, bool rptFlag )
 {
+   
+   eChanNr_t ch = TIM_ERROR;
+   
    if ( (NULL != chCB) && ( period < TIMER_MAX_PERIOD ) )
    {
-      for ( eChanNr_t i = 0; i < TIMER_NUMBER_OF_CHANS; i++ )
+      for ( ch = 0; ch < TIMER_NUMBER_OF_CHANS; ch++ )
       {
-          if ( NULL == chStruct[i].chCB )   // Looking for free channel
+          if ( NULL == chStruct[ch].chCB )   // Looking for free channel
           {
-             chStruct[i].chCB = chCB;
-             chStruct[i].rptFlag = rptFlag;
-             chStruct[i].period = (uint16_t)((((float)period)*TIMER_MULTI_MS)+0.5); // Period from ms to ticks (stored for repeatable timer)
+             chStruct[ch].chCB = chCB;
+             chStruct[ch].rptFlag = rptFlag;
+             chStruct[ch].period = (uint16_t)((((float)period)*TIMER_MULTI_MS)+0.5); // Period from ms to ticks (stored for repeatable timer)
             
             
-             uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[i].period;
+             uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[ch].period;
           
              if ( absPer > 0x0000FFFF )      // When sum of period and actual cnt value is greater than capacity of timer counter
              {
                 absPer -= 0x0000FFFF;               
              }          
-
-             switch (i)
+             switch (ch)
              {
-                case CHA:           
+                case CHA:       
                   TCC4.CCA = (uint16_t)absPer;            // Setting value to compare                  
                   TCC4.INTCTRLB |= CFG_PRIO_TC4_CCALVL;      // Enabling interrupt with priority level defined in boardCfg.h      
                 break;
@@ -154,23 +156,54 @@ uint8_t timerRegisterAndStart ( pfnTimerCB_t chCB, uint16_t period, bool rptFlag
                 case CHD:
                   TCC4.CCD = (uint16_t)absPer;
                   TCC4.INTCTRLB |= CFG_PRIO_TC4_CCDLVL;
-                break;                  
+                break;  
+                
+                default:
+                break;                
               }
-              return SUCCESS;
+              return ch;              
           } 
       }
       LOG_TXT ( ">>ERR<<No free channel!\n");
-      return FAIL;
+      return TIM_ERROR;
    }
    else
    {
       LOG_TXT ( ">>ERR<<Period too long!\n"); 
-      return FAIL;      
+      return TIM_ERROR;      
    }     
-   return SUCCESS;   
 }
 
 
+//****************************************************************************************
+void timerDeregister ( eChanNr_t ch )
+{
+   
+   chStruct[ch].period = 0;
+   chStruct[ch].chCB = NULL;
+   
+   switch (ch)
+   {
+      case CHA:    
+      TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCALVL;      // Enabling interrupt with priority level defined in boardCfg.h
+      break;
+                      
+      case CHB:
+      TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCBLVL;
+      break;
+                      
+      case CHC:
+      TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCCLVL;
+      break;
+                      
+      case CHD:
+      TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCDLVL;
+      break;
+      
+      default:
+      break;
+   }
+}
 
 //****************************************************************************************
 // ISRs:

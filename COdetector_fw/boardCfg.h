@@ -27,10 +27,22 @@
 #define ADC_SENS_MULTI_MV      1000     // By input voltage divider ( 1:1 -> 1000 )
 #define ADC_VBATT_MULTI_MV     5652
 
-// Controlling:
+// Controlling IOs:
 
-#define STAT_LED_ON_ADC
+#define STAT_LED_ON_TICK
 #define xBUZZER_PERM
+
+#define ALARM_PERIOD_HI    700      //ms
+#define ALARM_PERIOD_LO    300
+
+// Tresholds:
+#define TRESH_1M_PPM     300    
+#define TRESH_15M_PPM    100
+#define TRESH_1H_PPM     50
+#define TRESH_2H_PPM     30
+#define TRESH_LOW_BATT   4000
+
+
 
 /*****************************************************************************************
    GLOBAL CONFIGURATION DEFINES

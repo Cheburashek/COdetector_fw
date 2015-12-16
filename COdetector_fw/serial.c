@@ -29,7 +29,7 @@
    #define BSCALE_BAUD_VAL (0b11000000)    //  -4
 
 #elif ( F_CPU == F_CPU_8MHZ )
-   #define BSEL_BAUD_VAL 137               // 57600bps @ 8MHz & CLK2X enabled
+   #define BSEL_BAUD_VAL 134               // 57600bps @ 8MHz & CLK2X enabled
    #define BSCALE_BAUD_VAL (0b11010000)    //  -3
    
 #elif ( F_CPU == F_CPU_32MHZ )

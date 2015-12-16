@@ -27,12 +27,10 @@
 
 typedef struct
 {
-   uint16_t year;
-   uint8_t  month;
-   uint8_t  day;
    uint8_t  hour;
    uint8_t  min;
    uint8_t  sec;
+   uint16_t numOfDays;  // Number of days of sensor usage
    
 } timeStruct_t;
 
@@ -63,9 +61,6 @@ typedef enum
 // Time:
 typedef enum
 {
-   YEAR_POS,
-   MONTH_POS,
-   DAY_POS,    // Also position on LCD  
    HOUR_POS,
    MIN_POS,
    EXIT_T_POS
@@ -82,6 +77,16 @@ typedef enum
    
 } eButtons_t;
 
+// Alarm stages:
+typedef enum
+{
+   ALARM_STAGE_1M,
+   ALARM_STAGE_15M,
+   ALARM_STAGE_1H,
+   ALARM_STAGE_2H
+   
+} eAlarmStages_t;
+
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
@@ -94,5 +99,9 @@ void interTimeTickUpdate ( void );
 void interOnRight ( void );
 void interOnOk ( void );
 void interOnLeft ( void );
+
+void interAlarmStage ( eAlarmStages_t stage  );
+
+
 
 #endif /* INTERFACE_H_ */

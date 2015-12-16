@@ -93,14 +93,14 @@ void boardInit ( void )
    
    // Order is important:  
    //serialInitC();    // for DS18B20
-   adcInit();   
+   adcInit(); 
+   timerInit();      
    spiInit();
    pdcInit();
    ioInit();
-   interInit();  
-   timerInit();
+   interInit();     
    systemInit();
-     
+  
    // Disabling clocks for peripherals ( from ~3.5mA to 3.0mA ):
    PR.PRGEN = PR_EDMA_bm |
               PR_XCL_bm  |
@@ -113,6 +113,8 @@ void boardInit ( void )
              PR_TC5_bm   |
              PR_TWI_bm;
              
+             
+             
    PR.PRPD = PR.PRPC;                            
                                
 }
@@ -124,7 +126,7 @@ void boardPeriEnable ( void )
 {
    pdcPowerOn();   
 
-   TIMER_TCC4_EN();   
+   TIMER_TCC5_EN();   
 }
 
 
@@ -136,7 +138,7 @@ void boardPeriDisable ( void )
    ioBcklghtOff();   // To ensure that bcklght is disabled
    SERIAL_D_TX_DIS();
 
-   TIMER_TCC4_DIS();
+   TIMER_TCC5_DIS();
 }
 
 //****************************************************************************************

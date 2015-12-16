@@ -23,12 +23,14 @@
 */
 
 
-#define LCD_HEADER_POS_Y             0
+#define LCD_HEADER_POS_Y           0
 #define LCD_ACTMEAS_POS_Y          1
 #define LCD_MEAN_1M_POS_Y          2
 #define LCD_MEAN_1H_POS_Y          3
-#define LCD_MEAN_8H_POS_Y          4
+#define LCD_MEAN_2H_POS_Y          4
 #define LCD_BT_INFO_POS_Y          5
+
+#define LCD_ALARM_POS_Y            0
 
 // Positions (X) on LCD:
 #define LCD_OPTION_SIGN_POS_X      0
@@ -39,6 +41,8 @@
 
 static eMainState_t mainActState = UNKNOWN_M_STATE;
 static timeStruct_t sysTime;
+
+static bool loBatSignFlag = FALSE;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -55,6 +59,11 @@ static void interDisplayTimeSet ( void );
 static void interChooseConfig ( eButtons_t bt );
 static void interChooseTimeSet ( eButtons_t bt );
 static void interDisplayTimeSetUpdate ( void );
+
+static void interAlarmSirene ( bool stat );
+
+static void interAlarmCBHi ( void );
+static void interAlarmCBLo ( void );
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
@@ -89,6 +98,18 @@ static void interMainStateMachineSet ( eMainState_t state )
          LOG_TXT ( ">>state<<  Time set state\n" );
          mainActState = TIME_SET_M_STATE;
          interDisplayTimeSet ();
+         break;
+         
+      case ALARM_M_STATE:
+
+         LOG_TXT ( ">>state<<  Alarm state\n" );
+         mainActState = ALARM_M_STATE;
+         interAlarmSirene ( TRUE );
+         systemMeasPermFlagSet ( FALSE ); // Disabling measurements while alarm
+                  
+         
+      break;
+      
       default:
          break;
             
@@ -119,7 +140,7 @@ static void interDisplayHello ( void )
     _delay_ms ( 300 );   
     ioBuzzerOff();
     ioStatLedOff();
-    _delay_ms ( 1600 );
+    _delay_ms ( 500 );
     
     interMainStateMachineSet( DISPVALS_M_STATE );    
 } 
@@ -135,7 +156,7 @@ static void interDispValsBackground ( void )
    pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
    pdcLine ( "M1m:        mV", LCD_MEAN_1M_POS_Y );
    pdcLine ( "M1h:        mV", LCD_MEAN_1H_POS_Y );
-   pdcLine ( "M8h:        mV", LCD_MEAN_8H_POS_Y );
+   //pdcLine ( "M8h:        mV", LCD_MEAN_2H_POS_Y );
    pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );   // TODO: change graphics
 
 }
@@ -163,9 +184,6 @@ static void interDisplayTimeSet ( void )
 {
    if ( TIME_SET_M_STATE == mainActState )
    {
-      pdcLine ( " Day:         ", DAY_POS );
-      pdcLine ( " Month:       ", MONTH_POS );
-      pdcLine ( " Year:        ", YEAR_POS );
       pdcLine ( " Hour:        ", HOUR_POS );
       pdcLine ( " Min:         ", MIN_POS );
       pdcLine ( " EXIT         ", EXIT_T_POS );
@@ -228,7 +246,7 @@ static void interChooseConfig ( eButtons_t bt )
 // Get around time set menu:
 static void interChooseTimeSet ( eButtons_t bt )
 {
-   eTimeSetState_t stateTab[] = {  YEAR_POS, MONTH_POS, DAY_POS, HOUR_POS, MIN_POS, EXIT_T_POS };
+   eTimeSetState_t stateTab[] = { HOUR_POS, MIN_POS, EXIT_T_POS };
    static uint8_t state = 0x00;
    
    switch ( bt )
@@ -236,15 +254,6 @@ static void interChooseTimeSet ( eButtons_t bt )
       case BT_RIGHT:   // Increase value    
          switch ( stateTab[state] )
          {
-            case YEAR_POS:               
-               if ( ++sysTime.year > 2500 ) { sysTime.year = 0; }          // TODO: calendar with non-linear days
-            break;
-            case MONTH_POS:
-               if ( ++sysTime.month > 12 ) { sysTime.month = 0; }
-            break;          
-            case DAY_POS:
-               if ( ++sysTime.day > 31 ) { sysTime.day = 0; }          
-            break;
             case HOUR_POS:
                if ( ++sysTime.hour > 23 ) { sysTime.hour = 0; }          
             break;
@@ -264,15 +273,6 @@ static void interChooseTimeSet ( eButtons_t bt )
       case BT_LEFT: // Decrease value    
             switch ( stateTab[state] )
             {
-               case YEAR_POS:
-                  if ( sysTime.year-- == 1993 ) { sysTime.year = 2150; }          // TODO: calendar with non-linear days
-               break;
-               case MONTH_POS:
-                  if ( sysTime.month-- == 0 ) { sysTime.month = 12; }
-               break;
-               case DAY_POS:
-                  if ( sysTime.day-- == 0 ) { sysTime.day = 31; }
-               break;
                case HOUR_POS:
                   if ( sysTime.hour-- == 0 ) { sysTime.hour = 0; }
                break;
@@ -311,12 +311,35 @@ static void interChooseTimeSet ( eButtons_t bt )
 //****************************************************************************************
 static void interDisplayTimeSetUpdate ( void )
 {
-      pdcUint ( sysTime.year,  YEAR_POS,  7, 4 );
-      pdcUint ( sysTime.month, MONTH_POS, 7, 2 );
-      pdcUint ( sysTime.day,   DAY_POS,   7, 2 );
+      // TODO: clear days of sensor
       pdcUint ( sysTime.hour,  HOUR_POS,  7, 2 );
       pdcUint ( sysTime.min,   MIN_POS,   7, 2 );
 }      
+
+//****************************************************************************************
+// Sirene on/off
+static void interAlarmSirene ( bool stat )
+{
+   static eChanNr_t alarmTimIDHi = TIM_ERROR;
+      
+      
+   if ( TRUE == stat ) // Turn on
+   {
+      alarmTimIDHi = timerRegisterAndStart ( interAlarmCBHi, ALARM_PERIOD_HI, TRUE );
+   }
+   else // Turn off
+   {
+      timerDeregister ( alarmTimIDHi );
+   }
+}
+
+static void interAlarmCBHi ( void )
+{
+   ioBuzzerTgl();
+   ioStatLedTgl();   
+
+}
+
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
@@ -346,8 +369,17 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          sprintf ( str, "%.2u:%.2u:%.2u   USB", sysTime.hour,sysTime.min, sysTime.sec );
       }
       else
-      {
-         sprintf ( str, "%.2u:%.2u:%.2u  %.4u", sysTime.hour,sysTime.min, sysTime.sec, pVal->actBattVal );
+      {         
+         if ( pVal->actBattVal < TRESH_LOW_BATT )
+         {
+            sprintf ( str, "%.2u:%.2u:%.2u  %.4u", sysTime.hour,sysTime.min, sysTime.sec, pVal->actBattVal );
+            loBatSignFlag = FALSE;
+         }
+         else
+         {
+            sprintf ( str, "%.2u:%.2u:%.2u !LOW!", sysTime.hour,sysTime.min, sysTime.sec );
+            loBatSignFlag = TRUE;
+         }         
       }
       pdcLine( str, LCD_HEADER_POS_Y );
       
@@ -355,7 +387,16 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       pdcUint ( pVal->actSensVal, LCD_ACTMEAS_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean8hVal, LCD_MEAN_8H_POS_Y, 6, 5 );      
+      //pdcUint ( pVal->mean2hVal, LCD_MEAN_2H_POS_Y, 6, 5 ); 
+      
+      // Led blinking:
+      #ifdef STAT_LED_ON_TICK
+         ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
+         _delay_ms(7);
+         ioStatLedOff();
+      #endif   
+      
+
    }      
          
    // Serial log:
@@ -371,29 +412,85 @@ void interTimeTickUpdate ( void )
 {
    sysTime.sec += RTC_PERIOD_S;   // Period could be changed
    
-   if ( sysTime.sec >=60 )  
+   if ( sysTime.sec >= 60 )  
    { 
       sysTime.sec = 0;
       sysTime.min ++; 
    }
-   if ( sysTime.min >=60 )
+   if ( sysTime.min >= 60 )
    { 
       sysTime.min = 0;
       sysTime.hour ++; 
    } 
-   if ( sysTime.hour >=24 ) 
+   if ( sysTime.hour >= 24 ) 
    { 
       sysTime.hour = 0;
-      sysTime.day ++; 
-   } 
-      
+      sysTime.numOfDays ++;      
+   }
+
    if ( TIME_SET_M_STATE == mainActState )
    {
       interDisplayTimeSetUpdate ();    // Updating time in time set menu
    }      
+   
+   // Signal of low batt:
+   if ( TRUE == loBatSignFlag )
+   {
+      ioBuzzerOn();
+      _delay_ms(10);
+      ioBuzzerOff();
+   }      
     
-   // TODO: days, months...
+
 }
+
+//****************************************************************************************
+// Alarm stage set:
+void interAlarmStage ( eAlarmStages_t stage  )
+{
+   pdcClearRAM();
+   interMainStateMachineSet( ALARM_M_STATE );  
+   
+
+   pdcLine ( "  ! ALARM !   ", 0);
+   pdcClearLine( 1 );
+   pdcLine ( "CO level for: ", 2 );
+
+   switch ( stage )
+   {
+      case ALARM_STAGE_1M:
+      pdcLine ( "1 min  >       ", 3 );
+      pdcUint ( TRESH_1M_PPM, 3, 9, 4 );
+      break;
+   
+      case ALARM_STAGE_15M:
+      pdcLine ( "15 min >       ", 3 );
+      pdcUint ( TRESH_15M_PPM, 3, 9, 4 );
+      break;
+   
+      case ALARM_STAGE_1H:
+      pdcLine ( "  1 h  >      ", 3 );
+      pdcUint ( TRESH_1H_PPM, 3, 9, 4 );
+      break;
+   
+      case ALARM_STAGE_2H:
+      pdcLine ( "  2 h  >      ", 3 );
+      pdcUint ( TRESH_2H_PPM, 3, 9, 4 );
+      break;
+   
+      default:
+      break;
+   }
+
+
+}
+
+
+
+
+
+
+
 
 
 //****************************************************************************************

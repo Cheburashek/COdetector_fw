@@ -51,7 +51,6 @@
 #include "serial.h"
 
 
-
 //****************************************************************************************
 int main(void)
 {     
@@ -59,19 +58,18 @@ int main(void)
    //SLEEP.CTRL |= SLEEP_SMODE_PDOWN_gc | SLEEP_SEN_bm;  // Power saving enabled
    
    boardInit();                        // Board peripherals initialization      
-   
-   ioBcklghtOn();
-   
+
+
    while(1)
    {
       //
       //serialTempMeasStart();
 
-      //_delay_ms(100);
 
    }
 
 }
+
 
 
    

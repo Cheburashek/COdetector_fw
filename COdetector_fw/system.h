@@ -33,8 +33,7 @@ typedef struct
    meanType_t* pStart;
    meanType_t* pHead;
    uint16_t len;
-   bool firstOF;
-   
+
 } meanQueue_t;
 
 
@@ -43,8 +42,10 @@ typedef struct
    uint16_t actSensVal;
    uint16_t actBattVal;
    meanType_t mean1mVal;
+   meanType_t mean15mVal;
    meanType_t mean1hVal;
-   meanType_t mean8hVal;
+   meanType_t mean2hVal;
+  
    bool usbPlugged;
    bool lpFlag;
       
@@ -57,6 +58,6 @@ typedef struct
 void systemInit ( void );
 void systemUSBStateChanged ( void );
 void systemMeasEnd ( uint16_t val );
-
+void systemMeasPermFlagSet ( bool stat );
 
 #endif /* SYSTEM_H_ */

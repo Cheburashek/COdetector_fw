@@ -29,7 +29,7 @@
 
 
 
-#define ADC_OFF_MAN_CORR   105   // Manually measured offset in 12b storage
+#define ADC_OFF_MAN_CORR   244 // Manually measured offset in 12b storage
 #define ADC_GAIN_MAN_CORR  0x7DA   // 357page in manual
 /*****************************************************************************************
    LOCAL VARIABLES

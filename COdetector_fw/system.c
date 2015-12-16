@@ -35,8 +35,9 @@
 
 // Lengths of meaning queues:
 #define MEAN_1M_QUEUE_LEN          60/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
-#define MEAN_1H_QUEUE_LEN          60                      // Meaning at every 15s for 1-hour         
-#define MEAN_8H_QUEUE_LEN          96                      // Meaning at every 5 minutes for 8-hour
+#define MEAN_15M_QUEUE_LEN         60                      // Meaning at every 15s for 15-min   
+#define MEAN_1H_QUEUE_LEN          60                      // Meaning at every min for 1-hour           
+#define MEAN_2H_QUEUE_LEN          120                     // Meaning at every min for 2-hour
 
 
 /*****************************************************************************************
@@ -52,16 +53,19 @@ static volatile uint16_t rawBattVal;
 
 // Meaning queue:
 static meanType_t mean1mTab[MEAN_1M_QUEUE_LEN];
+static meanType_t mean15mTab[MEAN_15M_QUEUE_LEN];
 static meanType_t mean1hTab[MEAN_1H_QUEUE_LEN];
-static meanType_t mean8hTab[MEAN_8H_QUEUE_LEN];
+static meanType_t mean2hTab[MEAN_2H_QUEUE_LEN];
 
 // Tables for static queue allocation:
-static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN, false };
-static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN, false };
-static meanQueue_t mean8hQ = { mean8hTab, mean8hTab, MEAN_8H_QUEUE_LEN, false };
+static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN };
+static meanQueue_t mean15mQ = { mean15mTab, mean15mTab, MEAN_15M_QUEUE_LEN };
+static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN };
+static meanQueue_t mean2hQ = { mean2hTab, mean2hTab, MEAN_2H_QUEUE_LEN };
 
 // Flags:
 static bool vBattFlag = TRUE;    // For adc measurement triggering
+static bool measPermFlag = TRUE; 
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -76,6 +80,8 @@ static void systemPeriodicRefresh ( void );
 
 static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val );
 static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf );
+
+static void systemCheckTresholds ( void );
 
 static uint16_t systemConvRawSens ( uint16_t raw );
 static uint16_t systemConvRawBatt ( uint16_t raw );
@@ -94,42 +100,47 @@ static void systemPeriodicRefresh ( void )
 {   
    static uint16_t ticks = 0;   
    
-#ifdef STAT_LED_ON_ADC
-   ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
-#endif
-   
-   adcStartChannel (SENS);      // Starting sensor voltage measurement
+   if ( measPermFlag )
+   {      
+      adcStartChannel (SENS);      // Starting sensor voltage measurement
 
 
-   {
-      // Every tick: // TODO: maybe another manner?
-
+      // Every tick: 
       
       locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
+      
       systemQueuePush ( &mean1mQ, locVals.actSensVal );
       systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );     // For 1min meaning
-    
-      // Every 15 s:   
-      if ( 0 == (ticks % 15) )     
+
+            
+      // Every 15s:
+      if ( 0 == (ticks % 15) )
+      {                  
+         systemQueuePush ( &mean15mQ, locVals.actSensVal );
+         systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
+         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
+      }           
+      // Every minute:   
+      if ( 0 == (ticks % 60) )     
       {
+
          systemQueuePush ( &mean1hQ, locVals.mean1mVal );
          systemQueueCalcMean ( &mean1hQ, &locVals.mean1hVal );  // For 1h meaning
+         
+         systemQueuePush ( &mean2hQ, locVals.mean1mVal );
+         systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 8h meaning
+   
          locVals.actBattVal = systemConvRawBatt ( rawBattVal );
-         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
-      }
-   
-      // Every 5 min :
-      if ( 0 == (ticks % 300)  )    
-      {
-         systemQueuePush ( &mean8hQ, locVals.mean1hVal );
-         systemQueueCalcMean ( &mean8hQ, &locVals.mean8hVal );  // For 8h meaning 
+      
          ticks = 0;
-      }
-   }   
+      } 
  
-   interTimeTickUpdate();
-   interDisplaySystemVals ( &locVals );
+      systemCheckTresholds();
+      interDisplaySystemVals ( &locVals );
    
+   }   
+   
+   interTimeTickUpdate();
    ticks += RTC_PERIOD_S;
 }
 
@@ -145,8 +156,7 @@ static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val )
    }
    else
    {
-      pQueue->pHead = pQueue->pStart;
-      pQueue->firstOF = true;   
+      pQueue->pHead = pQueue->pStart; 
    }   
 }
 
@@ -154,23 +164,16 @@ static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val )
 // Calculating mean value from queue:
 static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
 {
-   //TODO: critical section?
-   uint16_t len = pQueue->len;
    meanType_t* pTemp = pQueue->pStart;
-   uint32_t tempVal = 0;
+   uint32_t tempVal = 0;   
    
-   if ( false == pQueue->firstOF ) // When before first queue overflow
-   {
-      len = pQueue->pHead - pQueue->pStart;  // Use only stored data, not random values from memory
-   }
-   
-   for ( uint16_t i = 0; i < len; i++ )
+   for ( uint16_t i = 0; i < pQueue->len; i++ )
    {
       tempVal += *pTemp;      
       pTemp++;     
    }
 
-   *buf = (meanType_t)(tempVal/len);   // Mean value      
+   *buf = (meanType_t)(tempVal/pQueue->len);   // Mean value      
 }
 
 
@@ -191,6 +194,38 @@ static uint16_t systemConvRawBatt ( uint16_t raw )
    
    return (uint16_t)rawData;
 }
+
+//****************************************************************************************
+// Checking tresholds for alarm
+static void systemCheckTresholds ( void )
+{
+   if ( locVals.mean1mVal >= TRESH_1M_PPM )
+   {
+      interAlarmStage ( ALARM_STAGE_1M );
+   }
+   if ( locVals.mean15mVal >= TRESH_15M_PPM )
+   {
+      interAlarmStage ( ALARM_STAGE_15M );
+   }
+   if ( locVals.mean1hVal >= TRESH_1H_PPM )
+   {
+      interAlarmStage ( ALARM_STAGE_1H );
+   }
+   if ( locVals.mean2hVal >= TRESH_2H_PPM )
+   {
+      interAlarmStage ( ALARM_STAGE_2H );
+   }
+
+}
+
+
+
+
+
+
+
+
+
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
@@ -221,20 +256,15 @@ void systemInit ( void )
    TEST*/
    
    
+   
    systemUSBStateChanged();   // Initial check of USB state
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
-   
+   adcStartChannel (VBATT);      // Starting sensor voltage measurement
    adcStartChannel (SENS);   // Initial measurements
 
 }
 
-
-
-void systemWakeUp ( void )
-{
-      
-}
 
 //****************************************************************************************
 // After changing USB connection state:
@@ -267,21 +297,24 @@ void systemMeasEnd ( uint16_t val )
    ADC_DIS();
    if ( SENS == adcGetChan() )
    {
+      LOG_UINT ( "raw ", val );  
       rawSensVal = val;
       if ( vBattFlag )
       {          
          adcStartChannel ( VBATT ); // Battery voltage measurement start
-         vBattFlag = FALSE;
+         vBattFlag = FALSE;         
       }         
    }
    else if ( VBATT == adcGetChan() )
    {
-      rawBattVal = val;      
+      rawBattVal = val;   
+       
    }
-   
 
-#ifdef STAT_LED_ON_ADC   
-   ioStatLedOff();      // State LED blinking
-#endif
-   
 }  
+
+//****************************************************************************************
+void systemMeasPermFlagSet ( bool stat )
+{
+   measPermFlag = stat;
+}
