@@ -29,17 +29,20 @@
 
 // Controlling IOs:
 
-#define STAT_LED_ON_TICK
+#define xSTAT_LED_ON_TICK
 #define xBUZZER_PERM
+#define ALARM_PERM
 
 #define ALARM_PERIOD_HI    700      //ms
 #define ALARM_PERIOD_LO    300
 
 // Tresholds:
-#define TRESH_1M_PPM     300    
-#define TRESH_15M_PPM    100
-#define TRESH_1H_PPM     50
-#define TRESH_2H_PPM     30
+#define TRESH_1M_PPM          300    
+#define TRESH_15M_PPM         100
+#define TRESH_1H_PPM          50
+#define TRESH_2H_PPM          30
+#define TRESH_ALARM_OFF_PPM   50
+
 #define TRESH_LOW_BATT   4000
 
 

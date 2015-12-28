@@ -64,7 +64,7 @@ static void interAlarmSirene ( bool stat );
 
 static void interAlarmCBHi ( void );
 
-static void interSwitchSeqAlarm ( void );
+
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
@@ -75,6 +75,8 @@ static void interSwitchSeqAlarm ( void );
 // State machine for main activities:
 static void interMainStateMachineSet ( eMainState_t state )
 {
+   pdcClearRAM();
+
    switch ( state )
    {
       case HELLO_M_STATE:      
@@ -102,13 +104,9 @@ static void interMainStateMachineSet ( eMainState_t state )
          break;
          
       case ALARM_M_STATE:
-
          LOG_TXT ( ">>state<<  Alarm state\n" );
-         mainActState = ALARM_M_STATE;
-         interAlarmSirene ( TRUE );
-         systemMeasPermFlagSet ( FALSE ); // Disabling measurements while alarm
-                  
-         
+         mainActState = ALARM_M_STATE;   
+         interAlarmSirene( TRUE );
       break;
       
       default:
@@ -153,7 +151,6 @@ static void interDisplayHello ( void )
 // Displaying values:
 static void interDispValsBackground ( void )
 {
-   pdcLine ( "              ", 0 );
    pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
    pdcLine ( "M1m:        mV", LCD_MEAN_1M_POS_Y );
    pdcLine ( "M1h:        mV", LCD_MEAN_1H_POS_Y );
@@ -170,8 +167,6 @@ void interDisplayConfig ( void )
    {
       pdcLine ( " CONFIG MENU  ", 0 );
       pdcLine ( " Time set     ", TIME_O_POS );
-      pdcLine ( "              ", 2 );
-      pdcLine ( "              ", 3 );
       pdcLine ( " EXIT         ", EXIT_O_POS );
       pdcLine ( " -    OK    + ", LCD_BT_INFO_POS_Y );   // TODO: change graphics
       interChooseConfig ( BT_NULL );                     // Set first option 
@@ -183,6 +178,7 @@ void interDisplayConfig ( void )
 // Displaying time to be set:
 static void interDisplayTimeSet ( void )
 {
+
    if ( TIME_SET_M_STATE == mainActState )
    {
       pdcLine ( " Hour:        ", HOUR_POS );
@@ -336,13 +332,8 @@ static void interAlarmSirene ( bool stat )
 
 static void interAlarmCBHi ( void )
 {
-   static bool negFlag = FALSE;
-   pdcInvertMode( negFlag );
-   negFlag ^= 1;
-
    ioBuzzerTgl();
    ioStatLedTgl();   
-
 }
 
 
@@ -402,7 +393,17 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       #endif   
       
 
-   }      
+   }    
+   else if ( ALARM_M_STATE == mainActState )
+   {
+      pdcUint ( pVal->actSensVal, 5, 0, 4 );      
+      if ( pVal->actSensVal < TRESH_ALARM_OFF_PPM )
+      {
+         interAlarmSirene( FALSE );
+         interMainStateMachineSet( DISPVALS_M_STATE );    
+         systemResetMeasRes (); 
+      }
+   }  
          
    // Serial log:
    char strToLog [64];
@@ -453,66 +454,42 @@ void interTimeTickUpdate ( void )
 // Alarm stage set:
 void interAlarmStage ( eAlarmStages_t stage  )
 {
-   pdcClearRAM();
-   interMainStateMachineSet( ALARM_M_STATE );  
-   
-
-   pdcLine ( "  ! ALARM !   ", 0);
-   pdcClearLine( 1 );
-   pdcLine ( "CO level for: ", 1 );
-   pdcLine ( "exceeded      ", 4 );
-   pdcLine ( "     ppm      ", 5 );
-   
-   switch ( stage )
+   if ( ALARM_M_STATE != mainActState )
    {
-      case ALARM_STAGE_1M:
-      pdcLine ( "1 min meaning", 2 );
-      pdcUint ( TRESH_1M_PPM, 5, 0, 4 );
-      break;
-   
-      case ALARM_STAGE_15M:
-      pdcLine ( "15 min mean. ", 2 );
-      pdcUint ( TRESH_15M_PPM, 5, 0, 4 );
-      break;
-   
-      case ALARM_STAGE_1H:
-      pdcLine ( "1 h meaning  ", 2 );
-      pdcUint ( TRESH_1H_PPM, 5, 0, 4 );
-      break;
-   
-      case ALARM_STAGE_2H:
-      pdcLine ( "2 h meaning  ", 2 );
-      pdcUint ( TRESH_2H_PPM, 5, 0, 4 );
-      break;
-   
-      default:
-      break;
-   }
-
-
-}
-
-//****************************************************************************************
-static void interSwitchSeqAlarm ( void )
-{
-   
-   uint16_t i = 0;
-   
-   while ( ~PORTD.IN & ( BT_RIGHT | BT_LEFT | BT_OK ) )  // When all buttons pressed
-   {
-     _delay_ms(1);
-     i++;
-     if ( 2000 == i )
-     {
-         interAlarmSirene ( FALSE );
-         systemMeasPermFlagSet ( TRUE ); // Enabling measurements while alarm
-         interMainStateMachineSet( DISPVALS_M_STATE );
-         systemResetMeasRes ();
-         pdcInvertMode ( FALSE );
+      interMainStateMachineSet( ALARM_M_STATE );      
+      
+      pdcLine ( "  ! ALARM !   ", 0);
+      pdcLine ( "Exceeded      ", 2 );
+      pdcLine ( "        ppm   ", 3 );
+      pdcLine ( "Actual        ", 4 );
+      pdcLine ( "        ppm   ", 5 );
+      
+      switch ( stage )
+      {
+         case ALARM_STAGE_1M:
+         pdcLine ( "1 min meaning", 1 );
+         pdcUint ( TRESH_1M_PPM, 3, 0, 4 );
          break;
-     }
-          
-   }
+         
+         case ALARM_STAGE_15M:
+         pdcLine ( "15 min mean. ", 1 );
+         pdcUint ( TRESH_15M_PPM, 3, 0, 4 );
+         break;
+         
+         case ALARM_STAGE_1H:
+         pdcLine ( "1 h meaning  ", 1 );
+         pdcUint ( TRESH_1H_PPM, 3, 0, 4 );
+         break;
+         
+         case ALARM_STAGE_2H:
+         pdcLine ( "2 h meaning  ", 1 );
+         pdcUint ( TRESH_2H_PPM, 3, 0, 4 );
+         break;
+         
+         default:
+         break;
+      }
+   }   
 }
 
 
@@ -544,9 +521,6 @@ void interOnRight ( void )
             interChooseTimeSet ( BT_RIGHT );
          break;
          
-         case ALARM_M_STATE:
-            interSwitchSeqAlarm ();
-         break;
          
          default:
          break;
@@ -577,11 +551,7 @@ void interOnLeft ( void )
          case TIME_SET_M_STATE:
             interChooseTimeSet ( BT_LEFT );
          break;
-         
-         case ALARM_M_STATE:
-            interSwitchSeqAlarm ();
-         break;
-         
+        
          
          default:
          break;
@@ -611,12 +581,8 @@ void interOnOk ( void )
          
          case TIME_SET_M_STATE:
             interChooseTimeSet ( BT_OK );
-         break;  
-         
-         case ALARM_M_STATE:
-            interSwitchSeqAlarm ();
-         break;           
-              
+         break;         
+             
          default:
          break;
       }

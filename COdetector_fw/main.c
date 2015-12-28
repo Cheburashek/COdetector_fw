@@ -65,7 +65,6 @@ int main(void)
       //
       //serialTempMeasStart();
 
-
    }
 
 }

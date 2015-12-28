@@ -99,47 +99,47 @@ static void systemQueueReset (  meanQueue_t* pQueue );
 static void systemPeriodicRefresh ( void )
 {   
    static uint16_t ticks = 0;   
-   
-   if ( measPermFlag )
-   {      
-      adcStartChannel (SENS);      // Starting sensor voltage measurement
+
+   adcStartChannel (SENS);      // Starting sensor voltage measurement
 
 
-      // Every tick: 
+   // Every tick: 
       
-      locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
+   locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
       
-      systemQueuePush ( &mean1mQ, locVals.actSensVal );
-      systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );     // For 1min meaning
+   systemQueuePush ( &mean1mQ, locVals.actSensVal );
+   systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );     // For 1min meaning
 
             
-      // Every 15s:
-      if ( 0 == (ticks % 15) )
-      {                  
-         systemQueuePush ( &mean15mQ, locVals.actSensVal );
-         systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
-         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
-      }           
-      // Every minute:   
-      if ( 0 == (ticks % 60) )     
-      {
+   // Every 15s:
+   if ( 0 == (ticks % 15) )
+   {                  
+      systemQueuePush ( &mean15mQ, locVals.actSensVal );
+      systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
+      vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
+   }           
+   // Every minute:   
+   if ( 0 == (ticks % 60) )     
+   {
 
-         systemQueuePush ( &mean1hQ, locVals.mean1mVal );
-         systemQueueCalcMean ( &mean1hQ, &locVals.mean1hVal );  // For 1h meaning
+      systemQueuePush ( &mean1hQ, locVals.mean1mVal );
+      systemQueueCalcMean ( &mean1hQ, &locVals.mean1hVal );  // For 1h meaning
          
-         systemQueuePush ( &mean2hQ, locVals.mean1mVal );
-         systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 8h meaning
+      systemQueuePush ( &mean2hQ, locVals.mean1mVal );
+      systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 8h meaning
    
-         locVals.actBattVal = systemConvRawBatt ( rawBattVal );
+      locVals.actBattVal = systemConvRawBatt ( rawBattVal );
       
-         ticks = 0;
-      } 
+      ticks = 0;
+   } 
  
-      systemCheckTresholds();
-      interDisplaySystemVals ( &locVals );
+#ifdef ALARM_PERM
+   systemCheckTresholds();
+#endif
+      
+   interDisplaySystemVals ( &locVals );
    
-   }   
-   
+    
    interTimeTickUpdate();
    ticks += RTC_PERIOD_S;
 }
@@ -312,7 +312,7 @@ void systemMeasEnd ( uint16_t val )
    ADC_DIS();
    if ( SENS == adcGetChan() )
    {
-      LOG_UINT ( "raw ", val );  
+      LOG_UINT ( "raw sens ", val );  
       rawSensVal = val;
       if ( vBattFlag )
       {          
@@ -323,6 +323,7 @@ void systemMeasEnd ( uint16_t val )
    else if ( VBATT == adcGetChan() )
    {
       rawBattVal = val;   
+      LOG_UINT ( "raw bat ", val ); 
        
    }
 
