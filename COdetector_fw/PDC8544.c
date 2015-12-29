@@ -174,7 +174,7 @@ static void pdcReset( void )
 // Function to set callback in SPI.c (end of transmission)
 inline static void pdcChipDisable ( void )
 {
-   //SCE_HI();
+   SCE_HI();
 }
 
 // *************************************************************************
@@ -218,7 +218,6 @@ static void pdcSetCol( uint8_t addr_X )
 // Function to configure PDC8544
 void pdcInit( void )
 {
-   spiRegisterTxEndCB ( pdcChipDisable );
   
    pdcReset();
    
@@ -314,7 +313,7 @@ void pdcLine( char ch[14], uint8_t pos_Y )
    {      
       if( ch[i] < 0x20 || ch[i] > 0x7F)
       {
-         pdcChar( ' ', pos_Y, i );
+         pdcChar( 0x20, pos_Y, i );
       }
       else
       {

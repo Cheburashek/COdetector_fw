@@ -38,7 +38,6 @@ static volatile spiEnhStruct_t* txHead = txBuff;
 static volatile spiEnhStruct_t* txTail = txBuff;
 static bool initFlag = false;
 
-static pfnTxEnd txEndCB = NULL;
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
 */
@@ -132,13 +131,6 @@ void spiSend ( spiEnhStruct_t* dataStr )
 
 
 //****************************************************************************************
-void spiRegisterTxEndCB ( pfnTxEnd cb)
-{
-   txEndCB = cb;   
-}
-
-
-//****************************************************************************************
 ISR ( SPIC_INT_vect )
 {
    if ( txTail != txHead )
@@ -162,10 +154,6 @@ ISR ( SPIC_INT_vect )
    else // All of data from buffer is send
    {
       SPI_DIS ();
-      if ( NULL != txEndCB )
-      {
-         txEndCB();         
-      }
-   }
+   }      
  
 }

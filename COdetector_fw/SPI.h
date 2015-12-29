@@ -55,6 +55,4 @@ void spiInit ( void );
 
 void spiSend ( spiEnhStruct_t* dataStr );
 
-void spiRegisterTxEndCB ( pfnTxEnd cb);
-
 #endif /* SPI_H_ */

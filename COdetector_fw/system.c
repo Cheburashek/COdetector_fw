@@ -52,10 +52,10 @@ static volatile uint16_t rawSensVal;
 static volatile uint16_t rawBattVal;
 
 // Meaning queue:
-static meanType_t mean1mTab[MEAN_1M_QUEUE_LEN];
-static meanType_t mean15mTab[MEAN_15M_QUEUE_LEN];
-static meanType_t mean1hTab[MEAN_1H_QUEUE_LEN];
-static meanType_t mean2hTab[MEAN_2H_QUEUE_LEN];
+static measType_t mean1mTab[MEAN_1M_QUEUE_LEN];
+static measType_t mean15mTab[MEAN_15M_QUEUE_LEN];
+static measType_t mean1hTab[MEAN_1H_QUEUE_LEN];
+static measType_t mean2hTab[MEAN_2H_QUEUE_LEN];
 
 // Tables for static queue allocation:
 static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN };
@@ -78,8 +78,8 @@ static valsToDisp_t locVals;
 
 static void systemPeriodicRefresh ( void );
 
-static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val );
-static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf );
+static void systemQueuePush (  meanQueue_t* pQueue, measType_t val );
+static void systemQueueCalcMean ( meanQueue_t* pQueue, measType_t* buf );
 
 static void systemCheckTresholds ( void );
 
@@ -109,8 +109,8 @@ static void systemPeriodicRefresh ( void )
       
    systemQueuePush ( &mean1mQ, locVals.actSensVal );
    systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );     // For 1min meaning
-
-            
+   
+  
    // Every 15s:
    if ( 0 == (ticks % 15) )
    {                  
@@ -146,7 +146,7 @@ static void systemPeriodicRefresh ( void )
 
 //****************************************************************************************
 // Adding value to queue:
-static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val )
+static void systemQueuePush (  meanQueue_t* pQueue, measType_t val )
 {  
    *pQueue->pHead = val;
    
@@ -164,7 +164,7 @@ static void systemQueuePush (  meanQueue_t* pQueue, meanType_t val )
 // Reset queue:
 static void systemQueueReset ( meanQueue_t* pQueue )
 {  
-   meanType_t* pTemp = pQueue->pStart;
+   measType_t* pTemp = pQueue->pStart;
    
    for ( uint8_t i = 0; i < pQueue->len; i++ )
    {
@@ -177,9 +177,9 @@ static void systemQueueReset ( meanQueue_t* pQueue )
 
 //****************************************************************************************
 // Calculating mean value from queue:
-static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
+static void systemQueueCalcMean ( meanQueue_t* pQueue, measType_t* buf )
 {
-   meanType_t* pTemp = pQueue->pStart;
+   measType_t* pTemp = pQueue->pStart;
    uint32_t tempVal = 0;   
    
    for ( uint16_t i = 0; i < pQueue->len; i++ )
@@ -188,7 +188,7 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
       pTemp++;     
    }
 
-   *buf = (meanType_t)(tempVal/pQueue->len);   // Mean value      
+   *buf = (measType_t)(tempVal/pQueue->len);   // Mean value      
 }
 
 

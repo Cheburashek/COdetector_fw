@@ -25,16 +25,31 @@
    GLOBAL TYPEDEFS
 */
 
+// Alarm stages:
+typedef enum
+{
+   ALARM_STAGE_1M,
+   ALARM_STAGE_15M,
+   ALARM_STAGE_1H,
+   ALARM_STAGE_2H,
+   NO_ALARM_STAGE = 0xFF
+   
+} eAlarmStages_t;
+
 typedef struct
 {
    uint8_t  hour;
    uint8_t  min;
    uint8_t  sec;
-   uint16_t numOfDays;  // Number of days of sensor usage
-   
+     
 } timeStruct_t;
 
-
+typedef struct
+{
+   timeStruct_t laTime;
+   eAlarmStages_t laStage;
+      
+} lastAlarm_t;
 
 // States:
 typedef enum
@@ -54,6 +69,7 @@ typedef enum
 typedef enum
 {
    TIME_O_POS = 0x01,    // Also position on LCD
+   ALARM_O_POS = 0x03,
    EXIT_O_POS = 0x04
    
 } eOptionsState_t;
@@ -77,15 +93,7 @@ typedef enum
    
 } eButtons_t;
 
-// Alarm stages:
-typedef enum
-{
-   ALARM_STAGE_1M,
-   ALARM_STAGE_15M,
-   ALARM_STAGE_1H,
-   ALARM_STAGE_2H
-   
-} eAlarmStages_t;
+
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS

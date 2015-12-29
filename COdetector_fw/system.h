@@ -26,25 +26,26 @@
 */
 
 
-typedef uint16_t meanType_t;
+typedef uint16_t measType_t;
 
 typedef struct
 {
-   meanType_t* pStart;
-   meanType_t* pHead;
+   measType_t* pStart;
+   measType_t* pHead;
    uint16_t len;
 
 } meanQueue_t;
 
 
+
 typedef struct 
 {
-   uint16_t actSensVal;
-   uint16_t actBattVal;
-   meanType_t mean1mVal;
-   meanType_t mean15mVal;
-   meanType_t mean1hVal;
-   meanType_t mean2hVal;
+   measType_t actSensVal;
+   measType_t actBattVal;
+   measType_t mean1mVal;
+   measType_t mean15mVal;
+   measType_t mean1hVal;
+   measType_t mean2hVal;
   
    bool usbPlugged;
    bool lpFlag;

@@ -6,6 +6,8 @@
  */ 
 
 
+// U¿ytkownik jest informowany kiedy i jaki stage alarmu
+
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -29,6 +31,8 @@
 #define LCD_MEAN_1H_POS_Y          3
 #define LCD_MEAN_2H_POS_Y          4
 #define LCD_BT_INFO_POS_Y          5
+#define LCD_INFO_LA_POS_Y          0
+#define LCD_INFO_MAX_POS_Y         3
 
 #define LCD_ALARM_POS_Y            0
 
@@ -41,8 +45,11 @@
 
 static eMainState_t mainActState = UNKNOWN_M_STATE;
 static timeStruct_t sysTime;
+static lastAlarm_t lastAlarm = {{0,0,0}, NO_ALARM_STAGE}; 
 
 static bool loBatSignFlag = FALSE;
+
+static uint16_t max1mVal = 0;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -55,6 +62,7 @@ static void interMainStateMachineSet ( eMainState_t state );
 static void interDisplayHello ( void );
 static void interDisplayConfig ( void );
 static void interDisplayTimeSet ( void );
+static void interDisplayInfo ( void );
 
 static void interChooseConfig ( eButtons_t bt );
 static void interChooseTimeSet ( eButtons_t bt );
@@ -75,7 +83,7 @@ static void interAlarmCBHi ( void );
 // State machine for main activities:
 static void interMainStateMachineSet ( eMainState_t state )
 {
-   pdcClearRAM();
+   
 
    switch ( state )
    {
@@ -90,6 +98,12 @@ static void interMainStateMachineSet ( eMainState_t state )
          mainActState = DISPVALS_M_STATE;         
          interDispValsBackground ();     // Main display values background                
          break;
+         
+      case INFO_M_STATE:
+         LOG_TXT ( ">>state<<  Info state\n" );
+         mainActState = INFO_M_STATE;
+         interDisplayInfo ();     // Main display values background
+      break;
          
       case CONFIG_M_STATE:
          LOG_TXT ( ">>state<<  Config state\n" );
@@ -108,7 +122,7 @@ static void interMainStateMachineSet ( eMainState_t state )
          mainActState = ALARM_M_STATE;   
          interAlarmSirene( TRUE );
       break;
-      
+   
       default:
          break;
             
@@ -151,6 +165,7 @@ static void interDisplayHello ( void )
 // Displaying values:
 static void interDispValsBackground ( void )
 {
+   pdcInit();
    pdcLine ( "Act:       ppm", LCD_ACTMEAS_POS_Y );
    pdcLine ( "M1m:       ppm", LCD_MEAN_1M_POS_Y );
    pdcLine ( "M1h:       ppm", LCD_MEAN_1H_POS_Y );
@@ -165,10 +180,12 @@ void interDisplayConfig ( void )
 {
    if ( CONFIG_M_STATE == mainActState )
    {
+      pdcInit();
       pdcLine ( " CONFIG MENU  ", 0 );
       pdcLine ( " Time set     ", TIME_O_POS );
-      pdcLine ( " EXIT         ", EXIT_O_POS );
-      pdcLine ( " -    OK    + ", LCD_BT_INFO_POS_Y );   // TODO: change graphics
+      pdcLine ( " Alarm test   ", ALARM_O_POS );
+      pdcLine ( " >EXIT<       ", EXIT_O_POS );
+      pdcLine ( " <    OK    > ", LCD_BT_INFO_POS_Y );   
       interChooseConfig ( BT_NULL );                     // Set first option 
    }
 }
@@ -181,9 +198,11 @@ static void interDisplayTimeSet ( void )
 
    if ( TIME_SET_M_STATE == mainActState )
    {
+      pdcInit();
       pdcLine ( " Hour:        ", HOUR_POS );
       pdcLine ( " Min:         ", MIN_POS );
-      pdcLine ( " EXIT         ", EXIT_T_POS );
+      pdcLine ( " >EXIT<       ", EXIT_T_POS );
+      pdcLine ( " -   <-->   + ", LCD_BT_INFO_POS_Y );   
       interChooseTimeSet ( BT_NULL );                     // Set first option
    }
 }
@@ -193,7 +212,7 @@ static void interDisplayTimeSet ( void )
 // Get around config menu :
 static void interChooseConfig ( eButtons_t bt )
 {
-   eOptionsState_t stateTab[] = { TIME_O_POS, EXIT_O_POS };
+   eOptionsState_t stateTab[] = { TIME_O_POS, ALARM_O_POS, EXIT_O_POS };
    static uint8_t state = 0x00;
    
    pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *
@@ -216,6 +235,12 @@ static void interChooseConfig ( eButtons_t bt )
                interMainStateMachineSet ( TIME_SET_M_STATE );
             break;     
               
+            case ALARM_O_POS:
+               interAlarmSirene( TRUE );
+               while ( GET_BT_OK_STATE() ) {;}  // Waiting for OK button release
+               interAlarmSirene( FALSE );   
+            break;
+                     
             case EXIT_O_POS:
                interMainStateMachineSet ( DISPVALS_M_STATE );
                state = 0x00;  // Initial state
@@ -313,6 +338,54 @@ static void interDisplayTimeSetUpdate ( void )
       pdcUint ( sysTime.min,   MIN_POS,   7, 2 );
 }      
 
+
+//****************************************************************************************
+static void interDisplayInfo ( void )
+{
+   
+   // Last alarm:
+   pdcInit();
+   
+   if ( lastAlarm.laStage != NO_ALARM_STAGE )
+   {
+      pdcLine( "Last alarm:  ", LCD_INFO_LA_POS_Y);
+      pdcUint ( lastAlarm.laTime.hour,  LCD_INFO_LA_POS_Y+1,  0, 2 );
+      pdcChar( ':', LCD_INFO_LA_POS_Y+1, 3 );
+      pdcUint ( lastAlarm.laTime.min,   LCD_INFO_LA_POS_Y+1,  4, 2 );
+      pdcLine( ">     ppm    ", LCD_INFO_LA_POS_Y+2 );
+      
+      switch ( lastAlarm.laStage )
+      {
+         case ALARM_STAGE_1M:
+         pdcUint( TRESH_1M_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         break;
+         case ALARM_STAGE_15M:
+         pdcUint( TRESH_15M_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         break;
+         case ALARM_STAGE_1H:
+         pdcUint( TRESH_1H_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         break;
+         case ALARM_STAGE_2H:
+         pdcUint( TRESH_2H_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         break;
+         default:
+         break;
+      }
+   }
+   else
+   {
+       pdcLine( "No alarm yet ", LCD_INFO_LA_POS_Y);
+   }
+   
+   // Max 1 minute value:
+   pdcLine( "Max       ppm", LCD_INFO_MAX_POS_Y );
+   pdcUint( max1mVal, LCD_INFO_MAX_POS_Y , 5, 3 );
+   
+   pdcLine ( "         EXIT ", 5 );
+   
+}
+
+
 //****************************************************************************************
 // Sirene on/off
 static void interAlarmSirene ( bool stat )
@@ -327,6 +400,8 @@ static void interAlarmSirene ( bool stat )
    else // Turn off
    {
       timerDeregister ( alarmTimIDHi );
+      ioBuzzerOff();
+      ioStatLedOff();
    }
 }
 
@@ -405,6 +480,12 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       }
    }  
          
+      if ( max1mVal < pVal->actSensVal )
+      {
+         max1mVal = pVal->actSensVal;     // Max 1min value
+      }
+      
+         
    // Serial log:
    char strToLog [64];
    uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
@@ -431,7 +512,7 @@ void interTimeTickUpdate ( void )
    if ( sysTime.hour >= 24 ) 
    { 
       sysTime.hour = 0;
-      sysTime.numOfDays ++;      
+      //sysTime.numOfDays ++;      
    }
 
    if ( TIME_SET_M_STATE == mainActState )
@@ -457,6 +538,9 @@ void interAlarmStage ( eAlarmStages_t stage  )
    if ( ALARM_M_STATE != mainActState )
    {
       interMainStateMachineSet( ALARM_M_STATE );      
+      
+      lastAlarm.laStage = stage; // Last alarm info
+      lastAlarm.laTime  = sysTime;      
       
       pdcLine ( "  ! ALARM !   ", 0);
       pdcLine ( "Exceeded      ", 2 );
@@ -501,9 +585,9 @@ void interAlarmStage ( eAlarmStages_t stage  )
 // On button pressed:
 void interOnRight ( void )
 {
-   _delay_ms (25);         // Debouncing // TODO: another manner    
+   _delay_ms (25);          
    
-   if ( BT_RIGHT & ~PORTD.IN )    // Checking if it isn't a glitch
+   if ( GET_BT_RIGHT_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< RIGHT bt pressed\n" );
       
@@ -521,6 +605,9 @@ void interOnRight ( void )
             interChooseTimeSet ( BT_RIGHT );
          break;
          
+         case INFO_M_STATE:
+            interMainStateMachineSet( DISPVALS_M_STATE );
+         break;     
          
          default:
          break;
@@ -532,9 +619,9 @@ void interOnRight ( void )
 // On button pressed:
 void interOnLeft ( void )
 {
-   _delay_ms (25);         // Debouncing // TODO: another manner    
+   _delay_ms (25);         
    
-   if ( BT_LEFT & ~PORTD.IN )    // Checking if it isn't a glitch
+   if ( GET_BT_LEFT_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< LEFT bt pressed\n" );
       
@@ -563,9 +650,9 @@ void interOnLeft ( void )
 // On button pressed:
 void interOnOk ( void )
 {
-   _delay_ms (25);         // Debouncing // TODO: another manner    
+   _delay_ms (25);        
    
-   if ( BT_OK & ~PORTD.IN )    // Checking if it isn't a glitch
+   if ( GET_BT_OK_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< OK bt pressed\n" );
       
