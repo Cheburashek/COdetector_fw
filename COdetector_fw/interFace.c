@@ -151,10 +151,10 @@ static void interDisplayHello ( void )
 // Displaying values:
 static void interDispValsBackground ( void )
 {
-   pdcLine ( "Act:        mV", LCD_ACTMEAS_POS_Y );
-   pdcLine ( "M1m:        mV", LCD_MEAN_1M_POS_Y );
-   pdcLine ( "M1h:        mV", LCD_MEAN_1H_POS_Y );
-   //pdcLine ( "M8h:        mV", LCD_MEAN_2H_POS_Y );
+   pdcLine ( "Act:       ppm", LCD_ACTMEAS_POS_Y );
+   pdcLine ( "M1m:       ppm", LCD_MEAN_1M_POS_Y );
+   pdcLine ( "M1h:       ppm", LCD_MEAN_1H_POS_Y );
+   //pdcLine ( "M8h:       ppm", LCD_MEAN_2H_POS_Y );
    pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );   // TODO: change graphics
 
 }
@@ -366,7 +366,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       }
       else
       {         
-         if ( pVal->actBattVal < TRESH_LOW_BATT )
+         if ( pVal->actBattVal > TRESH_LOW_BATT )
          {
             sprintf ( str, "%.2u:%.2u:%.2u  %.4u", sysTime.hour,sysTime.min, sysTime.sec, pVal->actBattVal );
             loBatSignFlag = FALSE;
@@ -407,7 +407,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          
    // Serial log:
    char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[mV] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
    LOG_TXT_WL ( strToLog, len ); // Sensor value with timestamp
 }
 

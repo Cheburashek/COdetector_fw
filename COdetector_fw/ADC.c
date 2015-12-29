@@ -29,8 +29,11 @@
 
 
 
-#define ADC_OFF_MAN_CORR   244 // Manually measured offset in 12b storage
-#define ADC_GAIN_MAN_CORR  0x7DA   // 357page in manual
+#define ADC_OFF_MAN_CORR   230      // bits in 12b
+#define ADC_GAIN_MAN_CORR  0x07E1   // 357page in manual
+
+#define ADC_OFF_SOFT_CORR  420      // bits in 16b
+
 /*****************************************************************************************
    LOCAL VARIABLES
 */
@@ -127,6 +130,13 @@ ISR ( ADCA_CH0_vect )
 {  
    if ( NULL != convEndCB )
    {       
-      convEndCB (  (uint16_t)ADCA.CH0RES );            
+      if ( ADCA.CH0RES >= ADC_OFF_SOFT_CORR )
+      {               
+         convEndCB (ADCA.CH0RES - ADC_OFF_SOFT_CORR); // Software offset compensation
+      }
+      else
+      {
+         convEndCB ( 0x0000 );
+      }       
    }  
 }

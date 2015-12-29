@@ -24,12 +24,16 @@
 
 
 #define RTC_PERIOD_S           1        // Should be 1,3,5 or 15 [s]
-#define ADC_SENS_MULTI_MV      1000     // By input voltage divider ( 1:1 -> 1000 )
+#define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
 #define ADC_VBATT_MULTI_MV     5652
+
+#define SENS_NA_MV_MULTI_1k    934      // nA/mV multiplier x1000  -> circuit   
+#define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
+#define SENS_OFFSET_MV         15       // offset in mV at ADC input (0ppm)
 
 // Controlling IOs:
 
-#define xSTAT_LED_ON_TICK
+#define STAT_LED_ON_TICK
 #define xBUZZER_PERM
 #define ALARM_PERM
 

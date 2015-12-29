@@ -193,12 +193,22 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, meanType_t* buf )
 
 
 //****************************************************************************************
-// Converting from raw sensor value
+// Converting from raw sensor value to ppm
 static uint16_t systemConvRawSens ( uint16_t raw )
 {
-  uint32_t rawData = (((uint32_t)raw) * ADC_SENS_MULTI_MV) / 65535; // for 1 [mV] resolution @16b 
+  uint32_t temp = (((uint32_t)raw) * ADC_SENS_MULTI_MV) / 65535; // for 1 [mV] resolution @16b 
    
-  return (uint16_t)rawData;
+  if ( SENS_OFFSET_MV < temp )
+  {
+     LOG_UINT ( "temp ", temp );
+     temp = ((temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k)/SENS_NA_PPM_MULTI_1k;     // for [ppm]
+  }
+  else
+  {
+     temp = 0;
+  }   
+   
+  return (uint16_t)temp;
 }
 
 //****************************************************************************************
