@@ -48,10 +48,9 @@ void boardInit ( void )
       // Low power pre-configuration:      
       // page 117 in manual (power reduction)!!!
   
-
       // Clocks:
    #if ( F_CPU == F_CPU_32KHZ )
-      OSC.CTRL |= OSC_RC32KEN_bm;               // Enabling 32kHz clock
+      OSC.CTRL |= OSC_RC32KEN_bm;              // Enabling 32kHz clock
       while (!(OSC.STATUS & OSC_RC32KRDY_bm));  // Waiting for clock
       CCP=CCP_IOREG_gc;                         // Protected register
       CLK.CTRL = CLK_SCLKSEL_RC32K_gc;          // 32khz internal
@@ -135,7 +134,6 @@ void boardPeriEnable ( void )
 void boardPeriDisable ( void )
 {
    pdcPowerDown();
-   ioBcklghtOff();   // To ensure that bcklght is disabled
    SERIAL_D_TX_DIS();
 
    TIMER_TCC5_DIS();

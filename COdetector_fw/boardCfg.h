@@ -31,14 +31,13 @@
 #define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
 #define SENS_OFFSET_MV         15       // offset in mV at ADC input (0ppm)
 
-// Controlling IOs:
-
-#define STAT_LED_ON_TICK
-#define xBUZZER_PERM
+// Controlling:
+#define xHELLO_SCREEN_PERM
+#define STAT_LED_ON_TICK_US    1200      // [us] of LED on
+#define BUZZER_ON_BT_US        700      // [us] of buzzer on button
 #define ALARM_PERM
 
-#define ALARM_PERIOD_HI    700      //ms
-#define ALARM_PERIOD_LO    300
+#define ALARM_PERIOD_HI    700          // ms period of alarm
 
 // Tresholds:
 #define TRESH_1M_PPM          300    

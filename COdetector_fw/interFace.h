@@ -59,9 +59,9 @@ typedef enum
    DISPVALS_M_STATE,
    CONFIG_M_STATE,
    TIME_SET_M_STATE,
-   INFO_M_STATE,
-   ALARM_TEST_M_STATE,
-   ALARM_M_STATE 
+   INFO_M_STATE,  
+   ALARM_M_STATE,
+   SENS_CODE_STATE 
    
 } eMainState_t;
 
@@ -69,6 +69,7 @@ typedef enum
 typedef enum
 {
    TIME_O_POS = 0x01,    // Also position on LCD
+   SENS_CODE_O_POS = 0x02,
    ALARM_O_POS = 0x03,
    EXIT_O_POS = 0x04
    
@@ -79,7 +80,7 @@ typedef enum
 {
    HOUR_POS,
    MIN_POS,
-   EXIT_T_POS
+   EXIT_T_POS = 0x04
    
 } eTimeSetState_t;
 
@@ -108,7 +109,7 @@ void interOnRight ( void );
 void interOnOk ( void );
 void interOnLeft ( void );
 
-void interAlarmStage ( eAlarmStages_t stage  );
+void interAlarmStage ( eAlarmStages_t stage );
 
 
 

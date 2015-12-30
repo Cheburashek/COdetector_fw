@@ -12,19 +12,7 @@
 - for initialization - fast 2MHz, after - 32kHz ( e.g. fast cleaning LCD RAM )
 */
 
-// Problems to include in txt:
-/*
 
-- adc auto offset calibration - temporary manual
-
-*/
-
-// BIG PROBLEM!!!
-// UStawienie pind0 na HI (input) robi to samo dziadostwo co ustawienie na hi (output) na pinc0 !! -zmiana Urev dla ADC
-//
-
-
-// TODO: clk in lopo
 // TODO: add watchdog
 
 // TODO: add temperature measurement 
@@ -34,11 +22,7 @@
 // TODO: przytrzymanie przycisku
 
 
-
-// 32k zawsze w³¹czone, 8Mhz tylko do SPI przy wy³¹czonym lopo
-
-// pierwsze chciua³em ca³kiem osobno tworzyc modu³y, czas nie ozwoliu³
-
+// Du¿e skoki sygna³u -> potrzebne uœrednianie np.m za 15s i dzia³a
 
 #include "common.h"
 

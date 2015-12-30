@@ -42,6 +42,7 @@ typedef struct
 {
    measType_t actSensVal;
    measType_t actBattVal;
+   measType_t mean15sVal;
    measType_t mean1mVal;
    measType_t mean15mVal;
    measType_t mean1hVal;
@@ -61,4 +62,6 @@ void systemUSBStateChanged ( void );
 void systemMeasEnd ( uint16_t val );
 void systemMeasPermFlagSet ( bool stat );
 void systemResetMeasRes ( void );
+void systemSensCodeSet ( uint16_t val );
+
 #endif /* SYSTEM_H_ */

@@ -34,6 +34,7 @@
 
 
 // Lengths of meaning queues:
+#define MEAN_15S_QUEUE_LEN         15/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 15-sec
 #define MEAN_1M_QUEUE_LEN          60/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
 #define MEAN_15M_QUEUE_LEN         60                      // Meaning at every 15s for 15-min   
 #define MEAN_1H_QUEUE_LEN          60                      // Meaning at every min for 1-hour           
@@ -50,14 +51,17 @@
 
 static volatile uint16_t rawSensVal;
 static volatile uint16_t rawBattVal;
+static uint16_t sensCodeNaPpm = SENS_NA_PPM_MULTI_1k;
 
 // Meaning queue:
+static measType_t mean15sTab[MEAN_15S_QUEUE_LEN];
 static measType_t mean1mTab[MEAN_1M_QUEUE_LEN];
 static measType_t mean15mTab[MEAN_15M_QUEUE_LEN];
 static measType_t mean1hTab[MEAN_1H_QUEUE_LEN];
 static measType_t mean2hTab[MEAN_2H_QUEUE_LEN];
 
 // Tables for static queue allocation:
+static meanQueue_t mean15sQ = { mean15sTab, mean15sTab, MEAN_15S_QUEUE_LEN };
 static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN };
 static meanQueue_t mean15mQ = { mean15mTab, mean15mTab, MEAN_15M_QUEUE_LEN };
 static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN };
@@ -106,10 +110,12 @@ static void systemPeriodicRefresh ( void )
    // Every tick: 
       
    locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
-      
-   systemQueuePush ( &mean1mQ, locVals.actSensVal );
-   systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );     // For 1min meaning
    
+   systemQueuePush ( &mean15sQ, locVals.actSensVal );  
+   systemQueuePush ( &mean1mQ, locVals.actSensVal );  // TODO: 1min from 15s?
+   
+   systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 1min meaning
+   systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );      // For 1min meaning
   
    // Every 15s:
    if ( 0 == (ticks % 15) )
@@ -200,8 +206,7 @@ static uint16_t systemConvRawSens ( uint16_t raw )
    
   if ( SENS_OFFSET_MV < temp )
   {
-     LOG_UINT ( "temp ", temp );
-     temp = ((temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k)/SENS_NA_PPM_MULTI_1k;     // for [ppm]
+     temp = ((temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k)/sensCodeNaPpm;     // for [ppm]
   }
   else
   {
@@ -349,15 +354,23 @@ void systemMeasPermFlagSet ( bool stat )
 void systemResetMeasRes ( void )
 {
    locVals.actSensVal = 0x00;
+   locVals.mean15sVal = 0x00; 
    locVals.mean1mVal = 0x00; 
    locVals.mean15mVal = 0x00;
    locVals.mean1hVal = 0x00;
    locVals.mean2hVal = 0x00;
    
    // Reset Queues:
+   systemQueueReset ( &mean15sQ );
    systemQueueReset ( &mean1mQ );
    systemQueueReset ( &mean15mQ );
    systemQueueReset ( &mean1hQ );
    systemQueueReset ( &mean2hQ );
    
+}
+
+//****************************************************************************************
+void systemSensCodeSet ( uint16_t val )
+{
+   sensCodeNaPpm = val;
 }

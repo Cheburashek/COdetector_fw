@@ -47,9 +47,8 @@
 // IO initialization:
 void ioInit ( void )
 {
-   // Initial stats:
+   // Initial states:
    ioStatLedOff();
-   ioBcklghtOff();
    ioBuzzerOff();
    
    // UNUSED PINS (input and pullup): //TODO: add the others
@@ -102,23 +101,24 @@ void ioInit ( void )
 // Driving buzzer ( not inline or macro because of using as a callback ):
 void ioBuzzerOn ( void )
 {
-   #ifdef BUZZER_PERM
    PORTD.OUTSET =  CFG_BUZZ_PIN_MASK;
-   #endif
 }
 
 void ioBuzzerOff ( void )
 {
-   #ifdef BUZZER_PERM   
    PORTD.OUTCLR =  CFG_BUZZ_PIN_MASK; 
-   #endif
 }
 
 void ioBuzzerTgl ( void )
 {
-   #ifdef BUZZER_PERM
    PORTD.OUTTGL =  CFG_BUZZ_PIN_MASK;
-   #endif
+}
+
+void ioBuzzShortBeep ( void )
+{
+   ioBuzzerOn();
+   _delay_us ( BUZZER_ON_BT_US );
+   ioBuzzerOff();
 }
 
 //****************************************************************************************
@@ -138,20 +138,12 @@ void ioStatLedTgl ( void )
    PORTA.OUTTGL =  CFG_LED_PIN_MASK;
 }
 
-
-//****************************************************************************************
-// Driving backlight LED ( not inline or macro because of using as a callback ):
-void ioBcklghtOn ( void )
+void ioStateLedShortTick ( void )
 {
-   PORTA.OUTCLR = CFG_BCKLGHT_PIN_MASK;
+   ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
+      _delay_us ( STAT_LED_ON_TICK_US );
+   ioStatLedOff();
 }
-
-void ioBcklghtOff ( void )
-{
-   PORTA.OUTSET = CFG_BCKLGHT_PIN_MASK;
-}
-
-
 //****************************************************************************************
 //  ISRs:
 

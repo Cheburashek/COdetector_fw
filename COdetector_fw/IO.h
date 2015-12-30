@@ -37,12 +37,11 @@ void ioInit ( void );
 void ioBuzzerOn ( void );
 void ioBuzzerOff ( void );
 void ioBuzzerTgl ( void );
+void ioBuzzShortBeep ( void );
 
 void ioStatLedOn ( void );
 void ioStatLedOff ( void );
 void ioStatLedTgl ( void );
-
-void ioBcklghtOn ( void );
-void ioBcklghtOff ( void );
+void ioStateLedShortTick ( void );
 
 #endif /* IO_H_ */

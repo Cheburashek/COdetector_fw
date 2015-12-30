@@ -15,6 +15,7 @@
 #include "PDC8544.h"
 #include "timers.h"
 #include "IO.h"
+#include "system.h"
 
 /*****************************************************************************************
    MACROS
@@ -31,6 +32,7 @@
 #define LCD_MEAN_1H_POS_Y          3
 #define LCD_MEAN_2H_POS_Y          4
 #define LCD_BT_INFO_POS_Y          5
+#define LCD_SENS_SET_POS_Y         3
 #define LCD_INFO_LA_POS_Y          0
 #define LCD_INFO_MAX_POS_Y         3
 
@@ -51,6 +53,8 @@ static bool loBatSignFlag = FALSE;
 
 static uint16_t max1mVal = 0;
 
+static uint16_t codeTemp = SENS_NA_PPM_MULTI_1k;
+
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
 */
@@ -67,6 +71,9 @@ static void interDisplayInfo ( void );
 static void interChooseConfig ( eButtons_t bt );
 static void interChooseTimeSet ( eButtons_t bt );
 static void interDisplayTimeSetUpdate ( void );
+static void interDisplaySensCode ( void );
+
+static void interSetSensCode ( eButtons_t bt );
 
 static void interAlarmSirene ( bool stat );
 
@@ -121,8 +128,14 @@ static void interMainStateMachineSet ( eMainState_t state )
          LOG_TXT ( ">>state<<  Alarm state\n" );
          mainActState = ALARM_M_STATE;   
          interAlarmSirene( TRUE );
-      break;
+      break;   
    
+      case SENS_CODE_STATE:
+         LOG_TXT ( ">>state<<  Sensor code state\n" );
+         mainActState = SENS_CODE_STATE;
+         interDisplaySensCode();
+      break;   
+      
       default:
          break;
             
@@ -179,10 +192,10 @@ static void interDispValsBackground ( void )
 void interDisplayConfig ( void )
 {
    if ( CONFIG_M_STATE == mainActState )
-   {
-      pdcInit();
+   {      
       pdcLine ( " CONFIG MENU  ", 0 );
       pdcLine ( " Time set     ", TIME_O_POS );
+      pdcLine ( " Sens. code   ", SENS_CODE_O_POS );
       pdcLine ( " Alarm test   ", ALARM_O_POS );
       pdcLine ( " >EXIT<       ", EXIT_O_POS );
       pdcLine ( " <    OK    > ", LCD_BT_INFO_POS_Y );   
@@ -195,16 +208,31 @@ void interDisplayConfig ( void )
 // Displaying time to be set:
 static void interDisplayTimeSet ( void )
 {
-
    if ( TIME_SET_M_STATE == mainActState )
-   {
-      pdcInit();
+   {      
       pdcLine ( " Hour:        ", HOUR_POS );
       pdcLine ( " Min:         ", MIN_POS );
+      pdcClearLine ( 2 );
+      pdcClearLine ( 3 );
       pdcLine ( " >EXIT<       ", EXIT_T_POS );
       pdcLine ( " -   <-->   + ", LCD_BT_INFO_POS_Y );   
       interChooseTimeSet ( BT_NULL );                     // Set first option
    }
+}
+
+static void interDisplaySensCode ( void )
+{
+   if ( SENS_CODE_STATE == mainActState )
+   {      
+      pdcLine ( "  Set sensor  ", 0 );
+      pdcLine ( "code from case", 1 );
+      pdcLine ( "   [pA/ppm]   ", 2 );
+      pdcClearLine ( 3 );
+      pdcUint( codeTemp, LCD_SENS_SET_POS_Y, 1, 4 );     // Display actual value  
+      pdcClearLine ( 4 );
+      pdcLine ( " -    OK    + ", 5 ); 
+              
+   }      
 }
 
 
@@ -212,7 +240,7 @@ static void interDisplayTimeSet ( void )
 // Get around config menu :
 static void interChooseConfig ( eButtons_t bt )
 {
-   eOptionsState_t stateTab[] = { TIME_O_POS, ALARM_O_POS, EXIT_O_POS };
+   eOptionsState_t stateTab[] = { TIME_O_POS, SENS_CODE_O_POS, ALARM_O_POS, EXIT_O_POS };
    static uint8_t state = 0x00;
    
    pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *
@@ -234,6 +262,10 @@ static void interChooseConfig ( eButtons_t bt )
             case TIME_O_POS:
                interMainStateMachineSet ( TIME_SET_M_STATE );
             break;     
+            
+            case SENS_CODE_O_POS:
+               interMainStateMachineSet ( SENS_CODE_STATE );
+            break;
               
             case ALARM_O_POS:
                interAlarmSirene( TRUE );
@@ -329,6 +361,41 @@ static void interChooseTimeSet ( eButtons_t bt )
    interDisplayTimeSetUpdate();  // Update time after setting
 }
 
+//****************************************************************************************
+// Set multiplier [nA/ppm] from code on the sensor case:
+static void interSetSensCode ( eButtons_t bt )
+{
+   _delay_ms(100);
+   
+   switch (bt)
+   {      
+      case BT_RIGHT:
+         do
+         {
+            if ( codeTemp++ > 2500 ) codeTemp = 500;
+            pdcUint( codeTemp, LCD_SENS_SET_POS_Y, 1, 4 );
+            _delay_ms(10);
+         } while ( GET_BT_RIGHT_STATE() );      
+      break;
+      
+      case BT_LEFT:
+         do 
+         {
+            if ( codeTemp-- < 500 ) codeTemp = 2500;            
+            pdcUint( codeTemp, LCD_SENS_SET_POS_Y, 1, 4 ); 
+            _delay_ms(10);
+         } while ( GET_BT_LEFT_STATE() );
+      break;
+      
+      case BT_OK:
+         systemSensCodeSet( codeTemp );
+         interMainStateMachineSet( CONFIG_M_STATE );
+      break;
+      
+      default:
+      break;      
+   }   
+}
 
 //****************************************************************************************
 static void interDisplayTimeSetUpdate ( void )
@@ -417,10 +484,12 @@ static void interAlarmCBHi ( void )
 */
 
 void interInit ( void )
-{
-   interMainStateMachineSet ( HELLO_M_STATE );  // Initial state
-   //interDispValsBackground ();
-   
+{   
+#ifdef HELLO_SCREEN_PERM   
+   interMainStateMachineSet ( HELLO_M_STATE ); 
+#else
+   interMainStateMachineSet ( DISPVALS_M_STATE );  
+#endif   
 }
 
 
@@ -455,24 +524,22 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       pdcLine( str, LCD_HEADER_POS_Y );
       
       // Measured values:
-      pdcUint ( pVal->actSensVal, LCD_ACTMEAS_POS_Y, 6, 5 );
+      pdcUint ( pVal->mean15sVal, LCD_ACTMEAS_POS_Y, 6, 5 );   // Changed -> 15s as actual (meaning)
       pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
       pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
       //pdcUint ( pVal->mean2hVal, LCD_MEAN_2H_POS_Y, 6, 5 ); 
       
       // Led blinking:
-      #ifdef STAT_LED_ON_TICK
-         ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
-         _delay_ms(7);
-         ioStatLedOff();
+      #ifdef STAT_LED_ON_TICK_US
+         ioStateLedShortTick ();
       #endif   
       
 
    }    
    else if ( ALARM_M_STATE == mainActState )
    {
-      pdcUint ( pVal->actSensVal, 5, 0, 4 );      
-      if ( pVal->actSensVal < TRESH_ALARM_OFF_PPM )
+      pdcUint ( pVal->mean15sVal, 5, 0, 4 );      
+      if ( pVal->mean15sVal < TRESH_ALARM_OFF_PPM )
       {
          interAlarmSirene( FALSE );
          interMainStateMachineSet( DISPVALS_M_STATE );    
@@ -482,7 +549,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          
       if ( max1mVal < pVal->actSensVal )
       {
-         max1mVal = pVal->actSensVal;     // Max 1min value
+         max1mVal = pVal->mean15sVal;     // Max 1min value
       }
       
          
@@ -590,6 +657,9 @@ void interOnRight ( void )
    if ( GET_BT_RIGHT_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< RIGHT bt pressed\n" );
+      #ifdef BUZZER_ON_BT_US
+         ioBuzzShortBeep ();
+      #endif      
       
       switch ( mainActState )
       {
@@ -609,6 +679,10 @@ void interOnRight ( void )
             interMainStateMachineSet( DISPVALS_M_STATE );
          break;     
          
+         case SENS_CODE_STATE:
+            interSetSensCode(BT_RIGHT);
+         break;
+         
          default:
          break;
        }  
@@ -624,6 +698,9 @@ void interOnLeft ( void )
    if ( GET_BT_LEFT_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< LEFT bt pressed\n" );
+      #ifdef BUZZER_ON_BT_US
+         ioBuzzShortBeep ();
+      #endif            
       
       switch ( mainActState )
       {
@@ -639,6 +716,9 @@ void interOnLeft ( void )
             interChooseTimeSet ( BT_LEFT );
          break;
         
+         case SENS_CODE_STATE:
+            interSetSensCode( BT_LEFT );
+         break;
          
          default:
          break;
@@ -655,20 +735,23 @@ void interOnOk ( void )
    if ( GET_BT_OK_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< OK bt pressed\n" );
+      #ifdef BUZZER_ON_BT_US
+         ioBuzzShortBeep ();
+      #endif
       
       switch ( mainActState )
-      {
-         case  DISPVALS_M_STATE:
-            interMainStateMachineSet ( ALARM_M_STATE );
-         break;
-         
+      {         
          case  CONFIG_M_STATE:
             interChooseConfig ( BT_OK );
          break;
          
          case TIME_SET_M_STATE:
             interChooseTimeSet ( BT_OK );
-         break;         
+         break;        
+         
+         case SENS_CODE_STATE:
+            interSetSensCode( BT_OK );
+         break;
              
          default:
          break;
