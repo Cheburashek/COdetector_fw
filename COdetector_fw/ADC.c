@@ -73,8 +73,7 @@ void adcInit ( void )
    ADCA.CTRLB &= ~(ADC_CONMODE_bm |             // Unsigned mode
                    ADC_FREERUN_bm);             // Single conversion
    
-   ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc |  // Single ended input
-                   ADC_CH_GAIN_1X_gc;                 // 1x gain
+   ADCA.CH0.CTRL = ADC_CH_GAIN_1X_gc;           // 1x gain
    
    ADCA.EVCTRL = 0x00;                          // Ensuring that event system is disabled for ADC
       
@@ -87,8 +86,8 @@ void adcInit ( void )
    
    ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
       
-   ADCA.REFCTRL = ADC_REFSEL_INT1V_gc;                // Internal 1V reference              
-   
+   ADCA.REFCTRL = ADC_REFSEL_INT1V_gc;                   // Internal 1V reference              
+      
    
    ADCA.CH0.OFFSETCORR0 = ADC_OFF_MAN_CORR & 0xFF;
    ADCA.CH0.OFFSETCORR1 = ADC_OFF_MAN_CORR >> 8;
@@ -105,7 +104,18 @@ void adcInit ( void )
 void adcStartChannel ( eAdcChan_t ch )
 {
    ADC_EN();
-   ADCA.CH0.MUXCTRL = ch;
+   
+   if ( ch != TEMP )
+   {   
+      ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Single ended input
+      ADCA.CH0.MUXCTRL = ch;
+   }   
+   else 
+   {
+      ADCA.CH0.CTRL = ADC_CH_INPUTMODE_INTERNAL_gc;   // Internal input
+      ADCA.CH0.MUXCTRL = ADC_CH_MUXINT_TEMP_gc;       // Temperature reference
+   }   
+   
    ADCA.CTRLA |= ADC_START_bm;
 }
 
@@ -139,4 +149,5 @@ ISR ( ADCA_CH0_vect )
          convEndCB ( 0x0000 );
       }       
    }  
+   ADC_DIS();
 }

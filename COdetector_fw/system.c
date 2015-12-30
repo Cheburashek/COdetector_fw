@@ -51,6 +51,7 @@
 
 static volatile uint16_t rawSensVal;
 static volatile uint16_t rawBattVal;
+static volatile uint16_t rawTempVal;
 static uint16_t sensCodeNaPpm = SENS_NA_PPM_MULTI_1k;
 
 // Meaning queue:
@@ -249,14 +250,6 @@ static void systemCheckTresholds ( void )
 }
 
 
-
-
-
-
-
-
-
-
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
 */
@@ -324,23 +317,27 @@ void systemUSBStateChanged ( void )
 //****************************************************************************************
 void systemMeasEnd ( uint16_t val )
 {
-   ADC_DIS();
-   if ( SENS == adcGetChan() )
+   if ( ADC_CH_MUXINT_TEMP_gc == ADCA.CH0.CTRL )   // If internal mode (temperature)
    {
-      LOG_UINT ( "raw sens ", val );  
+      rawTempVal = val;
+      LOG_UINT ( "raw TEMP ", val );
+   }
+   else if ( SENS == adcGetChan() )
+   {      
       rawSensVal = val;
       if ( vBattFlag )
       {          
          adcStartChannel ( VBATT ); // Battery voltage measurement start
          vBattFlag = FALSE;         
       }         
+      //LOG_UINT ( "raw sens ", val );  
    }
    else if ( VBATT == adcGetChan() )
    {
       rawBattVal = val;   
-      LOG_UINT ( "raw bat ", val ); 
-       
-   }
+      //LOG_UINT ( "raw bat ", val );        
+   }   
+
 
 }  
 

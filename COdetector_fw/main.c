@@ -46,8 +46,8 @@ int main(void)
 
    while(1)
    {
-      //
-      //serialTempMeasStart();
+      _delay_ms( 100 );
+      adcStartChannel ( TEMP );
 
    }
 

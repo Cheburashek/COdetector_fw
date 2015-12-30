@@ -25,17 +25,18 @@
                              ADCA.CTRLA |= ADC_ENABLE_bm;
                                
                              
-#define ADC_DIS()            ADCA.CTRLA &= ~ADC_ENABLE_bm; \
-                             PR.PRPA |= PR_ADC_bm; 
+#define ADC_DIS()            ADCA.CTRLA &= ~ADC_ENABLE_bm;\
+                             PR.PRPA |= PR_ADC_bm;      
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS
 */
 
 typedef enum
-{
+{   
    SENS = CFG_ADC_SENS_MUXPOS,
-   VBATT = CFG_ADC_VBATT_MUXPOS
+   VBATT = CFG_ADC_VBATT_MUXPOS,
+   TEMP = 0xFF,  
    
 } eAdcChan_t;
 

@@ -29,24 +29,25 @@
 
 #define SENS_NA_MV_MULTI_1k    934      // nA/mV multiplier x1000  -> circuit   
 #define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
-#define SENS_OFFSET_MV         15       // offset in mV at ADC input (0ppm)
+#define SENS_OFFSET_MV         20       // offset in mV at ADC input (0ppm)
 
 // Controlling:
 #define xHELLO_SCREEN_PERM
-#define STAT_LED_ON_TICK_US    1200      // [us] of LED on
+#define STAT_LED_ON_TICK_US    1200     // [us] of LED on
 #define BUZZER_ON_BT_US        700      // [us] of buzzer on button
 #define ALARM_PERM
 
-#define ALARM_PERIOD_HI    700          // ms period of alarm
+#define ALARM_PERIOD_HI        700      // ms period of alarm
 
 // Tresholds:
-#define TRESH_1M_PPM          300    
-#define TRESH_15M_PPM         100
-#define TRESH_1H_PPM          50
-#define TRESH_2H_PPM          30
-#define TRESH_ALARM_OFF_PPM   50
+#define TRESH_1M_PPM           300    
+#define TRESH_15M_PPM          100
+#define TRESH_1H_PPM           50
+#define TRESH_2H_PPM           30
 
-#define TRESH_LOW_BATT   4000
+#define TRESH_ALARM_OFF_PPM    50       // Do not clear alarm before this concetration
+
+#define TRESH_LOW_BATT         4000
 
 
 

@@ -197,8 +197,8 @@ void interDisplayConfig ( void )
       pdcLine ( " Time set     ", TIME_O_POS );
       pdcLine ( " Sens. code   ", SENS_CODE_O_POS );
       pdcLine ( " Alarm test   ", ALARM_O_POS );
-      pdcLine ( " >EXIT<       ", EXIT_O_POS );
-      pdcLine ( " <    OK    > ", LCD_BT_INFO_POS_Y );   
+      pdcLine ( " EXIT         ", EXIT_O_POS );
+      pdcLine ( " <-   OK   -> ", LCD_BT_INFO_POS_Y );   
       interChooseConfig ( BT_NULL );                     // Set first option 
    }
 }
@@ -214,7 +214,7 @@ static void interDisplayTimeSet ( void )
       pdcLine ( " Min:         ", MIN_POS );
       pdcClearLine ( 2 );
       pdcClearLine ( 3 );
-      pdcLine ( " >EXIT<       ", EXIT_T_POS );
+      pdcLine ( " EXIT         ", EXIT_T_POS );
       pdcLine ( " -   <-->   + ", LCD_BT_INFO_POS_Y );   
       interChooseTimeSet ( BT_NULL );                     // Set first option
    }
@@ -555,7 +555,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          
    // Serial log:
    char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u[ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
    LOG_TXT_WL ( strToLog, len ); // Sensor value with timestamp
 }
 
