@@ -60,7 +60,6 @@ typedef struct
 void systemInit ( void );
 void systemUSBStateChanged ( void );
 void systemMeasEnd ( uint16_t val );
-void systemMeasPermFlagSet ( bool stat );
 void systemResetMeasRes ( void );
 void systemSensCodeSet ( uint16_t val );
 

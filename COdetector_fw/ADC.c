@@ -11,7 +11,7 @@
 // TODO: DMA ?
 // TODO: eventsystem?
 
-
+// niestabilny adc pomimo w miarê dobrego zasilania
 
 /*****************************************************************************************
    LOCAL INCLUDES
@@ -29,10 +29,8 @@
 
 
 
-#define ADC_OFF_MAN_CORR   230      // bits in 12b
+#define ADC_OFF_MAN_CORR   240      // bits in 12b
 #define ADC_GAIN_MAN_CORR  0x07E1   // 357page in manual
-
-#define ADC_OFF_SOFT_CORR  420      // bits in 16b
 
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -103,6 +101,7 @@ void adcInit ( void )
 //****************************************************************************************
 void adcStartChannel ( eAdcChan_t ch )
 {
+   ADCA.CTRLA = ADC_FLUSH_bm; 
    ADC_EN();
    
    if ( ch != TEMP )
@@ -119,12 +118,6 @@ void adcStartChannel ( eAdcChan_t ch )
    ADCA.CTRLA |= ADC_START_bm;
 }
 
-//****************************************************************************************
-eAdcChan_t adcGetChan ( void )
-{
-   return ADCA.CH0.MUXCTRL;
-}
-
 
 
 //****************************************************************************************
@@ -134,20 +127,11 @@ void adcRegisterEndCb ( pfnAdcEnd cb )
 }
 
 
-
 //****************************************************************************************
 ISR ( ADCA_CH0_vect )
 {  
    if ( NULL != convEndCB )
-   {       
-      if ( ADCA.CH0RES >= ADC_OFF_SOFT_CORR )
-      {               
-         convEndCB (ADCA.CH0RES - ADC_OFF_SOFT_CORR); // Software offset compensation
-      }
-      else
-      {
-         convEndCB ( 0x0000 );
-      }       
-   }  
-   ADC_DIS();
+   {                  
+      convEndCB (ADCA.CH0RES); // Software offset compensation
+   }     
 }

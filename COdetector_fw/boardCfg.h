@@ -24,18 +24,20 @@
 
 
 #define RTC_PERIOD_S           1        // Should be 1,3,5 or 15 [s]
-#define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
-#define ADC_VBATT_MULTI_MV     5652
 
-#define SENS_NA_MV_MULTI_1k    934      // nA/mV multiplier x1000  -> circuit   
+#define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
+#define ADC_VBATT_MULTI_MV     6717
+
+#define SENS_NA_MV_MULTI_1k    1092      // nA/mV multiplier x1000  -> circuit  [new->measuring with WO] 
 #define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
 #define SENS_OFFSET_MV         20       // offset in mV at ADC input (0ppm)
 
-// Controlling:
+// Permissions:
 #define xHELLO_SCREEN_PERM
-#define STAT_LED_ON_TICK_US    1200     // [us] of LED on
-#define BUZZER_ON_BT_US        700      // [us] of buzzer on button
-#define ALARM_PERM
+#define STAT_LED_ON_TICK_PERM  
+#define BUZZER_ON_BT_PERM      
+#define xALARM_PERM
+#define xTEMP_MEAS_PERM
 
 #define ALARM_PERIOD_HI        700      // ms period of alarm
 

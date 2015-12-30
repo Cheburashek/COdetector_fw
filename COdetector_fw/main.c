@@ -19,7 +19,7 @@
 
 // TODO: disable logs when no usb connected
 
-// TODO: przytrzymanie przycisku
+// TODO: blokada zmiany wa¿nych ustawiueñ ot tak po prostu
 
 
 // Du¿e skoki sygna³u -> potrzebne uœrednianie np.m za 15s i dzia³a
@@ -46,8 +46,8 @@ int main(void)
 
    while(1)
    {
-      _delay_ms( 100 );
-      adcStartChannel ( TEMP );
+      //adcStartChannel(VBATT);
+      //_delay_ms(1000);
 
    }
 

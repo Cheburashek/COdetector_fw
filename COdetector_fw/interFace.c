@@ -507,6 +507,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       if ( pVal->usbPlugged ) // If USB plugged in
       {
          sprintf ( str, "%.2u:%.2u:%.2u   USB", sysTime.hour,sysTime.min, sysTime.sec );
+         loBatSignFlag = FALSE;
       }
       else
       {         
@@ -529,12 +530,6 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
       //pdcUint ( pVal->mean2hVal, LCD_MEAN_2H_POS_Y, 6, 5 ); 
       
-      // Led blinking:
-      #ifdef STAT_LED_ON_TICK_US
-         ioStateLedShortTick ();
-      #endif   
-      
-
    }    
    else if ( ALARM_M_STATE == mainActState )
    {
@@ -555,7 +550,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          
    // Serial log:
    char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal );
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal );
    LOG_TXT_WL ( strToLog, len ); // Sensor value with timestamp
 }
 
@@ -587,15 +582,18 @@ void interTimeTickUpdate ( void )
       interDisplayTimeSetUpdate ();    // Updating time in time set menu
    }      
    
+   // Led blinking:
+   #ifdef STAT_LED_ON_TICK_PERM
+   ioStateLedShortTick ();
+   #endif
+         
    // Signal of low batt:
    if ( TRUE == loBatSignFlag )
    {
       ioBuzzerOn();
-      _delay_ms(10);
+      _delay_ms(15);
       ioBuzzerOff();
-   }      
-    
-
+   }
 }
 
 //****************************************************************************************
@@ -657,7 +655,7 @@ void interOnRight ( void )
    if ( GET_BT_RIGHT_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< RIGHT bt pressed\n" );
-      #ifdef BUZZER_ON_BT_US
+      #ifdef BUZZER_ON_BT_PERM
          ioBuzzShortBeep ();
       #endif      
       
@@ -698,7 +696,7 @@ void interOnLeft ( void )
    if ( GET_BT_LEFT_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< LEFT bt pressed\n" );
-      #ifdef BUZZER_ON_BT_US
+      #ifdef BUZZER_ON_BT_PERM
          ioBuzzShortBeep ();
       #endif            
       
@@ -735,7 +733,7 @@ void interOnOk ( void )
    if ( GET_BT_OK_STATE() )    // Checking if it isn't a glitch
    {      
       LOG_TXT ( ">>info<< OK bt pressed\n" );
-      #ifdef BUZZER_ON_BT_US
+      #ifdef BUZZER_ON_BT_PERM
          ioBuzzShortBeep ();
       #endif
       

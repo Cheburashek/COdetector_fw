@@ -117,7 +117,7 @@ void ioBuzzerTgl ( void )
 void ioBuzzShortBeep ( void )
 {
    ioBuzzerOn();
-   _delay_us ( BUZZER_ON_BT_US );
+   _delay_us ( 700 );
    ioBuzzerOff();
 }
 
@@ -141,7 +141,7 @@ void ioStatLedTgl ( void )
 void ioStateLedShortTick ( void )
 {
    ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
-      _delay_us ( STAT_LED_ON_TICK_US );
+      _delay_us ( 1400 );
    ioStatLedOff();
 }
 //****************************************************************************************

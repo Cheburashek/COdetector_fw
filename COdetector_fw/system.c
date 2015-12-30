@@ -70,7 +70,7 @@ static meanQueue_t mean2hQ = { mean2hTab, mean2hTab, MEAN_2H_QUEUE_LEN };
 
 // Flags:
 static bool vBattFlag = TRUE;    // For adc measurement triggering
-static bool measPermFlag = TRUE; 
+static bool vTempFlag = FALSE;
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -123,8 +123,18 @@ static void systemPeriodicRefresh ( void )
    {                  
       systemQueuePush ( &mean15mQ, locVals.actSensVal );
       systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
-      vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
-   }           
+      
+      /*if ( !locVals.usbPlugged )*/ 
+      {
+         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
+         locVals.actBattVal = systemConvRawBatt ( rawBattVal );
+      }
+            
+      #ifdef TEMP_MEAS_PERM
+         vTempFlag = TRUE; // Setting this flag enables temperature meas. after vBatt meas. 
+      #endif
+   }      
+        
    // Every minute:   
    if ( 0 == (ticks % 60) )     
    {
@@ -135,18 +145,18 @@ static void systemPeriodicRefresh ( void )
       systemQueuePush ( &mean2hQ, locVals.mean1mVal );
       systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 8h meaning
    
-      locVals.actBattVal = systemConvRawBatt ( rawBattVal );
+      
       
       ticks = 0;
-   } 
+   }    
+   
  
 #ifdef ALARM_PERM
    systemCheckTresholds();
 #endif
       
    interDisplaySystemVals ( &locVals );
-   
-    
+       
    interTimeTickUpdate();
    ticks += RTC_PERIOD_S;
 }
@@ -279,12 +289,10 @@ void systemInit ( void )
    TEST*/
    
    
-   
    systemUSBStateChanged();   // Initial check of USB state
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
-   adcStartChannel (VBATT);      // Starting sensor voltage measurement
-   adcStartChannel (SENS);   // Initial measurements
+   adcStartChannel (VBATT);      // Starting sensor voltage measurement   
 
 }
 
@@ -313,40 +321,6 @@ void systemUSBStateChanged ( void )
    }
 }
 
-
-//****************************************************************************************
-void systemMeasEnd ( uint16_t val )
-{
-   if ( ADC_CH_MUXINT_TEMP_gc == ADCA.CH0.CTRL )   // If internal mode (temperature)
-   {
-      rawTempVal = val;
-      LOG_UINT ( "raw TEMP ", val );
-   }
-   else if ( SENS == adcGetChan() )
-   {      
-      rawSensVal = val;
-      if ( vBattFlag )
-      {          
-         adcStartChannel ( VBATT ); // Battery voltage measurement start
-         vBattFlag = FALSE;         
-      }         
-      //LOG_UINT ( "raw sens ", val );  
-   }
-   else if ( VBATT == adcGetChan() )
-   {
-      rawBattVal = val;   
-      //LOG_UINT ( "raw bat ", val );        
-   }   
-
-
-}  
-
-//****************************************************************************************
-void systemMeasPermFlagSet ( bool stat )
-{
-   measPermFlag = stat;
-}
-
 //****************************************************************************************
 void systemResetMeasRes ( void )
 {
@@ -371,3 +345,39 @@ void systemSensCodeSet ( uint16_t val )
 {
    sensCodeNaPpm = val;
 }
+
+
+//****************************************************************************************
+void systemMeasEnd ( uint16_t val )
+{
+   ADC_DIS();
+   
+   if ( ADC_CH_INPUTMODE_INTERNAL_gc == ADCA.CH0.CTRL )   // If internal mode (temperature)
+   {
+      //rawTempVal = val;
+      //LOG_UINT ( "raw TEMP ", val );
+   }
+   else if ( SENS == ADC_GET_CH() )
+   {      
+      rawSensVal = val;
+      
+      if ( vBattFlag )
+      {          
+         adcStartChannel ( VBATT ); // Battery voltage measurement start
+         vBattFlag = FALSE;               
+      }    
+      if ( vTempFlag )
+      {
+         adcStartChannel ( TEMP );  // Temperature measurement start         
+         vTempFlag = FALSE;
+      }    
+      
+      //LOG_UINT ( "raw sens ", val );  
+   }
+   else if ( VBATT == ADC_GET_CH() )
+   {
+      rawBattVal = val;
+      LOG_UINT ( "raw bat ", val );        
+   }   
+
+}  
