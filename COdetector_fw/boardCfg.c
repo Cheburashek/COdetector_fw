@@ -97,8 +97,8 @@ void boardInit ( void )
    spiInit();
    pdcInit();
    ioInit();
-   interInit();     
    systemInit();
+   interInit();     
   
    // Disabling clocks for peripherals ( from ~3.5mA to 3.0mA ):
    PR.PRGEN = PR_EDMA_bm |

@@ -40,6 +40,7 @@
 #define MEAN_1H_QUEUE_LEN          60                      // Meaning at every min for 1-hour           
 #define MEAN_2H_QUEUE_LEN          120                     // Meaning at every min for 2-hour
 
+#define MEAN_TEMP_QUEUE_LEN        15/RTC_PERIOD_S
 
 /*****************************************************************************************
    LOCAL TYPEDEFS
@@ -49,9 +50,10 @@
    LOCAL VARIABLES
 */
 
-static volatile uint16_t rawSensVal;
 static volatile uint16_t rawBattVal;
+static volatile uint16_t rawSensVal;
 static volatile uint16_t rawTempVal;
+
 static uint16_t sensCodeNaPpm = SENS_NA_PPM_MULTI_1k;
 
 // Meaning queue:
@@ -60,6 +62,7 @@ static measType_t mean1mTab[MEAN_1M_QUEUE_LEN];
 static measType_t mean15mTab[MEAN_15M_QUEUE_LEN];
 static measType_t mean1hTab[MEAN_1H_QUEUE_LEN];
 static measType_t mean2hTab[MEAN_2H_QUEUE_LEN];
+static measType_t meanTempTab[MEAN_TEMP_QUEUE_LEN];
 
 // Tables for static queue allocation:
 static meanQueue_t mean15sQ = { mean15sTab, mean15sTab, MEAN_15S_QUEUE_LEN };
@@ -67,10 +70,11 @@ static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN };
 static meanQueue_t mean15mQ = { mean15mTab, mean15mTab, MEAN_15M_QUEUE_LEN };
 static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN };
 static meanQueue_t mean2hQ = { mean2hTab, mean2hTab, MEAN_2H_QUEUE_LEN };
+static meanQueue_t meanTempQ = { meanTempTab, meanTempTab, MEAN_TEMP_QUEUE_LEN };
 
 // Flags:
 static bool vBattFlag = TRUE;    // For adc measurement triggering
-static bool vTempFlag = FALSE;
+static bool vTempFlag = TRUE;
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -90,6 +94,8 @@ static void systemCheckTresholds ( void );
 
 static uint16_t systemConvRawSens ( uint16_t raw );
 static uint16_t systemConvRawBatt ( uint16_t raw );
+static uint16_t systemConvRawTemp ( uint16_t raw );
+
 static void systemQueueReset (  meanQueue_t* pQueue );
 
 
@@ -107,32 +113,39 @@ static void systemPeriodicRefresh ( void )
 
    adcStartChannel (SENS);      // Starting sensor voltage measurement
 
-
    // Every tick: 
       
    locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
    
    systemQueuePush ( &mean15sQ, locVals.actSensVal );  
    systemQueuePush ( &mean1mQ, locVals.actSensVal );  // TODO: 1min from 15s?
+   systemQueuePush ( &meanTempQ, locVals.tempC );  
    
-   systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 1min meaning
+   systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 15sn meaning
    systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );      // For 1min meaning
-  
+   systemQueueCalcMean ( &meanTempQ, &locVals.tempC );      // For 15smin meaning
+       
+   #ifdef TEMP_MEAS_PERM
+      vTempFlag = TRUE; // Setting this flag enables temperature meas. after vBatt meas.        
+   #endif
+        
    // Every 15s:
    if ( 0 == (ticks % 15) )
    {                  
       systemQueuePush ( &mean15mQ, locVals.actSensVal );
       systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
       
-      /*if ( !locVals.usbPlugged )*/ 
+      if ( !locVals.usbPlugged ) 
       {
-         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.   
+          
          locVals.actBattVal = systemConvRawBatt ( rawBattVal );
+         vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.           
       }
             
-      #ifdef TEMP_MEAS_PERM
-         vTempFlag = TRUE; // Setting this flag enables temperature meas. after vBatt meas. 
-      #endif
+      //#ifdef TEMP_MEAS_PERM
+         //vTempFlag = TRUE; // Setting this flag enables temperature meas. after vBatt meas. 
+         locVals.tempC = systemConvRawTemp ( rawTempVal );
+      //#endif
    }      
         
    // Every minute:   
@@ -144,12 +157,9 @@ static void systemPeriodicRefresh ( void )
          
       systemQueuePush ( &mean2hQ, locVals.mean1mVal );
       systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 8h meaning
-   
-      
-      
+
       ticks = 0;
-   }    
-   
+   }       
  
 #ifdef ALARM_PERM
    systemCheckTresholds();
@@ -231,9 +241,17 @@ static uint16_t systemConvRawSens ( uint16_t raw )
 // Converting from raw vBatt value
 static uint16_t systemConvRawBatt ( uint16_t raw )
 {
-   uint32_t rawData = (((uint32_t)raw) * ADC_VBATT_MULTI_MV) / 65535; // for 1 [mV] resolution @16b
-   
-   return (uint16_t)rawData;
+   uint32_t temp = (((uint32_t)raw) * ADC_VBATT_MULTI_MV) / 65535; // for 1 [mV] resolution @16b
+   return (uint16_t)temp;
+}
+
+//****************************************************************************************
+// Converting from raw temperature value
+static uint16_t systemConvRawTemp ( uint16_t raw )
+{
+   uint32_t temp = (((uint32_t)raw) * ADC_TEMP_MULTI_MV) / 65535; // for 1 [mV] resolution @16b
+   LOG_UINT ( "TEMP C ", temp);
+   return (uint16_t)temp;
 }
 
 //****************************************************************************************
@@ -305,6 +323,7 @@ void systemUSBStateChanged ( void )
    
    if ( IO_GET_USB_CONN() )   // If USB plugged in
    {
+      LOG_TXT ( "CHUJU");
       locVals.lpFlag = FALSE;
       locVals.usbPlugged = TRUE;
       IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
@@ -314,7 +333,7 @@ void systemUSBStateChanged ( void )
    else
    {      
       //boardGoSleep ();
-      
+      LOG_TXT ( "CHUJU2");
       locVals.lpFlag = TRUE;
       locVals.usbPlugged = FALSE;
       IO_RISING_EDGE_USB();  // Rising edge sense - now pin state is low
@@ -354,8 +373,8 @@ void systemMeasEnd ( uint16_t val )
    
    if ( ADC_CH_INPUTMODE_INTERNAL_gc == ADCA.CH0.CTRL )   // If internal mode (temperature)
    {
-      //rawTempVal = val;
-      //LOG_UINT ( "raw TEMP ", val );
+      rawTempVal = val;
+      LOG_UINT ( "raw TEMP ", val );
    }
    else if ( SENS == ADC_GET_CH() )
    {      
@@ -372,12 +391,12 @@ void systemMeasEnd ( uint16_t val )
          vTempFlag = FALSE;
       }    
       
-      //LOG_UINT ( "raw sens ", val );  
+      LOG_UINT ( "raw sens ", val );  
    }
    else if ( VBATT == ADC_GET_CH() )
    {
       rawBattVal = val;
-      LOG_UINT ( "raw bat ", val );        
+      //LOG_UINT ( "raw bat ", val );        
    }   
 
 }  

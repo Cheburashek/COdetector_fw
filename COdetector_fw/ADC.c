@@ -29,9 +29,10 @@
 
 
 
-#define ADC_OFF_MAN_CORR   240      // bits in 12b
+#define ADC_OFF_MAN_CORR   245      // bits in 12b
 #define ADC_GAIN_MAN_CORR  0x07E1   // 357page in manual
 
+#define ADC_GAIN_SOFT_CORR  350  // for additional, software offset error in 16b
 /*****************************************************************************************
    LOCAL VARIABLES
 */
@@ -58,7 +59,7 @@ void adcInit ( void )
    // PORT:
    PORTA.DIRCLR = CFG_ADC_SENS_PIN_MASK;        // Input
    PORTA.DIRCLR = CFG_ADC_VBATT_PIN_MASK;        // Input
-   
+
    
    ADCA.CH0.INTFLAGS = 0xFF;                          // Clearing int flags
    ADCA.CH0.INTCTRL = CFG_PRIO_ADC;                   // From boardCfg.h
@@ -85,8 +86,7 @@ void adcInit ( void )
    ADCA.PRESCALER = ADC_PRESCALER_DIV512_gc;
       
    ADCA.REFCTRL = ADC_REFSEL_INT1V_gc;                   // Internal 1V reference              
-      
-   
+
    ADCA.CH0.OFFSETCORR0 = ADC_OFF_MAN_CORR & 0xFF;
    ADCA.CH0.OFFSETCORR1 = ADC_OFF_MAN_CORR >> 8;
    
@@ -131,7 +131,14 @@ void adcRegisterEndCb ( pfnAdcEnd cb )
 ISR ( ADCA_CH0_vect )
 {  
    if ( NULL != convEndCB )
-   {                  
-      convEndCB (ADCA.CH0RES); // Software offset compensation
+   {       
+      if ( ADCA.CH0RES >= ADC_GAIN_SOFT_CORR ) 
+      {       
+         convEndCB ( ADCA.CH0RES - ADC_GAIN_SOFT_CORR ); // Software offset compensation
+      }
+      else
+      {
+         convEndCB ( 0x00 );
+      }         
    }     
 }

@@ -48,6 +48,8 @@ typedef struct
    measType_t mean1hVal;
    measType_t mean2hVal;
   
+   measType_t tempC;
+   
    bool usbPlugged;
    bool lpFlag;
       

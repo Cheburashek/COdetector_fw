@@ -589,7 +589,7 @@ void interTimeTickUpdate ( void )
          
    // Signal of low batt:
    if ( TRUE == loBatSignFlag )
-   {
+   {      
       ioBuzzerOn();
       _delay_ms(15);
       ioBuzzerOff();
