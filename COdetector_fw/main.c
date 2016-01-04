@@ -9,23 +9,15 @@
 /*
 
 - 20ms sampling - AC line glitch rejection
-- for initialization - fast 2MHz, after - 32kHz ( e.g. fast cleaning LCD RAM )
+
 */
 
 
 // TODO: add watchdog
 
-// TODO: add temperature measurement 
-
-// TODO: disable logs when no usb connected
-
 // TODO: blokada zmiany wa¿nych ustawiueñ ot tak po prostu
 
-
-// Du¿e skoki sygna³u -> potrzebne uœrednianie np.m za 15s i dzia³a
-
 #include "common.h"
-
 
 //tests:
 #include "ADC.h"

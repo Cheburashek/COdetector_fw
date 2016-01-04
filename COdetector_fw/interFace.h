@@ -51,6 +51,13 @@ typedef struct
       
 } lastAlarm_t;
 
+typedef struct
+{
+   timeStruct_t mvTime;
+   measType_t mvVal;
+   
+} maxVal_t;
+
 // States:
 typedef enum
 {
@@ -93,7 +100,6 @@ typedef enum
    BT_RIGHT = CFG_BT1_PIN_MASK
    
 } eButtons_t;
-
 
 
 /*****************************************************************************************

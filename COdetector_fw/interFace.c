@@ -33,8 +33,10 @@
 #define LCD_MEAN_2H_POS_Y          4
 #define LCD_BT_INFO_POS_Y          5
 #define LCD_SENS_SET_POS_Y         3
+
 #define LCD_INFO_LA_POS_Y          0
-#define LCD_INFO_MAX_POS_Y         3
+#define LCD_INFO_MAX_POS_Y         2
+#define LCD_INFO_SENS_TIME_POS_Y   4
 
 #define LCD_ALARM_POS_Y            0
 
@@ -47,11 +49,13 @@
 
 static eMainState_t mainActState = UNKNOWN_M_STATE;
 static timeStruct_t sysTime;
+static uint32_t sensTimeH; // Time of sensor usage
+
+static maxVal_t maxVal; // Max 15s meaning val with time
 static lastAlarm_t lastAlarm = {{0,0,0}, NO_ALARM_STAGE}; 
 
 static bool loBatSignFlag = FALSE;
 
-static uint16_t max1mVal = 0;
 
 static uint16_t codeTemp = SENS_NA_PPM_MULTI_1k;
 
@@ -411,42 +415,49 @@ static void interDisplayInfo ( void )
 {
    
    // Last alarm:
-   pdcInit();
+
+   pdcLine( "Last alarm:  ", LCD_INFO_LA_POS_Y);
    
    if ( lastAlarm.laStage != NO_ALARM_STAGE )
-   {
-      pdcLine( "Last alarm:  ", LCD_INFO_LA_POS_Y);
-      pdcUint ( lastAlarm.laTime.hour,  LCD_INFO_LA_POS_Y+1,  0, 2 );
-      pdcChar( ':', LCD_INFO_LA_POS_Y+1, 3 );
-      pdcUint ( lastAlarm.laTime.min,   LCD_INFO_LA_POS_Y+1,  4, 2 );
-      pdcLine( ">     ppm    ", LCD_INFO_LA_POS_Y+2 );
-      
+   {     
       switch ( lastAlarm.laStage )
       {
+         pdcLine( "   ppm @      ", LCD_INFO_LA_POS_Y+1 );
          case ALARM_STAGE_1M:
-         pdcUint( TRESH_1M_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         pdcUint( TRESH_1M_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
          break;
          case ALARM_STAGE_15M:
-         pdcUint( TRESH_15M_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         pdcUint( TRESH_15M_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
          break;
          case ALARM_STAGE_1H:
-         pdcUint( TRESH_1H_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         pdcUint( TRESH_1H_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
          break;
          case ALARM_STAGE_2H:
-         pdcUint( TRESH_2H_PPM, LCD_INFO_LA_POS_Y+2, 3, 3 );
+         pdcUint( TRESH_2H_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
          break;
          default:
          break;
       }
+      
+      pdcUint ( lastAlarm.laTime.hour,  LCD_INFO_LA_POS_Y+1,  9, 2 );
+      pdcChar( ':', LCD_INFO_LA_POS_Y+1, 11 );
+      pdcUint ( lastAlarm.laTime.min,   LCD_INFO_LA_POS_Y+1,  12, 2 );
    }
    else
    {
-       pdcLine( "No alarm yet ", LCD_INFO_LA_POS_Y);
+       pdcLine( "No alarm yet ", LCD_INFO_LA_POS_Y+1);
    }
    
    // Max 1 minute value:
-   pdcLine( "Max       ppm", LCD_INFO_MAX_POS_Y );
-   pdcUint( max1mVal, LCD_INFO_MAX_POS_Y , 5, 3 );
+   pdcLine( "Max     @     ", LCD_INFO_MAX_POS_Y );
+   pdcUint( maxVal.mvVal, LCD_INFO_MAX_POS_Y , 4, 3 );
+   pdcUint ( maxVal.mvTime.hour,  LCD_INFO_MAX_POS_Y,  9, 2 );
+   pdcChar( ':', LCD_INFO_MAX_POS_Y, 11 );
+   pdcUint ( maxVal.mvTime.min,   LCD_INFO_MAX_POS_Y,  12, 2 );
+   
+   // Time of sensor usage:
+   pdcLine ( "S.time:      ", LCD_INFO_SENS_TIME_POS_Y);
+   pdcUint ( sensTimeH, LCD_INFO_SENS_TIME_POS_Y, 8, 6 );
    
    pdcLine ( "         EXIT ", 5 );
    
@@ -527,9 +538,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       // Measured values:
       pdcUint ( pVal->mean15sVal, LCD_ACTMEAS_POS_Y, 6, 5 );   // Changed -> 15s as actual (meaning)
       pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );
-      //pdcUint ( pVal->mean2hVal, LCD_MEAN_2H_POS_Y, 6, 5 ); 
-      
+      pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );      
    }    
    else if ( ALARM_M_STATE == mainActState )
    {
@@ -542,16 +551,17 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       }
    }  
          
-      if ( max1mVal < pVal->actSensVal )
-      {
-         max1mVal = pVal->mean15sVal;     // Max 1min value
-      }
+   if ( maxVal.mvVal < pVal->mean15sVal )
+   {
+      maxVal.mvVal = pVal->mean15sVal;     // Max 15s value
+      maxVal.mvTime = sysTime;
+   }
       
          
    // Serial log:
    char strToLog [64];
    uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] @ %.2u C \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal, pVal->tempC );
-   LOG_TXT_WL ( strToLog, len ); // Sensor value with timestamp
+   DATA_TXT_WL ( strToLog, len ); // Sensor value with timestamp
 }
 
 
@@ -570,6 +580,7 @@ void interTimeTickUpdate ( uint8_t rtcPer )
    { 
       sysTime.min = 0;
       sysTime.hour ++; 
+      sensTimeH ++;
    } 
    if ( sysTime.hour >= 24 ) 
    { 
@@ -581,9 +592,10 @@ void interTimeTickUpdate ( uint8_t rtcPer )
    {
       interDisplayTimeSetUpdate ();    // Updating time in time set menu
    }      
-   
+      
    // Led blinking:
    #ifdef STAT_LED_ON_TICK_PERM
+   if ( DISPVALS_M_STATE == mainActState )
    ioStateLedShortTick ();
    #endif
          

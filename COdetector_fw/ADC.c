@@ -5,14 +5,6 @@
  *  Author: Chebu
  */ 
 
-
-// TODO: automatic offset calibration
-// TODO: gain error calibration
-// TODO: DMA ?
-// TODO: eventsystem?
-
-// niestabilny adc pomimo w miarê dobrego zasilania
-
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -27,12 +19,11 @@
    LOCAL DEFINITIONS
 */
 
-
-
 #define ADC_OFF_MAN_CORR   240      // bits in 12b
 #define ADC_GAIN_MAN_CORR  0x07E1   // 357page in manual
 
 #define ADC_GAIN_SOFT_CORR  350  // for additional, software offset error in 16b
+
 /*****************************************************************************************
    LOCAL VARIABLES
 */
@@ -47,7 +38,6 @@ static pfnAdcEnd convEndCB = NULL;
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
 */
-
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
@@ -108,7 +98,6 @@ void adcStartChannel ( eAdcChan_t ch )
 
    ADCA.CTRLA |= ADC_START_bm;
 }
-
 
 
 //****************************************************************************************

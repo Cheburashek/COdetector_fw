@@ -94,9 +94,7 @@ void timerInit ( uint8_t per )
                   TC45_CCDMODE_COMP_gc |
                   TC45_CCDMODE_COMP_gc;
                   
-   
-   // WYWA:LA WUSIWUELKTALCHz!!
-   WEXC.OUTOVDIS = 0xFF;   // Disabling outputs
+   WEXC.OUTOVDIS = 0xFF;   // Disabling outputs of WEXC - important!
    
    TCC4.CTRLA |= TC45_CLKSEL_DIV1024_gc;     // Prescaler 1024 (so 8MHz/1024-> 7812 ticks for 1s)
 

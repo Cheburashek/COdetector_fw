@@ -9,9 +9,6 @@
 #ifndef TIMERS_H_
 #define TIMERS_H_
 
-
-
-
 /*****************************************************************************************
    GLOBAL INCLUDES
 */
@@ -24,7 +21,6 @@
  // Prescaler 1024 (so 8MHz/1024-> 7812 ticks for 1s):
 #define TIMER_TCC5_EN()      ( TCC5.CTRLA |= TC45_CLKSEL_DIV1024_gc )   
 #define TIMER_TCC5_DIS()     ( TCC5.CTRLA |= TC45_CLKSEL_OFF_gc )   
-
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS
@@ -50,7 +46,6 @@ typedef enum
    TIM_ERROR = 0xFF
    
 } eChanNr_t;
-
 
 
 /*****************************************************************************************

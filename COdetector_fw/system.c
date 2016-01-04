@@ -5,10 +5,6 @@
  *  Author: Chebu
  */ 
 
-
-// TODO: w czasie LoPo - co 5s, bez LoPo - 1s period
-
-// Do opisu:
 // Najpierw uruchamiam pomiar (20ms), aby jak najkrócej by³ wzbudzony uk³ad. 
 
 /*****************************************************************************************
@@ -135,6 +131,19 @@ static void systemPeriodicRefresh ( void )
    systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 15sn meaning
    systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );      // For 1min meaning
         
+   #ifdef TEMP_MEAS_PERM
+   if ( tempMeasStage )
+   {
+      oneWireConvStart ();
+      tempMeasStage = FALSE;
+   }
+   else
+   {
+      locVals.tempC = systemConvTemp ( oneWireReadTemp () );
+      tempMeasStage = TRUE;
+   }
+   #endif   
+   
    // Every 15s:
    if ( 0 == (ticks % 15) )
    {                  
@@ -146,20 +155,8 @@ static void systemPeriodicRefresh ( void )
           
          locVals.battPer = systemConvRawBattPercent ( rawBattVal );
          vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.           
-      }
-            
-      #ifdef TEMP_MEAS_PERM
-         if ( tempMeasStage ) 
-         {
-            oneWireConvStart ();
-            tempMeasStage = FALSE;
-         }            
-         else 
-         {
-            locVals.tempC = systemConvTemp ( oneWireReadTemp () );
-            tempMeasStage = TRUE;
-         }         
-      #endif
+      }            
+
    }      
         
    // Every minute:   
@@ -333,7 +330,7 @@ void systemInit ( void )
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
    adcStartChannel (VBATT);      // Starting sensor voltage measurement   
-   _delay_ms(50);
+   _delay_ms(100);
    locVals.battPer = systemConvRawBattPercent ( rawBattVal );
    systemPeriodicRefresh();
 }

@@ -26,7 +26,6 @@
    GLOBAL TYPEDEFS
 */
 
-
 typedef uint16_t measType_t;
 
 typedef struct
@@ -37,8 +36,6 @@ typedef struct
 
 } meanQueue_t;
 
-
-
 typedef struct 
 {
    measType_t actSensVal;
@@ -46,11 +43,9 @@ typedef struct
    measType_t mean1mVal;
    measType_t mean15mVal;
    measType_t mean1hVal;
-   measType_t mean2hVal;
-  
+   measType_t mean2hVal;  
    int8_t tempC;
-   uint8_t battPer;
-   
+   uint8_t battPer;   
    bool usbPlugged;
    bool lpFlag;
       

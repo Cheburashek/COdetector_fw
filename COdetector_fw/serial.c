@@ -5,9 +5,6 @@
  *  Author: Chebu
  */ 
 
-// RX is off!
-
-
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -20,30 +17,13 @@
 /*****************************************************************************************
    LOCAL DEFINITIONS
 */
-#if ( F_CPU == F_CPU_32KHZ )
-   #define BSEL_BAUD_VAL 22                // 2400bps @ 32768Hz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b10110000)    // Should be between -7 to 7 in U2 // -5
-   
-#elif ( F_CPU == F_CPU_2MHZ )
-   #define BSEL_BAUD_VAL 54                // 57600bps @ 2MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11000000)    //  -4
 
-#elif ( F_CPU == F_CPU_8MHZ )
-   #define BSEL_BAUD_VAL 134               // 57600bps @ 8MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11010000)    //  -3
-   
-#elif ( F_CPU == F_CPU_32MHZ )
-   #define BSEL_BAUD_VAL 137               // 57600bps @ 32MHz & CLK2X enabled
-   #define BSCALE_BAUD_VAL (0b11110000)    //  -1
 
-#else 
-   #error "F_CPU is not defined correctly!"
-#endif
-
+#define BSEL_BAUD_VAL 134               // 57600bps @ 8MHz & CLK2X enabled
+#define BSCALE_BAUD_VAL (0b11010000)    //  -3
 
 #define TX_BUF_LEN 256
 #define RX_BUF_LEN 1
-
 
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -96,8 +76,6 @@ void serialInitD ( void )
 
    USARTD0.CTRLB |= USART_CLK2X_bm ;  // Enabling 2x clock    
                        
-   SERIAL_D_TX_EN();
-                       
    USARTD0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
    // Priorities from common.h:
    USARTD0.CTRLA = CFG_PRIO_USARTD0;
@@ -112,7 +90,7 @@ void serialInitD ( void )
 
 void serialSendD ( uint8_t* data, uint8_t len )
 {
-   
+   SERIAL_D_TX_EN();
    if ( ((txBuff + TX_BUF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )
@@ -134,9 +112,7 @@ void serialSendD ( uint8_t* data, uint8_t len )
    }
 }
 
-
 //****************************************************************************************
-// TODO: modify this
 void serialLogUintD ( uint8_t* txt, uint8_t len, uint32_t val )
 {
    char temp[10];
@@ -155,25 +131,15 @@ void serialLogUintD ( uint8_t* txt, uint8_t len, uint32_t val )
          tempVal /= 10;
          numLen++;      
       }  
-   }
-   
+   }  
       
    (void) utoa ( (unsigned int)val, temp, 10 );
    
    serialSendD ( (uint8_t*) txt, len );
    serialSendD ( (uint8_t*) temp, numLen );
-   serialSendD ( (uint8_t*) "\n", 2 );
-   
+   serialSendD ( (uint8_t*) "\n", 2 );   
 }
 
-//****************************************************************************************
-// Start temperature meas. from DS18B20:
-void serialTempMeasStart ()
-{
-   SERIAL_C_TX_EN();
-   SERIAL_C_RX_DIS();
-   USARTC0.DATA = 0xBE; // read temp
-}
 
 //****************************************************************************************
 // Register callback for end of temp meas.:
@@ -196,11 +162,9 @@ ISR ( USARTD0_TXC_vect )
    {
       txTail = txBuff;
       txHead = txTail;    
-   }    
-   
+      SERIAL_D_TX_DIS();
+   }       
 }
-
-
 
 //****************************************************************************************
 ISR ( USARTD0_RXC_vect )

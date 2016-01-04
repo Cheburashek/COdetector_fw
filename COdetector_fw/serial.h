@@ -42,24 +42,18 @@ typedef void (*pTempEnd_t) ( uint16_t val );
    #define DATA_UINT( txt, val ) 
 #endif
 
+#define SERIAL_D_TX_EN()          PR.PRPC &= ~PR_USART0_bm;\
+                                  USARTD0.CTRLB |= USART_TXEN_bm;                                          
+                                  
+#define SERIAL_D_TX_DIS()         USARTD0.CTRLB &= ~USART_TXEN_bm;\
+                                  PR.PRPC |= PR_USART0_bm;         
 
-#define SERIAL_D_TX_EN()        ( USARTD0.CTRLB |= USART_TXEN_bm  )
-#define SERIAL_D_TX_DIS()       ( USARTD0.CTRLB &= ~USART_TXEN_bm  )
-
-#define SERIAL_C_TX_EN()        ( USARTC0.CTRLB |= USART_TXEN_bm  )
-#define SERIAL_C_TX_DIS()       ( USARTC0.CTRLB &= ~USART_TXEN_bm  )
-#define SERIAL_C_RX_EN()        ( USARTC0.CTRLB |= USART_RXEN_bm  )
-#define SERIAL_C_RX_DIS()       ( USARTC0.CTRLB &= ~USART_RXEN_bm  )
-   
 /*****************************************************************************************
    GLOBAL FUNCTIONS DECLARATIONS
 */
 
 void serialInitD ( void );
-void serialInitC ( void );
-
 void serialSendD ( uint8_t* data, uint8_t len );
-
 void serialLogUintD ( uint8_t* txt, uint8_t len, uint32_t val );
 
 

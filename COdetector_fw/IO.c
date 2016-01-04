@@ -51,7 +51,25 @@ void ioInit ( void )
    ioStatLedOff();
    ioBuzzerOff();
    
-   // UNUSED PINS (input and pullup): //TODO: add the others
+   // UNUSED PINS (input and pullup):
+      // PORTA:
+      PORTA.DIRCLR = PIN2_bm | PIN3_bm | PIN5_bm | PIN6_bm;
+      PORTA.PIN2CTRL = PORT_OPC_PULLUP_gc;
+      PORTA.PIN3CTRL = PORT_OPC_PULLUP_gc;
+      PORTA.PIN5CTRL = PORT_OPC_PULLUP_gc;
+      PORTA.PIN6CTRL = PORT_OPC_PULLUP_gc;
+   
+      // PORTC:
+      PORTC.DIRCLR = PIN0_bm | PIN2_bm | PIN4_bm | PIN6_bm;
+      PORTC.PIN0CTRL = PORT_OPC_PULLUP_gc;
+      PORTC.PIN2CTRL = PORT_OPC_PULLUP_gc;
+      PORTC.PIN4CTRL = PORT_OPC_PULLUP_gc;
+      PORTC.PIN6CTRL = PORT_OPC_PULLUP_gc;
+   
+      // PORTD:
+      PORTD.DIRCLR = PIN0_bm;
+      PORTD.PIN0CTRL = PORT_OPC_PULLUP_gc;
+   //
   
    // Outputs:
    PORTD.DIRSET = CFG_BUZZ_PIN_MASK;
@@ -144,9 +162,9 @@ void ioStateLedShortTick ( void )
       _delay_us ( 1400 );
    ioStatLedOff();
 }
-//****************************************************************************************
-//  ISRs:
 
+//****************************************************************************************
+// ISR:
 ISR ( PORTD_INT_vect )
 {
    // BT 1

@@ -19,17 +19,13 @@
    GLOBAL DEFINITIONS
 */
 
-
-
 #define ADC_EN()             PR.PRPA &= ~PR_ADC_bm;\
-                             ADCA.CTRLA |= ADC_ENABLE_bm;
-                               
+                             ADCA.CTRLA |= ADC_ENABLE_bm;                               
                              
 #define ADC_DIS()            ADCA.CTRLA &= ~ADC_ENABLE_bm;\
                              PR.PRPA |= PR_ADC_bm; 
                              
 #define ADC_GET_CH()         ADCA.CH0.MUXCTRL
-
                                   
 
 /*****************************************************************************************

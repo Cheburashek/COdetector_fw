@@ -9,19 +9,15 @@
 #ifndef BOARDCFG_H_
 #define BOARDCFG_H_
 
-
-
 /*****************************************************************************************
    GLOBAL INCLUDES
 */
 
 #include "common.h"
 
-
 /*****************************************************************************************
    GLOBAL CONSTANTS
 */
-
 
 #define RTC_PER_USB            1        // Should be 1,3,5 or 15 [s] 
 #define RTC_PER_BATT           3        // Period while battery mode
@@ -36,7 +32,7 @@
 
 // Permissions:
 #define xHELLO_SCREEN_PERM
-#define STAT_LED_ON_TICK_PERM  
+#define xSTAT_LED_ON_TICK_PERM  
 #define BUZZER_ON_BT_PERM      
 #define ALARM_PERM
 #define TEMP_MEAS_PERM
@@ -55,7 +51,6 @@
 // Values in mV to calculate percent of battery capacity:
 #define BATTERY_MIN_VOLTAGE    4000
 #define BATTERY_MAX_VOLTAGE    6500
-
 
 
 /*****************************************************************************************
@@ -101,9 +96,6 @@
 // IO pins (PORTA):  
 #define CFG_LED_PIN_MASK        PIN7_bm
 #define CFG_BCKLGHT_PIN_MASK    PIN6_bm
-
-
-
 
 
 /*** Interrupts priority ****/ 
@@ -167,8 +159,6 @@
                                  PRIO_MED_LEVEL_DISABLE();                               
                                                                                         
 #define EXIT_CRITICAL()          PMIC_CTRL = actInt;         }                               
-
-
 
 
 // Macros for PDC8544:

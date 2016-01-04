@@ -23,7 +23,7 @@
 #define ONE_WIRE_SET()       PORTC.OUTSET = CFG_1WIRE_PIN_MASK    // High state
 #define ONE_WIRE_CLR()       PORTC.OUTCLR = CFG_1WIRE_PIN_MASK    // Low state
 
-#define ONE_WIRE_STATE()     PORTC.IN & CFG_1WIRE_PIN_MASK        // Read state
+#define ONE_WIRE_STATE()     (PORTC.IN & CFG_1WIRE_PIN_MASK)        // Read state
 /*****************************************************************************************
    LOCAL DEFINITIONS
 */
@@ -36,7 +36,7 @@
    LOCAL FUNCTIONS DECLARATIONS
 */
 
-static bool oneWireReset ( void );
+static void oneWireReset ( void );
 static void oneWireSendByte ( uint8_t byte );
 static uint8_t oneWireReadByte ( void );
 
@@ -44,21 +44,14 @@ static uint8_t oneWireReadByte ( void );
    LOCAL FUNCTIONS DEFINITIONS
 */
 
-static bool oneWireReset ( void )
-{
-   bool retVal = FALSE;
-   
+static void oneWireReset ( void )
+{   
    ONE_WIRE_CLR();   // Low state
    ONE_WIRE_OUT();   // Pin as an output
    _delay_us(500);
    ONE_WIRE_IN();    // Pin as an input
-   
-   if ( !ONE_WIRE_STATE() ) retVal = TRUE;
-   
+
    _delay_us(470);
-   
-   return retVal;
-   
 }
 
 //****************************************************************************************
