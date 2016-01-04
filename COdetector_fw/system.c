@@ -22,7 +22,6 @@
 #include "IO.h"
 #include "oneWire.h"
 
-
 /*****************************************************************************************
    MACROS
 */
@@ -34,8 +33,8 @@
 
 
 // Lengths of meaning queues:
-#define MEAN_15S_QUEUE_LEN         15/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 15-sec
-#define MEAN_1M_QUEUE_LEN          60/RTC_PERIOD_S         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
+#define MEAN_15S_QUEUE_LEN         15/RTC_PER_BATT         // Meaning at every tick (RTC_PERIOD_S) for 15-sec
+#define MEAN_1M_QUEUE_LEN          60/RTC_PER_BATT         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
 #define MEAN_15M_QUEUE_LEN         60                      // Meaning at every 15s for 15-min   
 #define MEAN_1H_QUEUE_LEN          60                      // Meaning at every min for 1-hour           
 #define MEAN_2H_QUEUE_LEN          120                     // Meaning at every min for 2-hour
@@ -48,6 +47,8 @@
 /*****************************************************************************************
    LOCAL VARIABLES
 */
+
+static uint8_t rtcActPer = RTC_PER_USB;
 
 static volatile uint16_t rawBattVal;
 static volatile uint16_t rawSensVal;
@@ -120,10 +121,6 @@ static void systemPeriodicRefresh ( void )
    
    systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 15sn meaning
    systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );      // For 1min meaning
-
-   #ifdef TEMP_MEAS_PERM
-     
-   #endif
         
    // Every 15s:
    if ( 0 == (ticks % 15) )
@@ -131,7 +128,7 @@ static void systemPeriodicRefresh ( void )
       systemQueuePush ( &mean15mQ, locVals.actSensVal );
       systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
       
-      if ( !locVals.usbPlugged ) 
+    //  if ( !locVals.usbPlugged ) // If USB is not plugged in
       {
           
          locVals.battPer = systemConvRawBattPercent ( rawBattVal );
@@ -171,8 +168,8 @@ static void systemPeriodicRefresh ( void )
       
    interDisplaySystemVals ( &locVals );
        
-   interTimeTickUpdate();
-   ticks += RTC_PERIOD_S;
+   interTimeTickUpdate( rtcActPer );
+   ticks += rtcActPer;
 }
 
 //****************************************************************************************
@@ -250,11 +247,11 @@ static uint8_t systemConvRawBattPercent ( uint16_t raw )
    if ( temp >= BATTERY_MIN_VOLTAGE )
    {
       temp -= BATTERY_MIN_VOLTAGE;
-      temp = (temp / BATTERY_MAX_VOLTAGE) * 100;
+      temp = (temp*100) / (BATTERY_MAX_VOLTAGE-BATTERY_MIN_VOLTAGE);
       if ( temp > 100 ) temp = 100;
    }   
    else temp = 0;
-   
+
    return temp;
 }
 
@@ -302,19 +299,24 @@ static void systemCheckTresholds ( void )
 //****************************************************************************************
 void systemInit ( void ) 
 {   
-   systemResetMeasRes ();   // Clear all buffers
-   
-   locVals.battPer = 100;  // Initial value 
-   
+   systemResetMeasRes ();   // Clear all buffers   
+  
+#ifdef TEMP_MEAS_PERM
    // Initial temperature measurement:
    oneWireConvStart();
    _delay_ms(750);
    locVals.tempC = systemConvTemp ( oneWireReadTemp () );
+#else
+   locVals.tempC = 25;  // Default temp
+#endif
+   
    
    systemUSBStateChanged();   // Initial check of USB state
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
    adcStartChannel (VBATT);      // Starting sensor voltage measurement   
+   _delay_ms(100);
+   systemPeriodicRefresh();
 }
 
 
@@ -329,7 +331,7 @@ void systemUSBStateChanged ( void )
       locVals.lpFlag = FALSE;
       locVals.usbPlugged = TRUE;
       IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
-      
+           
       //boardWakeUp ();
    }
    else
@@ -338,7 +340,9 @@ void systemUSBStateChanged ( void )
       locVals.lpFlag = TRUE;
       locVals.usbPlugged = FALSE;
       IO_RISING_EDGE_USB();  // Rising edge sense - now pin state is low
+      
    }
+
 }
 
 //****************************************************************************************
@@ -386,6 +390,6 @@ void systemMeasEnd ( uint16_t val )
    else if ( VBATT == ADC_GET_CH() )
    {
       rawBattVal = val;
-      //LOG_UINT ( "raw bat ", val );        
+      LOG_UINT ( "raw bat ", val );        
    }   
 }  

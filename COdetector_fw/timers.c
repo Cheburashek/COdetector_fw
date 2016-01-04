@@ -64,7 +64,7 @@ static channelStruct_t chStruct[] =
 */
 
 
-void timerInit (void )
+void timerInit ( uint8_t per )
 {
    // RTC:
    
@@ -77,7 +77,7 @@ void timerInit (void )
    while ( RTC.STATUS & RTC_SYNCBUSY_bm ){}      // Wait until SYNCBUSY is cleared
       
       
-   RTC.PER = RTC_PERIOD_S * 1024;                // 1ms period
+   RTC.PER = per * 1024;                // 1ms period
    
    RTC.INTCTRL = CFG_PRIO_RTC_OVFL;            // from boardCfg.h  
       
@@ -105,6 +105,14 @@ void timerInit (void )
            
 }
 
+//****************************************************************************************
+void timerRTCchangePer ( uint8_t per )
+{
+   RTC.CTRL = RTC_PRESCALER_OFF_gc;   
+   while ( RTC.STATUS & RTC_SYNCBUSY_bm ){;} // Wait until RTC is ready to change period      
+   RTC.PER = per * 1024;
+   RTC.CTRL = RTC_PRESCALER_DIV1_gc;   
+}    
 
 //****************************************************************************************
 void timerRegisterRtcCB ( pfnTimerCB_t cb )

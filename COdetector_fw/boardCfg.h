@@ -23,7 +23,8 @@
 */
 
 
-#define RTC_PERIOD_S           1        // Should be 1,3,5 or 15 [s]
+#define RTC_PER_USB            1        // Should be 1,3,5 or 15 [s] 
+#define RTC_PER_BATT           3        // Period while battery mode
 
 #define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
 #define ADC_VBATT_MULTI_MV     6728

@@ -103,7 +103,7 @@ typedef enum
 void interInit ( void );
 void interDisplaySystemVals ( valsToDisp_t* pVal );
 
-void interTimeTickUpdate ( void );
+void interTimeTickUpdate ( uint8_t rtcPer );
 
 void interOnRight ( void );
 void interOnOk ( void );

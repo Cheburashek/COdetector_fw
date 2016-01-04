@@ -41,7 +41,6 @@ typedef struct
 typedef struct 
 {
    measType_t actSensVal;
-   measType_t battPer;
    measType_t mean15sVal;
    measType_t mean1mVal;
    measType_t mean15mVal;
@@ -49,6 +48,7 @@ typedef struct
    measType_t mean2hVal;
   
    int8_t tempC;
+   uint8_t battPer;
    
    bool usbPlugged;
    bool lpFlag;

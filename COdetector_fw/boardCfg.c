@@ -90,15 +90,17 @@ void boardInit ( void )
    CFG_GLOBAL_INT_ENABLE();
    PRIO_ALL_LEVELS_ENABLE();
    
+   
    // Order is important:  
    //serialInitC();    // for DS18B20
    adcInit(); 
-   timerInit();      
+   timerInit ( RTC_PER_USB );      
    spiInit();
    pdcInit();
    ioInit();
    systemInit();
    interInit();     
+   
   
    // Disabling clocks for peripherals ( from ~3.5mA to 3.0mA ):
    PR.PRGEN = PR_EDMA_bm |

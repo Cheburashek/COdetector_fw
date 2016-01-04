@@ -513,12 +513,12 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       {         
          if ( pVal->battPer > TRESH_LOW_BATT_PER )
          {
-            sprintf ( str, "%.2u:%.2u %.2iC %.3u\%", sysTime.hour,sysTime.min, pVal->tempC, pVal->battPer );
+            sprintf ( str, "%.2u:%.2u %.2iC  %.2u%%", sysTime.hour,sysTime.min, pVal->tempC, pVal->battPer );
             loBatSignFlag = FALSE;
          }
          else
          {
-            sprintf ( str, "%.2u:%.2u:%.2u !LOW!", sysTime.hour,sysTime.min, sysTime.sec );
+            sprintf ( str, "%.2u:%.2u %.2iC LOW!", sysTime.hour,sysTime.min, pVal->tempC );
             loBatSignFlag = TRUE;
          }         
       }
@@ -557,9 +557,9 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
 
 
 //****************************************************************************************
-void interTimeTickUpdate ( void )
+void interTimeTickUpdate ( uint8_t rtcPer )
 {
-   sysTime.sec += RTC_PERIOD_S;   // Period could be changed
+   sysTime.sec += rtcPer;   // Period could be changed
    
    if ( sysTime.sec >= 60 )  
    { 
