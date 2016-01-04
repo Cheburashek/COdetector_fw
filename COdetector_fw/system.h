@@ -20,6 +20,7 @@
    GLOBAL DEFINITIONS
 */
 
+#define TEMP_COMP_TAB_OFFSET_0C 40  // Offset for 0C 
 
 /*****************************************************************************************
    GLOBAL TYPEDEFS

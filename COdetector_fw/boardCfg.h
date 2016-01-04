@@ -38,7 +38,7 @@
 #define xHELLO_SCREEN_PERM
 #define STAT_LED_ON_TICK_PERM  
 #define BUZZER_ON_BT_PERM      
-#define xALARM_PERM
+#define ALARM_PERM
 #define TEMP_MEAS_PERM
 
 #define ALARM_PERIOD_HI        700      // ms period of alarm

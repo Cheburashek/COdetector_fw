@@ -30,8 +30,6 @@
    LOCAL DEFINITIONS
 */
 
-
-
 // Lengths of meaning queues:
 #define MEAN_15S_QUEUE_LEN         15/RTC_PER_BATT         // Meaning at every tick (RTC_PERIOD_S) for 15-sec
 #define MEAN_1M_QUEUE_LEN          60/RTC_PER_BATT         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
@@ -43,6 +41,21 @@
 /*****************************************************************************************
    LOCAL TYPEDEFS
 */
+
+/*****************************************************************************************
+   LOCAL CONSTS
+*/
+// Temperature Compensation Coefficients ( start with -40C):
+static const uint16_t compCoefTab[] = {
+   453, 463, 473, 483, 493, 503, 523, 513, 534, 544, 554, 564, 574, 584, 594, 605,
+   615, 625, 635, 645, 655, 664, 674, 684, 694, 704, 714, 723, 733, 742, 752, 761, 
+   771, 780, 789, 799, 808, 817, 826, 835, 
+   844, 582, 861, 870, 878, 887, 895, 903, 911, 919, 927, 935, 943, 950, 958, 965, // 0-15
+   972, 980, 987, 994, 1000, 1007, 1013, 1020, 1026, 1032, 1038, 1044, 1050, 1055,
+   1060, 1066, 1071, 1076, 1080, 1085, 1089, 1094, 1098, 1101,
+   1105, 1109, 1112, 1115, 1118, 1121, 1124, 1126, 1128, 1130, 1132, 1134, 1135, 1136, // 40
+   1137, 1138, 1139 // end: 56 -> 56-70 is 1139   
+};
 
 /*****************************************************************************************
    LOCAL VARIABLES
@@ -224,18 +237,23 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, measType_t* buf )
 // Converting from raw sensor value to ppm
 static uint16_t systemConvRawSens ( uint16_t raw )
 {
-  uint32_t temp = (((uint32_t)raw) * ADC_SENS_MULTI_MV) / 65535; // for 1 [mV] resolution @16b 
+   uint8_t compIndex = 0;   
+   uint32_t temp = (((uint32_t)raw) * ADC_SENS_MULTI_MV) / 65535; // for 1 [mV] resolution @16b 
    
-  if ( SENS_OFFSET_MV < temp )
-  {
-     temp = ((temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k) / sensCodeNaPpm;     // for [ppm]
-  }
-  else
-  {
-     temp = 0;
-  }   
+   // Temperature compensation:
+   if ( locVals.tempC >= 56 ) compIndex = 56;
+   else compIndex = TEMP_COMP_TAB_OFFSET_0C + locVals.tempC;
    
-  return (uint16_t)temp;
+   if ( SENS_OFFSET_MV < temp )
+   {
+      temp = ((( (temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k)/1000) * compCoefTab[compIndex-1] ) / sensCodeNaPpm;     // for [ppm]
+   }
+   else    // In case of glitch
+   {
+      temp = 0;
+   }   
+     
+   return (uint16_t)temp;
 }
 
 //****************************************************************************************
@@ -315,7 +333,8 @@ void systemInit ( void )
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
    adcStartChannel (VBATT);      // Starting sensor voltage measurement   
-   _delay_ms(100);
+   _delay_ms(50);
+   locVals.battPer = systemConvRawBattPercent ( rawBattVal );
    systemPeriodicRefresh();
 }
 
