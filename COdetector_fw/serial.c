@@ -73,46 +73,6 @@ static pTempEnd_t pTempEndCB; // Callback at the end of temp meas.
 
 //****************************************************************************************
 // Serial on PORTD initialization:
-void serialInitC ( void )
-{
-   // PORTD configuration:
-   
-   PORTC.REMAP &= ~PORT_USART0_bm;       // Don't remap ports from 0-3 to 4-7   
-   //PORTC.DIRSET = CFG_TXC0_PIN_MASK;     // Output for Tx (pin must be manually set to output)
-   PORTC.DIRCLR = CFG_RXD0_PIN_MASK;     // Input for Rx
-
-    
-   // CTRLC:
-   USARTC0.CTRLC =  ( USART_CMODE_ASYNCHRONOUS_gc |    // Asynchronous transfer mode
-                      USART_PMODE_DISABLED_gc     |    // Parity mode disabled
-                      USART_CHSIZE_8BIT_gc        );   // 8b per frame                   
-                      
-   USARTC0.CTRLC &= ~USART_SBMODE_bm;  // Stop bit disabled
-   
-   // Baud rate
-       
-   USARTC0.BAUDCTRLA =  68;           // 8 LSB of BSEL
-   USARTC0.BAUDCTRLB =  BSCALE_BAUD_VAL;           // 4 MSB of BSEL and BSCALE    
-       
-        
-   // Priorities from common.h:
-    
-         
-   USARTC0.CTRLB |= USART_CLK2X_bm |      // Enabling 2x clock
-                    USART_ONEWIRE_bm;     // 1 Wire mode 
-                       
-   SERIAL_C_TX_EN();
-   SERIAL_C_RX_EN();   
-                       
-   USARTC0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
-   USARTC0.CTRLA = CFG_PRIO_USARTC0; 
-   
-   LOG_TXT ( ">>init<<   Serial C initialized\n");
-
-}
-
-//****************************************************************************************
-// Serial on PORTD initialization:
 void serialInitD ( void )
 {
    // PORTC configuration:
@@ -247,40 +207,3 @@ ISR ( USARTD0_RXC_vect )
 {   
    
 }
-
-
-//****************************************************************************************
-// Serial Tx complete ISR ( tx flag is cleared automatically):
-
-ISR ( USARTC0_TXC_vect )
-{
-   SERIAL_C_TX_DIS(); 
-   SERIAL_C_RX_EN(); 
-   LOG_TXT ("sent\n");
-}
-
-
-
-
-//****************************************************************************************
-ISR ( USARTC0_RXC_vect )
-{ 
-   
-   LOG_TXT ("rec\n");
-   //static uint16_t temp;
-   //if ( NULL != pTempEndCB )
-   //{
-      //if ( 0x0000 == temp )
-      //{
-         //temp = USARTC0.DATA;
-         //
-      //}
-      //else
-      //{
-         //temp |= ((uint16_t)USARTC0.DATA)<<8;
-         //pTempEndCB ( temp );
-         //temp = 0x0000;
-      //}
-   //}     
-}   
-

@@ -29,7 +29,7 @@
 
 
 
-#define ADC_OFF_MAN_CORR   245      // bits in 12b
+#define ADC_OFF_MAN_CORR   240      // bits in 12b
 #define ADC_GAIN_MAN_CORR  0x07E1   // 357page in manual
 
 #define ADC_GAIN_SOFT_CORR  350  // for additional, software offset error in 16b
@@ -72,12 +72,10 @@ void adcInit ( void )
    ADCA.CTRLB &= ~(ADC_CONMODE_bm |             // Unsigned mode
                    ADC_FREERUN_bm);             // Single conversion
    
-   ADCA.CH0.CTRL = ADC_CH_GAIN_1X_gc;           // 1x gain
+   ADCA.CH0.CTRL = ADC_CH_GAIN_1X_gc |           // 1x gain
+                   ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Singleended mode
    
-   ADCA.EVCTRL = 0x00;                          // Ensuring that event system is disabled for ADC
-      
-   
-                
+   ADCA.EVCTRL = 0x00;                          // Ensuring that event system is disabled for ADC         
    
    ADCA.CH0.AVGCTRL = ADC_SAMPNUM_32X_gc ;      // Number of samples (averaging) - 16bit
 
@@ -102,19 +100,12 @@ void adcInit ( void )
 void adcStartChannel ( eAdcChan_t ch )
 {
    ADCA.CTRLA = ADC_FLUSH_bm; 
-   ADC_EN();
+   ADC_EN();   
    
-   if ( ch != TEMP )
-   {   
-      ADCA.CH0.CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc;   // Single ended input
-      ADCA.CH0.MUXCTRL = ch;
-   }   
-   else 
-   {
-      ADCA.CH0.CTRL = ADC_CH_INPUTMODE_INTERNAL_gc;   // Internal input
-      ADCA.CH0.MUXCTRL = ADC_CH_MUXINT_TEMP_gc;       // Temperature reference
-   }   
    
+   ADCA.CH0.MUXCTRL = ch;
+     
+
    ADCA.CTRLA |= ADC_START_bm;
 }
 

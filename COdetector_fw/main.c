@@ -33,7 +33,7 @@
 #include "PDC8544.h"
 #include "IO.h"
 #include "serial.h"
-
+#include "oneWire.h"
 
 //****************************************************************************************
 int main(void)
@@ -47,8 +47,8 @@ int main(void)
    while(1)
    {
       //adcStartChannel(VBATT);
-      //_delay_ms(1000);
 
+    
    }
 
 }

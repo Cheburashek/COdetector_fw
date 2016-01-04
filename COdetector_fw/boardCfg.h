@@ -47,10 +47,13 @@
 #define TRESH_15M_PPM          100
 #define TRESH_1H_PPM           50
 #define TRESH_2H_PPM           30
-
 #define TRESH_ALARM_OFF_PPM    50       // Do not clear alarm before this concetration
 
-#define TRESH_LOW_BATT         4000
+#define TRESH_LOW_BATT_PER     5       // Percent of battery capacity
+
+// Values in mV to calculate percent of battery capacity:
+#define BATTERY_MIN_VOLTAGE    4000
+#define BATTERY_MAX_VOLTAGE    6500
 
 
 
@@ -71,6 +74,9 @@
 #define CFG_DC_PIN_MASK          PIN3_bm
 #define CFG_SCK_PIN_MASK         PIN5_bm
 #define CFG_MOSI_PIN_MASK        PIN7_bm
+
+// 1Wire pins ( PORTC ):
+#define CFG_1WIRE_PIN_MASK       PIN2_bm
 
 // SPI pins (for lcd3310) ( PORTA ):
 #define CFG_RST_PIN_MASK         PIN1_bm

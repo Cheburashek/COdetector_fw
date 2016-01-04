@@ -20,7 +20,7 @@
 #include "ADC.h"
 #include "interFace.h"
 #include "IO.h"
-
+#include "oneWire.h"
 
 
 /*****************************************************************************************
@@ -40,7 +40,6 @@
 #define MEAN_1H_QUEUE_LEN          60                      // Meaning at every min for 1-hour           
 #define MEAN_2H_QUEUE_LEN          120                     // Meaning at every min for 2-hour
 
-#define MEAN_TEMP_QUEUE_LEN        15/RTC_PERIOD_S
 
 /*****************************************************************************************
    LOCAL TYPEDEFS
@@ -52,7 +51,7 @@
 
 static volatile uint16_t rawBattVal;
 static volatile uint16_t rawSensVal;
-static volatile uint16_t rawTempVal;
+static volatile uint16_t DStempVal;
 
 static uint16_t sensCodeNaPpm = SENS_NA_PPM_MULTI_1k;
 
@@ -62,7 +61,7 @@ static measType_t mean1mTab[MEAN_1M_QUEUE_LEN];
 static measType_t mean15mTab[MEAN_15M_QUEUE_LEN];
 static measType_t mean1hTab[MEAN_1H_QUEUE_LEN];
 static measType_t mean2hTab[MEAN_2H_QUEUE_LEN];
-static measType_t meanTempTab[MEAN_TEMP_QUEUE_LEN];
+
 
 // Tables for static queue allocation:
 static meanQueue_t mean15sQ = { mean15sTab, mean15sTab, MEAN_15S_QUEUE_LEN };
@@ -70,11 +69,11 @@ static meanQueue_t mean1mQ = { mean1mTab, mean1mTab, MEAN_1M_QUEUE_LEN };
 static meanQueue_t mean15mQ = { mean15mTab, mean15mTab, MEAN_15M_QUEUE_LEN };
 static meanQueue_t mean1hQ = { mean1hTab, mean1hTab, MEAN_1H_QUEUE_LEN };
 static meanQueue_t mean2hQ = { mean2hTab, mean2hTab, MEAN_2H_QUEUE_LEN };
-static meanQueue_t meanTempQ = { meanTempTab, meanTempTab, MEAN_TEMP_QUEUE_LEN };
+
 
 // Flags:
 static bool vBattFlag = TRUE;    // For adc measurement triggering
-static bool vTempFlag = TRUE;
+
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -93,12 +92,10 @@ static void systemQueueCalcMean ( meanQueue_t* pQueue, measType_t* buf );
 static void systemCheckTresholds ( void );
 
 static uint16_t systemConvRawSens ( uint16_t raw );
-static uint16_t systemConvRawBatt ( uint16_t raw );
-static uint16_t systemConvRawTemp ( uint16_t raw );
+static uint8_t systemConvRawBattPercent ( uint16_t raw );
+static int8_t systemConvTemp ( uint16_t raw );
 
 static void systemQueueReset (  meanQueue_t* pQueue );
-
-
 
 
 /*****************************************************************************************
@@ -110,6 +107,7 @@ static void systemQueueReset (  meanQueue_t* pQueue );
 static void systemPeriodicRefresh ( void )
 {   
    static uint16_t ticks = 0;   
+   static bool tempMeasStage = FALSE;
 
    adcStartChannel (SENS);      // Starting sensor voltage measurement
 
@@ -119,14 +117,12 @@ static void systemPeriodicRefresh ( void )
    
    systemQueuePush ( &mean15sQ, locVals.actSensVal );  
    systemQueuePush ( &mean1mQ, locVals.actSensVal );  // TODO: 1min from 15s?
-   systemQueuePush ( &meanTempQ, locVals.tempC );  
    
    systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 15sn meaning
    systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );      // For 1min meaning
-   systemQueueCalcMean ( &meanTempQ, &locVals.tempC );      // For 15smin meaning
-       
+
    #ifdef TEMP_MEAS_PERM
-      vTempFlag = TRUE; // Setting this flag enables temperature meas. after vBatt meas.        
+     
    #endif
         
    // Every 15s:
@@ -138,14 +134,22 @@ static void systemPeriodicRefresh ( void )
       if ( !locVals.usbPlugged ) 
       {
           
-         locVals.actBattVal = systemConvRawBatt ( rawBattVal );
+         locVals.battPer = systemConvRawBattPercent ( rawBattVal );
          vBattFlag = TRUE; // Setting this flag enables vbatt meas. after sens meas.           
       }
             
-      //#ifdef TEMP_MEAS_PERM
-         //vTempFlag = TRUE; // Setting this flag enables temperature meas. after vBatt meas. 
-         locVals.tempC = systemConvRawTemp ( rawTempVal );
-      //#endif
+      #ifdef TEMP_MEAS_PERM
+         if ( tempMeasStage ) 
+         {
+            oneWireConvStart ();
+            tempMeasStage = FALSE;
+         }            
+         else 
+         {
+            locVals.tempC = systemConvTemp ( oneWireReadTemp () );
+            tempMeasStage = TRUE;
+         }         
+      #endif
    }      
         
    // Every minute:   
@@ -227,7 +231,7 @@ static uint16_t systemConvRawSens ( uint16_t raw )
    
   if ( SENS_OFFSET_MV < temp )
   {
-     temp = ((temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k)/sensCodeNaPpm;     // for [ppm]
+     temp = ((temp - SENS_OFFSET_MV) * SENS_NA_MV_MULTI_1k) / sensCodeNaPpm;     // for [ppm]
   }
   else
   {
@@ -239,19 +243,31 @@ static uint16_t systemConvRawSens ( uint16_t raw )
 
 //****************************************************************************************
 // Converting from raw vBatt value
-static uint16_t systemConvRawBatt ( uint16_t raw )
+static uint8_t systemConvRawBattPercent ( uint16_t raw )
 {
    uint32_t temp = (((uint32_t)raw) * ADC_VBATT_MULTI_MV) / 65535; // for 1 [mV] resolution @16b
-   return (uint16_t)temp;
+   
+   if ( temp >= BATTERY_MIN_VOLTAGE )
+   {
+      temp -= BATTERY_MIN_VOLTAGE;
+      temp = (temp / BATTERY_MAX_VOLTAGE) * 100;
+      if ( temp > 100 ) temp = 100;
+   }   
+   else temp = 0;
+   
+   return temp;
 }
 
 //****************************************************************************************
-// Converting from raw temperature value
-static uint16_t systemConvRawTemp ( uint16_t raw )
+// Converting from raw value from DS18B20 to C degrees
+static int8_t systemConvTemp ( uint16_t raw )
 {
-   uint32_t temp = (((uint32_t)raw) * ADC_TEMP_MULTI_MV) / 65535; // for 1 [mV] resolution @16b
-   LOG_UINT ( "TEMP C ", temp);
-   return (uint16_t)temp;
+   int8_t temp = 0x00;
+   
+   temp = raw >> 4;
+   if ( raw & 0x1000 ) temp*= -1;   // If 13th bit is set -> negative
+   
+   return temp;
 }
 
 //****************************************************************************************
@@ -285,33 +301,20 @@ static void systemCheckTresholds ( void )
 
 //****************************************************************************************
 void systemInit ( void ) 
-{
+{   
+   systemResetMeasRes ();   // Clear all buffers
    
-   /* TEST
+   locVals.battPer = 100;  // Initial value 
    
-   for ( uint16_t v = 0; v < MEAN_8H_QUEUE_LEN; v++ )
-   {      
-      systemQueuePush( &mean8hQ, v );
-   }   
-   
-   uint16_t val;
-   
-   systemQueueCalcMean( &mean8hQ, &val );
-
-   
-   LOG_UINT ( "mean: ", val );
-   LOG_UINT ( "len: ", mean8hQ.len );
-   LOG_UINT ( "OFf: ", mean8hQ.firstOF );
-   LOG_UINT ( "pS: ", (uint16_t)mean8hQ.pStart );
-   LOG_UINT ( "pH: ", (uint16_t)mean8hQ.pHead );
-   TEST*/
-   
+   // Initial temperature measurement:
+   oneWireConvStart();
+   _delay_ms(750);
+   locVals.tempC = systemConvTemp ( oneWireReadTemp () );
    
    systemUSBStateChanged();   // Initial check of USB state
    adcRegisterEndCb( systemMeasEnd );      // Registering CB
    timerRegisterRtcCB ( systemPeriodicRefresh );
    adcStartChannel (VBATT);      // Starting sensor voltage measurement   
-
 }
 
 
@@ -323,7 +326,6 @@ void systemUSBStateChanged ( void )
    
    if ( IO_GET_USB_CONN() )   // If USB plugged in
    {
-      LOG_TXT ( "CHUJU");
       locVals.lpFlag = FALSE;
       locVals.usbPlugged = TRUE;
       IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
@@ -333,7 +335,6 @@ void systemUSBStateChanged ( void )
    else
    {      
       //boardGoSleep ();
-      LOG_TXT ( "CHUJU2");
       locVals.lpFlag = TRUE;
       locVals.usbPlugged = FALSE;
       IO_RISING_EDGE_USB();  // Rising edge sense - now pin state is low
@@ -371,12 +372,7 @@ void systemMeasEnd ( uint16_t val )
 {
    ADC_DIS();
    
-   if ( ADC_CH_INPUTMODE_INTERNAL_gc == ADCA.CH0.CTRL )   // If internal mode (temperature)
-   {
-      rawTempVal = val;
-      LOG_UINT ( "raw TEMP ", val );
-   }
-   else if ( SENS == ADC_GET_CH() )
+   if ( SENS == ADC_GET_CH() )
    {      
       rawSensVal = val;
       
@@ -384,19 +380,12 @@ void systemMeasEnd ( uint16_t val )
       {          
          adcStartChannel ( VBATT ); // Battery voltage measurement start
          vBattFlag = FALSE;               
-      }    
-      if ( vTempFlag )
-      {
-         adcStartChannel ( TEMP );  // Temperature measurement start         
-         vTempFlag = FALSE;
-      }    
-      
-      LOG_UINT ( "raw sens ", val );  
+      }             
+      //LOG_UINT ( "raw sens ", val );  
    }
    else if ( VBATT == ADC_GET_CH() )
    {
       rawBattVal = val;
       //LOG_UINT ( "raw bat ", val );        
    }   
-
 }  

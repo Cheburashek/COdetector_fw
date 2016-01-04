@@ -90,7 +90,7 @@ static void interAlarmCBHi ( void );
 // State machine for main activities:
 static void interMainStateMachineSet ( eMainState_t state )
 {
-   
+   pdcClearRAM();
 
    switch ( state )
    {
@@ -502,18 +502,18 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
    {
       // Time & Vbatt:
       char str[14] = {"              "};
-      
+           
       
       if ( pVal->usbPlugged ) // If USB plugged in
       {
-         sprintf ( str, "%.2u:%.2u:%.2u   USB", sysTime.hour,sysTime.min, sysTime.sec );
+         sprintf ( str, "%.2u:%.2u %.2iC  USB", sysTime.hour,sysTime.min, pVal->tempC );
          loBatSignFlag = FALSE;
       }
       else
       {         
-         if ( pVal->actBattVal > TRESH_LOW_BATT )
+         if ( pVal->battPer > TRESH_LOW_BATT_PER )
          {
-            sprintf ( str, "%.2u:%.2u:%.2u  %.4u", sysTime.hour,sysTime.min, sysTime.sec, pVal->actBattVal );
+            sprintf ( str, "%.2u:%.2u %.2iC %.3u\%", sysTime.hour,sysTime.min, pVal->tempC, pVal->battPer );
             loBatSignFlag = FALSE;
          }
          else
@@ -550,7 +550,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
          
    // Serial log:
    char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal );
+   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] @ %.2u C \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal, pVal->tempC );
    LOG_TXT_WL ( strToLog, len ); // Sensor value with timestamp
 }
 
