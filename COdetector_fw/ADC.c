@@ -29,7 +29,6 @@
 */
 
 static pfnAdcEnd convEndCB = NULL;
-static bool busyFlag = FALSE;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -107,13 +106,6 @@ void adcRegisterEndCb ( pfnAdcEnd cb )
 }
 
 //****************************************************************************************
-bool adcIsBusy ( void )
-{
-   return busyFlag;
-}
-
-
-//****************************************************************************************
 ISR ( ADCA_CH0_vect )
 {  
    if ( NULL != convEndCB )
@@ -126,6 +118,5 @@ ISR ( ADCA_CH0_vect )
       {
          convEndCB ( 0x00 );
       }         
-   }   
-   busyFlag = FALSE;  
+   }      
 }

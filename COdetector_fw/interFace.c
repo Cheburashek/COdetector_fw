@@ -55,9 +55,6 @@ static maxVal_t maxVal; // Max 15s meaning val with time
 static lastAlarm_t lastAlarm = {{0,0,0}, NO_ALARM_STAGE}; 
 
 static bool loBatSignFlag = FALSE;
-static bool sleepPermFlag = TRUE;
-
-static eChanNr_t btTimerCh = TIM_ERROR;
 
 static uint16_t codeTemp = SENS_NA_PPM_MULTI_1k;
 
@@ -130,13 +127,7 @@ static void interDispValsBackground ( void )
    {
       pdcLine ( "              ", LCD_BT_INFO_POS_Y-1 );
       pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );
-   }      
-   else if (SLEEP_M_STATE == mainActState ) 
-   {
-      pdcLine ( "  Sleep mode  ", LCD_BT_INFO_POS_Y-1 );
-      pdcLine ( " Hold  button ", LCD_BT_INFO_POS_Y );
-   }      
-
+   }    
 }
 
 //****************************************************************************************
@@ -186,7 +177,6 @@ static void interDisplaySensCode ( void )
               
    }      
 }
-
 
 //****************************************************************************************
 // Get around config menu :
@@ -440,24 +430,6 @@ static void interAlarmCBHi ( void )
    ioStatLedTgl();   
 }
 
-//****************************************************************************************
-void interSetSleepPerm ( void )
-{
-   sleepPermFlag = TRUE;
-}
-
-//****************************************************************************************
-static void interSetTimerToSleep ( void )
-{
-   if ( TIM_ERROR == btTimerCh ) 
-   {
-      btTimerCh = timerRegisterAndStart ( interSetSleepPerm, INTER_ACTIVE_PER, 0 );
-   }
-   else 
-   {
-      timerReset ( btTimerCh );
-   }
-}
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
@@ -468,7 +440,7 @@ void interInit ( void )
 #ifdef HELLO_SCREEN_PERM   
    interMainStateMachineSet ( HELLO_M_STATE ); 
 #else
-   interMainStateMachineSet ( SLEEP_M_STATE );  
+   interMainStateMachineSet ( DISPVALS_M_STATE );  
 #endif   
 }
 
@@ -484,17 +456,9 @@ void interMainStateMachineSet ( eMainState_t state )
          break;
             
       case DISPVALS_M_STATE:         
-         sleepPermFlag = TRUE;
          mainActState = DISPVALS_M_STATE;         
          interDispValsBackground ();               
          break;
-         
-      case SLEEP_M_STATE:
-         mainActState = SLEEP_M_STATE;
-         interDispValsBackground (); 
-         sleepPermFlag = TRUE;      
-          
-      break;   
          
       case INFO_M_STATE:
          mainActState = INFO_M_STATE;
@@ -532,7 +496,7 @@ void interMainStateMachineSet ( eMainState_t state )
 // Displaying values:
 void interDisplaySystemVals ( valsToDisp_t* pVal )
 {
-   if ( DISPVALS_M_STATE == mainActState || SLEEP_M_STATE == mainActState ) // Only when device is in appropriate state
+   if ( DISPVALS_M_STATE == mainActState ) // Only when device is in appropriate state
    {
       // Time & Vbatt:
       char str[14] = {"              "};
@@ -620,7 +584,7 @@ void interTimeTickUpdate ( uint8_t rtcPer )
       
    // Led blinking:
    #ifdef STAT_LED_ON_TICK_PERM
-   if ( DISPVALS_M_STATE == mainActState ||  SLEEP_M_STATE == mainActState)
+   if ( DISPVALS_M_STATE == mainActState )
    ioStateLedShortTick ();
    #endif
          
@@ -677,13 +641,12 @@ void interAlarmStage ( eAlarmStages_t stage  )
       }
    }   
 }
+
 //****************************************************************************************
-bool interIsSleepPerm ( void )
+eMainState_t interGetMainState ( void )
 {
-   return sleepPermFlag;
+   return mainActState;
 }
-
-
 
 
 //****************************************************************************************
@@ -704,13 +667,7 @@ void interOnRight ( void )
          case DISPVALS_M_STATE:         
             interMainStateMachineSet ( CONFIG_M_STATE );            
          break;
-         
-         case SLEEP_M_STATE:
-            sleepPermFlag = TRUE;
-            interSetTimerToSleep ();                
-            interMainStateMachineSet ( DISPVALS_M_STATE );
-         break;
-         
+                  
          case CONFIG_M_STATE:
             interChooseConfig ( BT_RIGHT );
          break;
@@ -751,12 +708,6 @@ void interOnLeft ( void )
          case  DISPVALS_M_STATE:
             interMainStateMachineSet ( INFO_M_STATE );
          break;
-         
-         case SLEEP_M_STATE:
-            sleepPermFlag = FALSE;
-            interSetTimerToSleep ();
-            interMainStateMachineSet ( DISPVALS_M_STATE );
-         break;
                   
          case CONFIG_M_STATE:
             interChooseConfig ( BT_LEFT );
@@ -794,13 +745,7 @@ void interOnOk ( void )
          case  CONFIG_M_STATE:
             interChooseConfig ( BT_OK );
          break;
-         
-         case SLEEP_M_STATE:
-            sleepPermFlag = FALSE;
-            interSetTimerToSleep ();
-            interMainStateMachineSet ( DISPVALS_M_STATE );
-         break;
-         
+                  
          case TIME_SET_M_STATE:
             interChooseTimeSet ( BT_OK );
          break;        
@@ -814,3 +759,4 @@ void interOnOk ( void )
       }
    }   
 }
+

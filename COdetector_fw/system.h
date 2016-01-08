@@ -60,5 +60,6 @@ void systemUSBStateChanged ( void );
 void systemMeasEnd ( uint16_t val );
 void systemResetMeasRes ( void );
 void systemSensCodeSet ( uint16_t val );
+void systemStart ( void );
 
 #endif /* SYSTEM_H_ */

@@ -16,6 +16,7 @@
 #include "interFace.h"
 #include "IO.h"
 #include "oneWire.h"
+#include "SPI.h"
 
 /*****************************************************************************************
    MACROS
@@ -82,7 +83,7 @@ static meanQueue_t mean2hQ = { mean2hTab, mean2hTab, MEAN_2H_QUEUE_LEN };
 
 // Flags:
 static bool vBattFlag = TRUE;    // For adc measurement triggering
-
+static bool busyAdcFlag = TRUE;
 
 // Structure with values to display on LCD:
 static valsToDisp_t locVals;
@@ -382,6 +383,23 @@ void systemSensCodeSet ( uint16_t val )
    sensCodeNaPpm = val;
 }
 
+//****************************************************************************************
+// Main program loop:
+void systemStart ( void )
+{
+   while(1)
+   {
+#ifdef SLEEP_PERM
+      _delay_ms(10);      
+      if ( !spiIsBusy() && !busyAdcFlag && !locVals.usbPlugged 
+                        && (DISPVALS_M_STATE == interGetMainState() ) )
+      {
+         _delay_ms(50);
+         SLEEP_POINT();
+      }
+#endif
+   }
+}
 
 //****************************************************************************************
 void systemMeasEnd ( uint16_t val )
@@ -391,17 +409,24 @@ void systemMeasEnd ( uint16_t val )
    if ( SENS == ADC_GET_CH() )
    {      
       rawSensVal = val;
-      
+              
       if ( vBattFlag )
-      {          
+      {     
+#ifdef BATTERY_PERM            
          adcStartChannel ( VBATT ); // Battery voltage measurement start
-         vBattFlag = FALSE;               
+         vBattFlag = FALSE;      
+#endif           
+      }      
+      else 
+      {
+         busyAdcFlag = FALSE;       
       }         
       //LOG_UINT ( "raw sens ", val );  
    }
    else if ( VBATT == ADC_GET_CH() )
    {
       rawBattVal = val;
+      busyAdcFlag = FALSE;
       //LOG_UINT ( "raw bat ", val ); 
    }   
 }  

@@ -115,8 +115,6 @@ void interOnRight ( void );
 void interOnOk ( void );
 void interOnLeft ( void );
 void interAlarmStage ( eAlarmStages_t stage );
-bool interIsSleepPerm ( void );
-void interSetSleepPerm ( void );
-
+eMainState_t interGetMainState ( void );
 
 #endif /* INTERFACE_H_ */

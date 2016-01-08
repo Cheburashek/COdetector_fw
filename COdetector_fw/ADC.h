@@ -51,6 +51,5 @@ void adcStartChannel ( eAdcChan_t ch );
 eAdcChan_t adcGetChan ( void );
 void adcLowPowerClock ( bool mode );
 void adcInit ( void );
-bool adcIsBusy ( void );
 
 #endif /* ADC_H_ */

@@ -19,7 +19,7 @@
    GLOBAL CONSTANTS
 */
 
-#define RTC_PERIOD               3        // Should be 1,3,5 or 15 [s] 
+#define RTC_PERIOD               1        // Should be 1,3,5 or 15 [s] 
 
 
 #define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
@@ -38,6 +38,7 @@
 #define BUZZER_ON_BT_PERM      
 #define xALARM_PERM
 #define TEMP_MEAS_PERM
+#define xBATTERY_PERM
 #define SLEEP_PERM
 
 #define ALARM_PERIOD_HI        700      // ms period of alarm
@@ -52,8 +53,8 @@
 #define TRESH_LOW_BATT_PER     5       // Percent of battery capacity
 
 // Values in mV to calculate percent of battery capacity:
-#define BATTERY_MIN_VOLTAGE    4000
-#define BATTERY_MAX_VOLTAGE    6500
+#define BATTERY_MIN_VOLTAGE    3300
+#define BATTERY_MAX_VOLTAGE    4500
 
 
 /*****************************************************************************************
