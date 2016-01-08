@@ -22,15 +22,13 @@
 #define RTC_PERIOD               1        // Should be 1,3,5 or 15 [s] 
 
 
-#define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
+#define ADC_SENS_MULTI_MV      1800     // By input voltage divider ( 1:1 -> 1000 )
 #define ADC_VBATT_MULTI_MV     6728
 #define ADC_TEMP_MULTI_MV      1
 
 #define SENS_NA_MV_MULTI_1k    1092      // nA/mV multiplier x1000  -> circuit  [new->measuring with WO] 
 #define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
 #define SENS_OFFSET_MV         20       // offset in mV at ADC input (0ppm)
-
-#define INTER_ACTIVE_PER       5000
 
 // Permissions:
 #define xHELLO_SCREEN_PERM

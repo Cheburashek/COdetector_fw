@@ -91,7 +91,7 @@ static void interAlarmCBHi ( void );
 static void interDisplayHello ( void )
 {
 
-    pdcLine( " CO detector ", 0 );   //TODO: in pdc -> padding string with spaces
+    pdcLine( " CO detector ", 0 );
     pdcLine( " by A.Tyran  ", 1 );
     pdcLine( "    2015     ", 2 );    
     pdcLine( "   EiT AGH   ", 3 );
@@ -342,7 +342,6 @@ static void interSetSensCode ( eButtons_t bt )
 //****************************************************************************************
 static void interDisplayTimeSetUpdate ( void )
 {
-      // TODO: clear days of sensor
       pdcUint ( sysTime.hour,  HOUR_POS,  7, 2 );
       pdcUint ( sysTime.min,   MIN_POS,   7, 2 );
 }      
@@ -548,7 +547,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
    if ( pVal->usbPlugged )
    {
       char strToLog [64];
-      uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] @ %.2u C \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal, pVal->tempC );
+      uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] @ %.2u C \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->actSensVal, pVal->tempC );
       DATA_TXT_WL ( strToLog, len ); // Sensor value with timestamp
    }   
 }

@@ -5,7 +5,6 @@
  *  Author: Chebu
  */ 
 
-// TODO: Czy  aby na pewno pomiar wykonuje siê d³u¿ej ni¿ dzia³anie funckji korzystaj¹cych z wartoœci zmierzonych ?
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -126,7 +125,7 @@ static void systemPeriodicRefresh ( void )
    locVals.actSensVal = systemConvRawSens ( rawSensVal );     // Converting from raw (16b) value from ADC to [ppm] or actually [mV]    
    
    systemQueuePush ( &mean15sQ, locVals.actSensVal );  
-   systemQueuePush ( &mean1mQ, locVals.actSensVal );  // TODO: 1min from 15s?
+   systemQueuePush ( &mean1mQ, locVals.actSensVal ); 
    
    systemQueueCalcMean ( &mean15sQ, &locVals.mean15sVal );    // For 15sn meaning
    systemQueueCalcMean ( &mean1mQ, &locVals.mean1mVal );      // For 1min meaning
@@ -346,13 +345,11 @@ void systemUSBStateChanged ( void )
    if ( IO_GET_USB_CONN() )   // If USB plugged in
    {
       interMainStateMachineSet ( DISPVALS_M_STATE );
-      locVals.lpFlag = FALSE;
       locVals.usbPlugged = TRUE;
       IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
    }
    else
    {      
-      locVals.lpFlag = TRUE;
       locVals.usbPlugged = FALSE;
       IO_RISING_EDGE_USB();   // Rising edge sense - now pin state is low      
    }

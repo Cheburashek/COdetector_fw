@@ -47,7 +47,6 @@ typedef struct
    int8_t tempC;
    uint8_t battPer;   
    bool usbPlugged;
-   bool lpFlag; // TODO : remove
       
 } valsToDisp_t;
 

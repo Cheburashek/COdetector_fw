@@ -5,11 +5,6 @@
  *  Author: Chebu
  */ 
 
-
-//TODO: unused pins
-//TODO: PORT as a define
-
-
 /*****************************************************************************************
    LOCAL INCLUDES
 */

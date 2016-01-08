@@ -5,12 +5,6 @@
  *  Author: Chebu
  */ 
 
-
-// TODO: optimalization : pixels which not change should not be written again
-// TODO: power down mode ?
-
-
-
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -221,7 +215,7 @@ void pdcInit( void )
   
    pdcReset();
    
-   SCE_LO();   // TODO:
+   SCE_LO();
    
    pdcSend( DC_CMD, 0x21 );	// Extended cmd
    pdcSend( DC_CMD, 0xE0 );	// Bias
