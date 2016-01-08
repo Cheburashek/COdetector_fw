@@ -68,8 +68,7 @@ void serialInitD ( void )
                       
    USARTD0.CTRLC &= ~USART_SBMODE_bm;  // Stop bit disabled
    
-   // Baud rate
-       
+   // Baud rate       
    USARTD0.BAUDCTRLA =  BSEL_BAUD_VAL;           // 8 LSB of BSEL
    USARTD0.BAUDCTRLB =  BSCALE_BAUD_VAL | ((BSEL_BAUD_VAL >> 8) & 0x0F) ;           // 4 MSB of BSEL and BSCALE    
        
@@ -79,6 +78,9 @@ void serialInitD ( void )
    USARTD0.STATUS &= ~USART_TXCIF_bm;    // Clearing tx interrupt flag
    // Priorities from common.h:
    USARTD0.CTRLA = CFG_PRIO_USARTD0;
+   
+   SERIAL_D_TX_EN();
+   
    LOG_TXT ( ">>init<<   Serial D initialized\n");
    
    initFlag = TRUE;
@@ -90,7 +92,6 @@ void serialInitD ( void )
 
 void serialSendD ( uint8_t* data, uint8_t len )
 {
-   SERIAL_D_TX_EN();
    if ( ((txBuff + TX_BUF_LEN)-txHead) > len )  // If there's a place to copy data
    {
       for ( uint8_t i = 0; i < len; i++ )
@@ -162,7 +163,6 @@ ISR ( USARTD0_TXC_vect )
    {
       txTail = txBuff;
       txHead = txTail;    
-      SERIAL_D_TX_DIS();
    }       
 }
 

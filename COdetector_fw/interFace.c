@@ -55,7 +55,9 @@ static maxVal_t maxVal; // Max 15s meaning val with time
 static lastAlarm_t lastAlarm = {{0,0,0}, NO_ALARM_STAGE}; 
 
 static bool loBatSignFlag = FALSE;
+static bool sleepPermFlag = TRUE;
 
+static eChanNr_t btTimerCh = TIM_ERROR;
 
 static uint16_t codeTemp = SENS_NA_PPM_MULTI_1k;
 
@@ -65,7 +67,6 @@ static uint16_t codeTemp = SENS_NA_PPM_MULTI_1k;
 
 
 static void interDispValsBackground ( void );
-static void interMainStateMachineSet ( eMainState_t state );
 
 static void interDisplayHello ( void );
 static void interDisplayConfig ( void );
@@ -84,69 +85,9 @@ static void interAlarmSirene ( bool stat );
 static void interAlarmCBHi ( void );
 
 
-
 /*****************************************************************************************
    LOCAL FUNCTIONS DEFINITIONS
 */
-
-
-//****************************************************************************************
-// State machine for main activities:
-static void interMainStateMachineSet ( eMainState_t state )
-{
-   pdcClearRAM();
-
-   switch ( state )
-   {
-      case HELLO_M_STATE:      
-         LOG_TXT ( ">>state<<  Hello state\n" );
-         mainActState = HELLO_M_STATE;
-         interDisplayHello ();    
-         break;
-            
-      case DISPVALS_M_STATE:
-         LOG_TXT ( ">>state<<  Disp vals state\n" );    
-         mainActState = DISPVALS_M_STATE;         
-         interDispValsBackground ();     // Main display values background                
-         break;
-         
-      case INFO_M_STATE:
-         LOG_TXT ( ">>state<<  Info state\n" );
-         mainActState = INFO_M_STATE;
-         interDisplayInfo ();     // Main display values background
-      break;
-         
-      case CONFIG_M_STATE:
-         LOG_TXT ( ">>state<<  Config state\n" );
-         mainActState = CONFIG_M_STATE;
-         interDisplayConfig ();         
-         break;
-         
-      case TIME_SET_M_STATE:
-         LOG_TXT ( ">>state<<  Time set state\n" );
-         mainActState = TIME_SET_M_STATE;
-         interDisplayTimeSet ();
-         break;
-         
-      case ALARM_M_STATE:
-         LOG_TXT ( ">>state<<  Alarm state\n" );
-         mainActState = ALARM_M_STATE;   
-         interAlarmSirene( TRUE );
-      break;   
-   
-      case SENS_CODE_STATE:
-         LOG_TXT ( ">>state<<  Sensor code state\n" );
-         mainActState = SENS_CODE_STATE;
-         interDisplaySensCode();
-      break;   
-      
-      default:
-         break;
-            
-   }        
-}
-
-
 
 //****************************************************************************************
 // Hello screen:
@@ -176,18 +117,25 @@ static void interDisplayHello ( void )
 } 
 
 
-
-
 //****************************************************************************************
 // Displaying values:
 static void interDispValsBackground ( void )
 {
-   pdcInit();
    pdcLine ( "Act:       ppm", LCD_ACTMEAS_POS_Y );
    pdcLine ( "M1m:       ppm", LCD_MEAN_1M_POS_Y );
    pdcLine ( "M1h:       ppm", LCD_MEAN_1H_POS_Y );
    //pdcLine ( "M8h:       ppm", LCD_MEAN_2H_POS_Y );
-   pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );   // TODO: change graphics
+   
+   if ( DISPVALS_M_STATE == mainActState ) 
+   {
+      pdcLine ( "              ", LCD_BT_INFO_POS_Y-1 );
+      pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );
+   }      
+   else if (SLEEP_M_STATE == mainActState ) 
+   {
+      pdcLine ( "  Sleep mode  ", LCD_BT_INFO_POS_Y-1 );
+      pdcLine ( " Hold  button ", LCD_BT_INFO_POS_Y );
+   }      
 
 }
 
@@ -455,6 +403,8 @@ static void interDisplayInfo ( void )
    pdcChar( ':', LCD_INFO_MAX_POS_Y, 11 );
    pdcUint ( maxVal.mvTime.min,   LCD_INFO_MAX_POS_Y,  12, 2 );
    
+   pdcLine( "              ", LCD_INFO_MAX_POS_Y+1 );
+   
    // Time of sensor usage:
    pdcLine ( "S.time:      ", LCD_INFO_SENS_TIME_POS_Y);
    pdcUint ( sensTimeH, LCD_INFO_SENS_TIME_POS_Y, 8, 6 );
@@ -483,12 +433,31 @@ static void interAlarmSirene ( bool stat )
    }
 }
 
+//****************************************************************************************
 static void interAlarmCBHi ( void )
 {
    ioBuzzerTgl();
    ioStatLedTgl();   
 }
 
+//****************************************************************************************
+void interSetSleepPerm ( void )
+{
+   sleepPermFlag = TRUE;
+}
+
+//****************************************************************************************
+static void interSetTimerToSleep ( void )
+{
+   if ( TIM_ERROR == btTimerCh ) 
+   {
+      btTimerCh = timerRegisterAndStart ( interSetSleepPerm, INTER_ACTIVE_PER, 0 );
+   }
+   else 
+   {
+      timerReset ( btTimerCh );
+   }
+}
 
 /*****************************************************************************************
    GLOBAL FUNCTIONS DEFINITIONS
@@ -499,17 +468,71 @@ void interInit ( void )
 #ifdef HELLO_SCREEN_PERM   
    interMainStateMachineSet ( HELLO_M_STATE ); 
 #else
-   interMainStateMachineSet ( DISPVALS_M_STATE );  
+   interMainStateMachineSet ( SLEEP_M_STATE );  
 #endif   
 }
 
+//****************************************************************************************
+// State machine for main activities:
+void interMainStateMachineSet ( eMainState_t state )
+{
+   switch ( state )
+   {
+      case HELLO_M_STATE:               
+         mainActState = HELLO_M_STATE;
+         interDisplayHello ();    
+         break;
+            
+      case DISPVALS_M_STATE:         
+         sleepPermFlag = TRUE;
+         mainActState = DISPVALS_M_STATE;         
+         interDispValsBackground ();               
+         break;
+         
+      case SLEEP_M_STATE:
+         mainActState = SLEEP_M_STATE;
+         interDispValsBackground (); 
+         sleepPermFlag = TRUE;      
+          
+      break;   
+         
+      case INFO_M_STATE:
+         mainActState = INFO_M_STATE;
+         interDisplayInfo ();     
+      break;
+         
+      case CONFIG_M_STATE:
+         mainActState = CONFIG_M_STATE;
+         interDisplayConfig ();         
+         break;
+         
+      case TIME_SET_M_STATE:
+         mainActState = TIME_SET_M_STATE;
+         interDisplayTimeSet ();
+         break;
+         
+      case ALARM_M_STATE:
+         mainActState = ALARM_M_STATE;   
+         interAlarmSirene( TRUE );
+      break;   
+   
+      case SENS_CODE_STATE:
+         mainActState = SENS_CODE_STATE;
+         interDisplaySensCode();
+      break;   
+      
+      default:
+         break;
+            
+   }        
+}
 
 
 //****************************************************************************************
 // Displaying values:
 void interDisplaySystemVals ( valsToDisp_t* pVal )
 {
-   if ( DISPVALS_M_STATE == mainActState ) // Only when device is in appropriate state
+   if ( DISPVALS_M_STATE == mainActState || SLEEP_M_STATE == mainActState ) // Only when device is in appropriate state
    {
       // Time & Vbatt:
       char str[14] = {"              "};
@@ -555,13 +578,15 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
    {
       maxVal.mvVal = pVal->mean15sVal;     // Max 15s value
       maxVal.mvTime = sysTime;
-   }
-      
+   }      
          
-   // Serial log:
-   char strToLog [64];
-   uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] @ %.2u C \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal, pVal->tempC );
-   DATA_TXT_WL ( strToLog, len ); // Sensor value with timestamp
+   // Serial log if not in low power mode:
+   if ( pVal->usbPlugged )
+   {
+      char strToLog [64];
+      uint8_t len =  sprintf ( strToLog, "[%.2u:%.2u:%.2u] %.4u [ppm] @ %.2u C \n", sysTime.hour, sysTime.min, sysTime.sec, pVal->mean15sVal, pVal->tempC );
+      DATA_TXT_WL ( strToLog, len ); // Sensor value with timestamp
+   }   
 }
 
 
@@ -595,7 +620,7 @@ void interTimeTickUpdate ( uint8_t rtcPer )
       
    // Led blinking:
    #ifdef STAT_LED_ON_TICK_PERM
-   if ( DISPVALS_M_STATE == mainActState )
+   if ( DISPVALS_M_STATE == mainActState ||  SLEEP_M_STATE == mainActState)
    ioStateLedShortTick ();
    #endif
          
@@ -652,8 +677,11 @@ void interAlarmStage ( eAlarmStages_t stage  )
       }
    }   
 }
-
-
+//****************************************************************************************
+bool interIsSleepPerm ( void )
+{
+   return sleepPermFlag;
+}
 
 
 
@@ -673,8 +701,14 @@ void interOnRight ( void )
       
       switch ( mainActState )
       {
-         case DISPVALS_M_STATE:
-            interMainStateMachineSet ( CONFIG_M_STATE );
+         case DISPVALS_M_STATE:         
+            interMainStateMachineSet ( CONFIG_M_STATE );            
+         break;
+         
+         case SLEEP_M_STATE:
+            sleepPermFlag = TRUE;
+            interSetTimerToSleep ();                
+            interMainStateMachineSet ( DISPVALS_M_STATE );
          break;
          
          case CONFIG_M_STATE:
@@ -718,6 +752,12 @@ void interOnLeft ( void )
             interMainStateMachineSet ( INFO_M_STATE );
          break;
          
+         case SLEEP_M_STATE:
+            sleepPermFlag = FALSE;
+            interSetTimerToSleep ();
+            interMainStateMachineSet ( DISPVALS_M_STATE );
+         break;
+                  
          case CONFIG_M_STATE:
             interChooseConfig ( BT_LEFT );
          break;
@@ -753,6 +793,12 @@ void interOnOk ( void )
       {         
          case  CONFIG_M_STATE:
             interChooseConfig ( BT_OK );
+         break;
+         
+         case SLEEP_M_STATE:
+            sleepPermFlag = FALSE;
+            interSetTimerToSleep ();
+            interMainStateMachineSet ( DISPVALS_M_STATE );
          break;
          
          case TIME_SET_M_STATE:

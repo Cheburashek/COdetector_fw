@@ -36,7 +36,9 @@
 static spiEnhStruct_t  txBuff [ TX_BUFF_LEN ];
 static volatile spiEnhStruct_t* txHead = txBuff;
 static volatile spiEnhStruct_t* txTail = txBuff;
-static bool initFlag = false;
+static bool initFlag = FALSE;
+
+static bool busyFlag = FALSE;
 
 /*****************************************************************************************
    LOCAL FUNCTIONS DECLARATIONS
@@ -97,8 +99,16 @@ void spiInit ( void )
 }
 
 //****************************************************************************************
+bool spiIsBusy ( void )
+{
+   return busyFlag;   
+}
+
+//****************************************************************************************
 void spiSend ( spiEnhStruct_t* dataStr )
 {  
+   busyFlag = TRUE;
+   
    if ( true == spiCheckCap() )  // If there's a place to copy data
    {          
       *txHead = *dataStr; 
@@ -154,6 +164,7 @@ ISR ( SPIC_INT_vect )
    else // All of data from buffer is send
    {
       SPI_DIS ();
+      busyFlag = FALSE;
    }      
  
 }

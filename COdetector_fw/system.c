@@ -5,8 +5,7 @@
  *  Author: Chebu
  */ 
 
-// Najpierw uruchamiam pomiar (20ms), aby jak najkrócej by³ wzbudzony uk³ad. 
-
+// TODO: Czy  aby na pewno pomiar wykonuje siê d³u¿ej ni¿ dzia³anie funckji korzystaj¹cych z wartoœci zmierzonych ?
 /*****************************************************************************************
    LOCAL INCLUDES
 */
@@ -27,8 +26,8 @@
 */
 
 // Lengths of meaning queues:
-#define MEAN_15S_QUEUE_LEN         15/RTC_PER_BATT         // Meaning at every tick (RTC_PERIOD_S) for 15-sec
-#define MEAN_1M_QUEUE_LEN          60/RTC_PER_BATT         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
+#define MEAN_15S_QUEUE_LEN         15/RTC_PERIOD         // Meaning at every tick (RTC_PERIOD_S) for 15-sec
+#define MEAN_1M_QUEUE_LEN          60/RTC_PERIOD         // Meaning at every tick (RTC_PERIOD_S) for 1-minute 
 #define MEAN_15M_QUEUE_LEN         60                      // Meaning at every 15s for 15-min   
 #define MEAN_1H_QUEUE_LEN          60                      // Meaning at every min for 1-hour           
 #define MEAN_2H_QUEUE_LEN          120                     // Meaning at every min for 2-hour
@@ -57,7 +56,7 @@ static const uint16_t compCoefTab[] = {
    LOCAL VARIABLES
 */
 
-static uint8_t rtcActPer = RTC_PER_USB;
+static uint8_t rtcActPer = RTC_PERIOD;
 
 static volatile uint16_t rawBattVal;
 static volatile uint16_t rawSensVal;
@@ -150,7 +149,7 @@ static void systemPeriodicRefresh ( void )
       systemQueuePush ( &mean15mQ, locVals.actSensVal );
       systemQueueCalcMean ( &mean15mQ, &locVals.mean15mVal );     // For 1min meaning
       
-    //  if ( !locVals.usbPlugged ) // If USB is not plugged in
+      if ( !locVals.usbPlugged ) // If USB is not plugged in
       {
           
          locVals.battPer = systemConvRawBattPercent ( rawBattVal );
@@ -167,7 +166,7 @@ static void systemPeriodicRefresh ( void )
       systemQueueCalcMean ( &mean1hQ, &locVals.mean1hVal );  // For 1h meaning
          
       systemQueuePush ( &mean2hQ, locVals.mean1mVal );
-      systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 8h meaning
+      systemQueueCalcMean ( &mean2hQ, &locVals.mean2hVal );  // For 2h meaning
 
       ticks = 0;
    }       
@@ -176,10 +175,11 @@ static void systemPeriodicRefresh ( void )
    systemCheckTresholds();
 #endif
       
-   interDisplaySystemVals ( &locVals );
-       
+   interDisplaySystemVals ( &locVals );       
    interTimeTickUpdate( rtcActPer );
+   
    ticks += rtcActPer;
+   
 }
 
 //****************************************************************************************
@@ -344,21 +344,17 @@ void systemUSBStateChanged ( void )
    
    if ( IO_GET_USB_CONN() )   // If USB plugged in
    {
+      interMainStateMachineSet ( DISPVALS_M_STATE );
       locVals.lpFlag = FALSE;
       locVals.usbPlugged = TRUE;
       IO_FALLING_EDGE_USB();  // Falling edge sense - now pin state is high
-           
-      //boardWakeUp ();
    }
    else
    {      
-      //boardGoSleep ();
       locVals.lpFlag = TRUE;
       locVals.usbPlugged = FALSE;
-      IO_RISING_EDGE_USB();  // Rising edge sense - now pin state is low
-      
+      IO_RISING_EDGE_USB();   // Rising edge sense - now pin state is low      
    }
-
 }
 
 //****************************************************************************************
@@ -400,12 +396,12 @@ void systemMeasEnd ( uint16_t val )
       {          
          adcStartChannel ( VBATT ); // Battery voltage measurement start
          vBattFlag = FALSE;               
-      }             
+      }         
       //LOG_UINT ( "raw sens ", val );  
    }
    else if ( VBATT == ADC_GET_CH() )
    {
       rawBattVal = val;
-      LOG_UINT ( "raw bat ", val );        
+      //LOG_UINT ( "raw bat ", val ); 
    }   
 }  

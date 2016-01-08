@@ -60,7 +60,7 @@ void boardInit ( void )
    
    // Order is important:  
    adcInit(); 
-   timerInit ( RTC_PER_USB );      
+   timerInit ( RTC_PERIOD );      
    spiInit();
    pdcInit();
    ioInit();
@@ -78,61 +78,11 @@ void boardInit ( void )
              
    PR.PRPC = PR_HIRES_bm |
              PR_TC5_bm   |
-             PR_TWI_bm;
-             
-             
-             
-   PR.PRPD = PR.PRPC;                            
-                               
+             PR_TWI_bm;         
+                        
+   PR.PRPD = PR.PRPC;           
+  
+   NVM.CTRLB |= NVM_EPRM_bm;                   
+                        
 }
-
-
-//****************************************************************************************
-// Enable peripherals:
-void boardPeriEnable ( void )
-{
-   pdcPowerOn();   
-
-   TIMER_TCC5_EN();   
-}
-
-
-//****************************************************************************************
-// Disable peripherals:
-void boardPeriDisable ( void )
-{
-   pdcPowerDown();
-   SERIAL_D_TX_DIS();
-
-   TIMER_TCC5_DIS();
-}
-
-//****************************************************************************************
-// Go sleep:
-void boardGoSleep ( void )
-{
-   boardPeriDisable ();
-   
-   SLEEP.CTRL |= SLEEP_SMODE_PDOWN_gc | SLEEP_SEN_bm;  // Power saving enabled
-   
-   //adcLowPowerClock ( TRUE );                       // ADC on 32k clock
- //
-   //CCP = CCP_IOREG_gc;                              // Protected register
-   //CLK.CTRL = CLK_SCLKSEL_RC32K_gc;                 // 32khz internal   // 32kHz always on
-   //OSC.CTRL = OSC_RC32KEN_bm;                       // Disabling other clocks
-}  
-
-//****************************************************************************************
-// Wake up:
-void boardWakeUp ( void )
-{
-   //OSC.CTRL |= (OSC_RC8MEN_bm | OSC_RC8MLPM_bm );   // Enabling 8MHz clock
-   //while (!(OSC.STATUS & OSC_RC8MRDY_bm));          // Waiting for clock
-   //CCP = CCP_IOREG_gc;                              // Protected register
-   //CLK.CTRL = CLK_SCLKSEL_RC8M_gc;                  // 8Mhz internal
-   //adcLowPowerClock ( FALSE );                      // ADC on 8M clock
-   
-   SLEEP.CTRL &= ~(SLEEP_SMODE_PSAVE_gc | SLEEP_SEN_bm);  // Power saving enabled
-   boardPeriEnable ();
-}   
 

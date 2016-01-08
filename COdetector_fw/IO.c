@@ -74,8 +74,7 @@ void ioInit ( void )
    // Outputs:
    PORTD.DIRSET = CFG_BUZZ_PIN_MASK;
    
-   PORTA.DIRSET = CFG_LED_PIN_MASK |
-                  CFG_BCKLGHT_PIN_MASK;
+   PORTA.DIRSET = CFG_LED_PIN_MASK;
    
    // Inputs:
    PORTD.DIRCLR = CFG_BT1_PIN_MASK |
@@ -161,6 +160,26 @@ void ioStateLedShortTick ( void )
    ioStatLedOn();          // Turning on status LED (blink driven by ADC measuring time)
       _delay_us ( 1400 );
    ioStatLedOff();
+}
+
+//****************************************************************************************
+// Interrupt when low level on input:
+void ioBtIntsLevels ( void )
+{
+   // Interrupts:
+   PORTD.PIN5CTRL |= PORT_ISC_LEVEL_gc;     // Button 3
+   PORTD.PIN6CTRL |= PORT_ISC_LEVEL_gc;     // Button 2
+   PORTD.PIN7CTRL |= PORT_ISC_LEVEL_gc;     // Button 1
+}
+
+//****************************************************************************************
+// Interrupt when falling edge on input:
+void ioBtIntsFalling ( void )
+{
+   // Interrupts:
+   PORTD.PIN5CTRL |= PORT_ISC_FALLING_gc;     // Button 3
+   PORTD.PIN6CTRL |= PORT_ISC_FALLING_gc;     // Button 2
+   PORTD.PIN7CTRL |= PORT_ISC_FALLING_gc;     // Button 1
 }
 
 //****************************************************************************************

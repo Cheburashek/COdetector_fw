@@ -44,4 +44,7 @@ void ioStatLedOff ( void );
 void ioStatLedTgl ( void );
 void ioStateLedShortTick ( void );
 
+void ioBtIntsLevels ( void );
+void ioBtIntsFalling ( void );
+
 #endif /* IO_H_ */

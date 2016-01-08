@@ -19,6 +19,8 @@
    GLOBAL DEFINITIONS & MACROS
 */
 
+
+
 typedef void (*pTempEnd_t) ( uint16_t val );
 
 // LOGS:
@@ -34,7 +36,7 @@ typedef void (*pTempEnd_t) ( uint16_t val );
 
 #ifdef DATA_USARTD0
    #define DATA_TXT( txt )              serialSendD( (uint8_t*)txt, (sizeof(txt)-1) )
-   #define DATA_TXT_WL( txt, val )        serialLogUintD ( (uint8_t*)txt, (sizeof(txt)-1), (uint32_t) val )
+   #define DATA_TXT_WL( txt, len )      serialSendD( (uint8_t*)txt, len )
    #define DATA_UINT( txt, val )        serialLogUintD ( (uint8_t*)txt, (sizeof(txt)-1), (uint32_t) val ))
 #else
    #define DATA_TXT( txt )

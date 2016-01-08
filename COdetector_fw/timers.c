@@ -104,15 +104,6 @@ void timerInit ( uint8_t per )
 }
 
 //****************************************************************************************
-void timerRTCchangePer ( uint8_t per )
-{
-   RTC.CTRL = RTC_PRESCALER_OFF_gc;   
-   while ( RTC.STATUS & RTC_SYNCBUSY_bm ){;} // Wait until RTC is ready to change period      
-   RTC.PER = per * 1024;
-   RTC.CTRL = RTC_PRESCALER_DIV1_gc;   
-}    
-
-//****************************************************************************************
 void timerRegisterRtcCB ( pfnTimerCB_t cb )
 {
    rtcCB = cb;   
@@ -212,11 +203,47 @@ void timerDeregister ( eChanNr_t ch )
 }
 
 //****************************************************************************************
+void timerReset ( eChanNr_t ch )
+{
+   if ( NULL != chStruct[ch].chCB )
+   {      
+      uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[ch].period;
+                   
+      if ( absPer > 0x0000FFFF )      // When sum of period and actual cnt value is greater than capacity of timer counter
+      {
+         absPer -= 0x0000FFFF;
+      }
+      
+      switch (ch)
+      {
+         case CHA:
+         TCC4.CCA = absPer;            
+         break;
+                      
+         case CHB:
+         TCC4.CCB = absPer;
+         break;
+                      
+         case CHC:
+         TCC4.CCC = absPer;
+         break;
+                      
+         case CHD:
+         TCC4.CCD = absPer;
+         break;
+                      
+         default:
+         break;
+      }
+   }
+}
+
+//****************************************************************************************
 // ISRs:
 
 // RTC:
 ISR ( RTC_OVF_vect )
-{   
+{      
    if ( NULL != rtcCB )
    {
       rtcCB();
@@ -229,23 +256,15 @@ ISR ( TCC4_CCA_vect )
 {      
    if ( NULL != chStruct[CHA].chCB )
    {
-      chStruct[CHA].chCB();  // Call back
+      chStruct[CHA].chCB();  // Callback
    }   
    if ( false == chStruct[CHA].rptFlag )            // If non repeatable
    {       
-      chStruct[CHA].period = 0; 
-      chStruct[CHA].chCB = NULL;                   // Free this channel
       TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCALVL;       // Disabling interrupt
    }
    else 
    {
-      uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[CHA].period;
-      
-      if ( absPer > 0x0000FFFF )   // When sum of period and actual cnt value is greater than capacity of timer counter
-      {
-         absPer -= 0x0000FFFF;
-      }  
-      TCC4.CCA =  (uint16_t)absPer;    
+      timerReset ( CHA );
    }
 }
 
@@ -254,23 +273,15 @@ ISR ( TCC4_CCB_vect )
 {   
    if ( NULL != chStruct[CHB].chCB )
    {
-      chStruct[CHB].chCB();  // Call back
+      chStruct[CHB].chCB();  // Callback
    }
    if ( false == chStruct[CHB].rptFlag )            // If non repeatable
    {
-      chStruct[CHB].period = 0;
-      chStruct[CHB].chCB = NULL;                   // Free this channel
       TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCBLVL;       // Disabling interrupt
    }
    else
    {
-      uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[CHB].period;
-         
-      if ( absPer > 0x0000FFFF )   // When sum of period and actual cnt value is greater than capacity of timer counter
-      {
-         absPer -= 0x0000FFFF;
-      }
-      TCC4.CCB =  (uint16_t)absPer;
+      timerReset ( CHB );
    }
 }
 
@@ -279,23 +290,15 @@ ISR ( TCC4_CCC_vect )
 {
    if ( NULL != chStruct[CHC].chCB )
    {
-      chStruct[CHC].chCB();  // Call back
+      chStruct[CHC].chCB();  // Callback
    }   
    if ( false == chStruct[CHC].rptFlag )            // If non repeatable
    {
-      chStruct[CHC].period = 0;
-      chStruct[CHC].chCB = NULL;                   // Free this channel
       TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCCLVL;       // Disabling interrupt
    }
    else
    {
-      uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[CHC].period;
-         
-      if ( absPer > 0x0000FFFF )   // When sum of period and actual cnt value is greater than capacity of timer counter
-      {
-         absPer -= 0x0000FFFF;
-      }
-      TCC4.CCC =  (uint16_t)absPer;
+      timerReset ( CHC );
    }
 }
 
@@ -304,22 +307,14 @@ ISR ( TCC4_CCD_vect )
 {
    if ( NULL != chStruct[CHD].chCB )
    {
-      chStruct[CHD].chCB();  // Call back
+      chStruct[CHD].chCB();  // Callback
    }
    if ( false == chStruct[CHD].rptFlag )            // If non repeatable
    {
-      chStruct[CHD].period = 0;
-      chStruct[CHD].chCB = NULL;                   // Free this channel
       TCC4.INTCTRLB &= ~CFG_PRIO_TC4_CCDLVL;       // Disabling interrupt
    }
    else
    {
-      uint32_t absPer = (uint32_t)TCC4.CNT + chStruct[CHD].period;
-         
-      if ( absPer > 0x0000FFFF )   // When sum of period and actual cnt value is greater than capacity of timer counter
-      {
-         absPer -= 0x0000FFFF;
-      }
-      TCC4.CCD =  (uint16_t)absPer;
+      timerReset ( CHD );
    }
 }

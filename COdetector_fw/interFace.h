@@ -64,6 +64,7 @@ typedef enum
    UNKNOWN_M_STATE,
    HELLO_M_STATE = 0x10,
    DISPVALS_M_STATE,
+   SLEEP_M_STATE,
    CONFIG_M_STATE,
    TIME_SET_M_STATE,
    INFO_M_STATE,  
@@ -107,16 +108,15 @@ typedef enum
 */
 
 void interInit ( void );
+void interMainStateMachineSet ( eMainState_t state );
 void interDisplaySystemVals ( valsToDisp_t* pVal );
-
 void interTimeTickUpdate ( uint8_t rtcPer );
-
 void interOnRight ( void );
 void interOnOk ( void );
 void interOnLeft ( void );
-
 void interAlarmStage ( eAlarmStages_t stage );
-
+bool interIsSleepPerm ( void );
+void interSetSleepPerm ( void );
 
 
 #endif /* INTERFACE_H_ */

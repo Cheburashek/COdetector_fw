@@ -19,8 +19,8 @@
    GLOBAL CONSTANTS
 */
 
-#define RTC_PER_USB            1        // Should be 1,3,5 or 15 [s] 
-#define RTC_PER_BATT           3        // Period while battery mode
+#define RTC_PERIOD               3        // Should be 1,3,5 or 15 [s] 
+
 
 #define ADC_SENS_MULTI_MV      3500     // By input voltage divider ( 1:1 -> 1000 )
 #define ADC_VBATT_MULTI_MV     6728
@@ -30,12 +30,15 @@
 #define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
 #define SENS_OFFSET_MV         20       // offset in mV at ADC input (0ppm)
 
+#define INTER_ACTIVE_PER       5000
+
 // Permissions:
 #define xHELLO_SCREEN_PERM
-#define xSTAT_LED_ON_TICK_PERM  
+#define STAT_LED_ON_TICK_PERM  
 #define BUZZER_ON_BT_PERM      
-#define ALARM_PERM
+#define xALARM_PERM
 #define TEMP_MEAS_PERM
+#define SLEEP_PERM
 
 #define ALARM_PERIOD_HI        700      // ms period of alarm
 
@@ -95,7 +98,6 @@
 
 // IO pins (PORTA):  
 #define CFG_LED_PIN_MASK        PIN7_bm
-#define CFG_BCKLGHT_PIN_MASK    PIN6_bm
 
 
 /*** Interrupts priority ****/ 
@@ -129,8 +131,21 @@
 */
 
 //****************************************************************************************
-#define CFG_GLOBAL_INT_ENABLE()     ( CPU_SREG |= CPU_I_bm ) 
-#define CFG_GLOBAL_INT_DISABLE()    ( CPU_SREG &= ~CPU_I_bm ) 
+#define CFG_GLOBAL_INT_ENABLE()      CPU_SREG |= CPU_I_bm 
+#define CFG_GLOBAL_INT_DISABLE()     CPU_SREG &= ~CPU_I_bm 
+
+// Sleep mode:
+#ifdef SLEEP_PERM
+   #define SLEEP_EN()                SLEEP.CTRL |= (SLEEP_SEN_bm | SLEEP_SMODE_PSAVE_gc)
+   #define SLEEP_DIS()               SLEEP.CTRL &= ~SLEEP_SEN_bm
+   #define SLEEP_ENTER()              __asm__ __volatile__ ( "sleep" "\n\t" :: )
+   #define SLEEP_POINT()             SLEEP_EN(); SLEEP_ENTER(); SLEEP_DIS() 
+#else
+   #define SLEEP_EN()
+   #define SLEEP_DIS()
+   #define SLEEP_ENTER()
+   #define SLEEP_POINT() 
+#endif
 
 
 //****************************************************************************************
@@ -180,10 +195,5 @@
    GLOBAL FUNCTIONS DECLARATIONS
 */
 void boardInit ( void );
-void boardPeriEnable ( void );
-void boardPeriDisable ( void );
-
-void boardGoSleep ( void );
-void boardWakeUp ( void );
 
 #endif /* BOARDCFG_H_ */

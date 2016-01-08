@@ -5,44 +5,44 @@
  *  Author: Chebu
  */ 
 
-// Notes for txt:
-/*
-
-- 20ms sampling - AC line glitch rejection
-
-*/
-
-
-// TODO: add watchdog
-
-// TODO: blokada zmiany wa¿nych ustawiueñ ot tak po prostu
-
 #include "common.h"
+#include "SPI.h"
+#include "IO.h"
+#include "interFace.h"
 
 //tests:
 #include "ADC.h"
 
 #include "PDC8544.h"
-#include "IO.h"
+
 #include "serial.h"
 #include "oneWire.h"
+#include "SPI.h"
+#include "timers.h"
 
 //****************************************************************************************
 int main(void)
 {     
-   //CCP=CCP_SPM_gc; 
-   //SLEEP.CTRL |= SLEEP_SMODE_PDOWN_gc | SLEEP_SEN_bm;  // Power saving enabled
-   
-   boardInit();                        // Board peripherals initialization      
-
+   boardInit();    // Board peripherals initialization      
 
    while(1)
    {
-      //adcStartChannel(VBATT);
-
-    
+#ifdef SLEEP_PERM      
+      _delay_ms(10);
+      
+      if ( !spiIsBusy() && !adcIsBusy() && !IO_GET_USB_CONN() && interIsSleepPerm() )
+      {     
+         //ioBtIntsLevels();
+         //interMainStateMachineSet( SLEEP_M_STATE );
+         
+         _delay_ms(50);         
+         SLEEP_POINT();
+         interSetSleepPerm();
+         //ioBtIntsFalling();
+      }    
+#endif   
    }
-
+ 
 }
 
 

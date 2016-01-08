@@ -52,7 +52,7 @@ typedef struct
 */
 
 void spiInit ( void );
-
+bool spiIsBusy ( void );
 void spiSend ( spiEnhStruct_t* dataStr );
 
 #endif /* SPI_H_ */

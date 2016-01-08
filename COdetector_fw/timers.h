@@ -53,13 +53,13 @@ typedef enum
 */
 void timerInit ( uint8_t per );
 
-void timerRTCchangePer ( uint8_t per );
-
 void timerRegisterRtcCB ( pfnTimerCB_t cb );
 
 // Fail when couldn't find free channel:
 eChanNr_t timerRegisterAndStart ( pfnTimerCB_t chCB, uint16_t period, bool rptFlag );
+
 void timerDeregister ( eChanNr_t ch );
+void timerReset ( eChanNr_t ch ); 
 
 
 #endif /* TIMERS_H_ */
