@@ -384,14 +384,14 @@ void systemSensCodeSet ( uint16_t val )
 // Main program loop:
 void systemStart ( void )
 {
+   systemPeriodicRefresh(); // Initial measurements
    while(1)
    {
 #ifdef SLEEP_PERM
       _delay_ms(10);      
       if ( !spiIsBusy() && !busyAdcFlag && !locVals.usbPlugged 
                         && (DISPVALS_M_STATE == interGetMainState() ) )
-      {
-         _delay_ms(50);
+      {         
          SLEEP_POINT();
       }
 #endif

@@ -91,11 +91,11 @@ static void interAlarmCBHi ( void );
 static void interDisplayHello ( void )
 {
 
-    pdcLine( " CO detector ", 0 );
-    pdcLine( " by A.Tyran  ", 1 );
-    pdcLine( "    2015     ", 2 );    
-    pdcLine( "   EiT AGH   ", 3 );
-    pdcLine( "   ver 0.1   ", 5 );
+    pdcLine( " CO detector ", 0, FALSE );
+    pdcLine( " by A.Tyran  ", 1, FALSE );
+    pdcLine( "    2015     ", 2, FALSE );    
+    pdcLine( "   EiT AGH   ", 3, FALSE );
+    pdcLine( "   ver 0.1   ", 5, FALSE );
     
     ioBuzzerOn();
     ioStatLedOn();
@@ -118,16 +118,13 @@ static void interDisplayHello ( void )
 // Displaying values:
 static void interDispValsBackground ( void )
 {
-   pdcLine ( "Act:       ppm", LCD_ACTMEAS_POS_Y );
-   pdcLine ( "M1m:       ppm", LCD_MEAN_1M_POS_Y );
-   pdcLine ( "M1h:       ppm", LCD_MEAN_1H_POS_Y );
-   //pdcLine ( "M8h:       ppm", LCD_MEAN_2H_POS_Y );
+   pdcLine ( "              ", LCD_BT_INFO_POS_Y-1, FALSE );
+   pdcLine ( "Actual:    ppm", LCD_ACTMEAS_POS_Y, FALSE );
+   pdcLine ( "For 1m:    ppm", LCD_MEAN_1M_POS_Y, FALSE );
+   pdcLine ( "For 1h:    ppm", LCD_MEAN_1H_POS_Y, FALSE );
+   pdcLine ( "For 2h:    ppm", LCD_MEAN_2H_POS_Y, FALSE );   
+   pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y, TRUE );
    
-   if ( DISPVALS_M_STATE == mainActState ) 
-   {
-      pdcLine ( "              ", LCD_BT_INFO_POS_Y-1 );
-      pdcLine ( "Info      Menu", LCD_BT_INFO_POS_Y );
-   }    
 }
 
 //****************************************************************************************
@@ -136,12 +133,12 @@ void interDisplayConfig ( void )
 {
    if ( CONFIG_M_STATE == mainActState )
    {      
-      pdcLine ( " CONFIG MENU  ", 0 );
-      pdcLine ( " Time set     ", TIME_O_POS );
-      pdcLine ( " Sens. code   ", SENS_CODE_O_POS );
-      pdcLine ( " Alarm test   ", ALARM_O_POS );
-      pdcLine ( " EXIT         ", EXIT_O_POS );
-      pdcLine ( " <-   OK   -> ", LCD_BT_INFO_POS_Y );   
+      pdcLine ( " CONFIG MENU  ", 0, TRUE );
+      pdcLine ( " Time set     ", TIME_O_POS, FALSE );
+      pdcLine ( " Sens. code   ", SENS_CODE_O_POS, FALSE );
+      pdcLine ( " Alarm test   ", ALARM_O_POS, FALSE );
+      pdcLine ( " EXIT         ", EXIT_O_POS, FALSE );
+      pdcLine ( " <-   OK   -> ", LCD_BT_INFO_POS_Y, TRUE );   
       interChooseConfig ( BT_NULL );                     // Set first option 
    }
 }
@@ -153,12 +150,12 @@ static void interDisplayTimeSet ( void )
 {
    if ( TIME_SET_M_STATE == mainActState )
    {      
-      pdcLine ( " Hour:        ", HOUR_POS );
-      pdcLine ( " Min:         ", MIN_POS );
+      pdcLine ( " Hour:        ", HOUR_POS, FALSE );
+      pdcLine ( " Min:         ", MIN_POS, FALSE );
       pdcClearLine ( 2 );
       pdcClearLine ( 3 );
-      pdcLine ( " EXIT         ", EXIT_T_POS );
-      pdcLine ( " -   <-->   + ", LCD_BT_INFO_POS_Y );   
+      pdcLine ( " EXIT         ", EXIT_T_POS, FALSE );
+      pdcLine ( " -   <-->   + ", LCD_BT_INFO_POS_Y, TRUE );   
       interChooseTimeSet ( BT_NULL );                     // Set first option
    }
 }
@@ -167,13 +164,13 @@ static void interDisplaySensCode ( void )
 {
    if ( SENS_CODE_STATE == mainActState )
    {      
-      pdcLine ( "  Set sensor  ", 0 );
-      pdcLine ( "code from case", 1 );
-      pdcLine ( "   [pA/ppm]   ", 2 );
+      pdcLine ( "  Set sensor  ", 0, FALSE );
+      pdcLine ( "code from case", 1, FALSE );
+      pdcLine ( "   [pA/ppm]   ", 2, FALSE );
       pdcClearLine ( 3 );
       pdcUint( codeTemp, LCD_SENS_SET_POS_Y, 1, 4 );     // Display actual value  
       pdcClearLine ( 4 );
-      pdcLine ( " -    OK    + ", 5 ); 
+      pdcLine ( " -    OK    + ", 5, TRUE ); 
               
    }      
 }
@@ -185,7 +182,7 @@ static void interChooseConfig ( eButtons_t bt )
    eOptionsState_t stateTab[] = { TIME_O_POS, SENS_CODE_O_POS, ALARM_O_POS, EXIT_O_POS };
    static uint8_t state = 0x00;
    
-   pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *
+   if ( bt != BT_OK ) pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X, FALSE ); // Clearing old *
    
    switch ( bt )
    {
@@ -233,7 +230,7 @@ static void interChooseConfig ( eButtons_t bt )
       break;
          
    }
-   pdcChar( '*', stateTab[state], LCD_OPTION_SIGN_POS_X  ); // Setting new *
+   if ( BT_OK != bt )pdcChar( '*', stateTab[state], LCD_OPTION_SIGN_POS_X, FALSE  ); // Setting new *
    
 }
 
@@ -286,13 +283,13 @@ static void interChooseTimeSet ( eButtons_t bt )
       break;
       
       case BT_OK:    // Next value      
-         pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X ); // Clearing old *         
+         pdcChar( ' ', stateTab[state], LCD_OPTION_SIGN_POS_X, FALSE ); // Clearing old *         
          if ( state++ == sizeof(stateTab)/sizeof( eOptionsState_t ) - 1 ) { state =  0; }
-         pdcChar( '*', stateTab[state], LCD_OPTION_SIGN_POS_X  ); // Setting new *         
+         pdcChar( '*', stateTab[state], LCD_OPTION_SIGN_POS_X, FALSE  ); // Setting new *         
       break;
       
       case BT_NULL:  // For initial option choose
-         pdcChar( '*', 0x00, LCD_OPTION_SIGN_POS_X  ); // Setting initial *
+         pdcChar( '*', 0x00, LCD_OPTION_SIGN_POS_X, FALSE  ); // Setting initial *
       break;   
      
       default:
@@ -300,7 +297,7 @@ static void interChooseTimeSet ( eButtons_t bt )
          
    }
    
-   interDisplayTimeSetUpdate();  // Update time after setting
+   if ( TIME_SET_M_STATE == mainActState ) interDisplayTimeSetUpdate();  // Update time after setting
 }
 
 //****************************************************************************************
@@ -350,56 +347,53 @@ static void interDisplayTimeSetUpdate ( void )
 //****************************************************************************************
 static void interDisplayInfo ( void )
 {
-   
+   char str[14] = {"              "};
+   uint16_t ppmTresh = 0x00;
+      
    // Last alarm:
-
-   pdcLine( "Last alarm:  ", LCD_INFO_LA_POS_Y);
+   
+   pdcLine( " Last alarm:  ", LCD_INFO_LA_POS_Y, TRUE );
    
    if ( lastAlarm.laStage != NO_ALARM_STAGE )
    {     
       switch ( lastAlarm.laStage )
-      {
-         pdcLine( "   ppm @      ", LCD_INFO_LA_POS_Y+1 );
+      {        
          case ALARM_STAGE_1M:
-         pdcUint( TRESH_1M_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
+         ppmTresh = TRESH_1M_PPM;
          break;
          case ALARM_STAGE_15M:
-         pdcUint( TRESH_15M_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
+         ppmTresh= TRESH_15M_PPM;
          break;
          case ALARM_STAGE_1H:
-         pdcUint( TRESH_1H_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
+         ppmTresh = TRESH_1H_PPM;
          break;
          case ALARM_STAGE_2H:
-         pdcUint( TRESH_2H_PPM, LCD_INFO_LA_POS_Y+1, 0, 3 );
+         ppmTresh = TRESH_2H_PPM;
          break;
          default:
          break;
       }
       
-      pdcUint ( lastAlarm.laTime.hour,  LCD_INFO_LA_POS_Y+1,  9, 2 );
-      pdcChar( ':', LCD_INFO_LA_POS_Y+1, 11 );
-      pdcUint ( lastAlarm.laTime.min,   LCD_INFO_LA_POS_Y+1,  12, 2 );
+      sprintf ( str, "%.3u ppm %.2u:%.2u", ppmTresh ,lastAlarm.laTime.hour, lastAlarm.laTime.min );
+      pdcLine( str, LCD_INFO_LA_POS_Y+1, FALSE );
    }
    else
    {
-       pdcLine( "No alarm yet ", LCD_INFO_LA_POS_Y+1);
+       pdcLine( "No alarm yet ", LCD_INFO_LA_POS_Y+1, FALSE);
    }
    
    // Max 1 minute value:
-   pdcLine( "Max     @     ", LCD_INFO_MAX_POS_Y );
-   pdcUint( maxVal.mvVal, LCD_INFO_MAX_POS_Y , 4, 3 );
-   pdcUint ( maxVal.mvTime.hour,  LCD_INFO_MAX_POS_Y,  9, 2 );
-   pdcChar( ':', LCD_INFO_MAX_POS_Y, 11 );
-   pdcUint ( maxVal.mvTime.min,   LCD_INFO_MAX_POS_Y,  12, 2 );
+   pdcLine( "Max 1min val.:", LCD_INFO_MAX_POS_Y, TRUE );
+   sprintf ( str, "%.3u ppm %.2u:%.2u", maxVal.mvVal, maxVal.mvTime.hour, maxVal.mvTime.min  );  
    
-   pdcLine( "              ", LCD_INFO_MAX_POS_Y+1 );
+   pdcLine( str, LCD_INFO_MAX_POS_Y+1, FALSE );
    
    // Time of sensor usage:
-   pdcLine ( "S.time:      ", LCD_INFO_SENS_TIME_POS_Y);
+   pdcLine ( "S.days:      ", LCD_INFO_SENS_TIME_POS_Y, FALSE);
    pdcUint ( sensTimeH, LCD_INFO_SENS_TIME_POS_Y, 8, 6 );
    
-   pdcLine ( "         EXIT ", 5 );
-   
+   pdcLine ( "         EXIT", 5, TRUE );
+  
 }
 
 
@@ -510,7 +504,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       {         
          if ( pVal->battPer > TRESH_LOW_BATT_PER )
          {
-            sprintf ( str, "%.2u:%.2u %.2iC  %.2u%%", sysTime.hour,sysTime.min, pVal->tempC, pVal->battPer );
+            sprintf ( str, "%.2u:%.2u %.2iC %.2u%%", sysTime.hour,sysTime.min, pVal->tempC, pVal->battPer );
             loBatSignFlag = FALSE;
          }
          else
@@ -519,12 +513,13 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
             loBatSignFlag = TRUE;
          }         
       }
-      pdcLine( str, LCD_HEADER_POS_Y );
+      pdcLine( str, LCD_HEADER_POS_Y, TRUE );
       
       // Measured values:
-      pdcUint ( pVal->mean15sVal, LCD_ACTMEAS_POS_Y, 6, 5 );   // Changed -> 15s as actual (meaning)
-      pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 6, 5 );
-      pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 6, 5 );      
+      pdcUint ( pVal->mean15sVal, LCD_ACTMEAS_POS_Y, 8, 3 ); 
+      pdcUint ( pVal->mean1mVal, LCD_MEAN_1M_POS_Y, 8, 3 );
+      pdcUint ( pVal->mean1hVal, LCD_MEAN_1H_POS_Y, 8, 3 );  
+      pdcUint ( pVal->mean2hVal, LCD_MEAN_2H_POS_Y, 8, 3 );     
    }    
    else if ( ALARM_M_STATE == mainActState )
    {
@@ -543,7 +538,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
       maxVal.mvTime = sysTime;
    }      
          
-   // Serial log if not in low power mode:
+   // Serial log if USB plugged in:
    if ( pVal->usbPlugged )
    {
       char strToLog [64];
@@ -557,7 +552,7 @@ void interDisplaySystemVals ( valsToDisp_t* pVal )
 //****************************************************************************************
 void interTimeTickUpdate ( uint8_t rtcPer )
 {
-   sysTime.sec += rtcPer;   // Period could be changed
+   sysTime.sec += rtcPer;   
    
    if ( sysTime.sec >= 60 )  
    { 
@@ -587,7 +582,7 @@ void interTimeTickUpdate ( uint8_t rtcPer )
    ioStateLedShortTick ();
    #endif
          
-   // Signal of low batt:
+   // Signal of low battery:
    if ( TRUE == loBatSignFlag )
    {      
       ioBuzzerOn();
@@ -607,31 +602,31 @@ void interAlarmStage ( eAlarmStages_t stage  )
       lastAlarm.laStage = stage; // Last alarm info
       lastAlarm.laTime  = sysTime;      
       
-      pdcLine ( "  ! ALARM !   ", 0);
-      pdcLine ( "Exceeded      ", 2 );
-      pdcLine ( "        ppm   ", 3 );
-      pdcLine ( "Actual        ", 4 );
-      pdcLine ( "        ppm   ", 5 );
+      pdcLine ( "  ! ALARM !   ", 0, TRUE);
+      pdcLine ( "Exceeded      ", 2, FALSE );
+      pdcLine ( "        ppm   ", 3, FALSE );
+      pdcLine ( "Actual        ", 4, FALSE );
+      pdcLine ( "        ppm   ", 5, FALSE );
       
       switch ( stage )
       {
          case ALARM_STAGE_1M:
-         pdcLine ( "1 min meaning", 1 );
+         pdcLine ( "1 min meaning", 1, FALSE );
          pdcUint ( TRESH_1M_PPM, 3, 0, 4 );
          break;
          
          case ALARM_STAGE_15M:
-         pdcLine ( "15 min mean. ", 1 );
+         pdcLine ( "15 min mean. ", 1, FALSE );
          pdcUint ( TRESH_15M_PPM, 3, 0, 4 );
          break;
          
          case ALARM_STAGE_1H:
-         pdcLine ( "1 h meaning  ", 1 );
+         pdcLine ( "1 h meaning  ", 1, FALSE );
          pdcUint ( TRESH_1H_PPM, 3, 0, 4 );
          break;
          
          case ALARM_STAGE_2H:
-         pdcLine ( "2 h meaning  ", 1 );
+         pdcLine ( "2 h meaning  ", 1, FALSE );
          pdcUint ( TRESH_2H_PPM, 3, 0, 4 );
          break;
          

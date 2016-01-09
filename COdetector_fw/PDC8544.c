@@ -281,7 +281,7 @@ void pdcClearLine( uint8_t pos_Y )
 
 // *************************************************************************
 // Function to write a single char from a table
-void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
+void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X, bool neg )
 {
    uint8_t X = 0;
     
@@ -290,28 +290,29 @@ void pdcChar( char ch, uint8_t pos_Y, uint8_t pos_X )
 
    for( X = 0; X < 5; X++ )
    {            
-      pdcSend( DC_DATA, charTab[ ((ch-0x20)*5) + X ] );	// Finding index of char in table
+       if ( !neg ) pdcSend( DC_DATA, charTab[ ((ch-0x20)*5) + X ] );	// Finding index of char in table
+       else pdcSend( DC_DATA, ~charTab[ ((ch-0x20)*5) + X ] );	
    }
    
-   pdcSend( DC_DATA, 0x00 );			// One pixel spacing after char   
+   if ( !neg ) pdcSend( DC_DATA, 0x00 );			// One pixel spacing after char   
+   else pdcSend( DC_DATA, 0xFF );			// One pixel spacing after char   
 }
 
-
 // *************************************************************************
-// Function to display one line char by char from 'pseudo-string' -> must be PADDED with zeros
-void pdcLine( char ch[14], uint8_t pos_Y )
-{    
+// Function to display one line char by char
+void pdcLine( char ch[14], uint8_t pos_Y, bool neg )
+{
    //pdcClearLine( pos_Y );
    
    for( uint8_t i = 0; i < 14; i++ )
    {      
       if( ch[i] < 0x20 || ch[i] > 0x7F)
       {
-         pdcChar( 0x20, pos_Y, i );
+         pdcChar( 0x20, pos_Y, i, neg );
       }
       else
       {
-         pdcChar( ch[i], pos_Y, i );
+         pdcChar( ch[i], pos_Y, i, neg );
       }
    }
 }
@@ -337,7 +338,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
 
    if ( 0x00 == val )
    {
-      pdcChar( 0x30, pos_Y, pos_X );
+      pdcChar( 0x30, pos_Y, pos_X, FALSE );
       len = 1;
    }
    else 
@@ -347,7 +348,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
          temp_ch = temp_val % 10;
          temp_ch += 0x30;			// Number -> ASCII
       
-         pdcChar( temp_ch, pos_Y, (pos_X+len-k) );	
+         pdcChar( temp_ch, pos_Y, (pos_X+len-k), FALSE );	
          temp_val /= 10;
       }
    }
@@ -356,7 +357,7 @@ void pdcUint( uint16_t val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    {      
       for( k = 1; k <= (length - len); k++ )
       {
-         pdcChar( ' ', pos_Y, (pos_X+length-k) );         
+         pdcChar( ' ', pos_Y, (pos_X+length-k), FALSE );         
       }
    }
    else{	/*ERROR!!!!!! */ }
@@ -372,13 +373,13 @@ void pdcShort( short val, uint8_t pos_Y, uint8_t pos_X, uint8_t length )
    
    if( val > 0 )
    {
-      pdcChar( ' ', pos_Y, pos_X);
+      pdcChar( ' ', pos_Y, pos_X, FALSE );
       pdcUint( val, pos_Y, pos_X+1, length );
    }
    else if( val < 0 )
    {      
       val = ~val + 1;
-      pdcChar( '-', pos_Y, pos_X);
+      pdcChar( '-', pos_Y, pos_X, FALSE );
       pdcUint( val, pos_Y, pos_X+1, length );      
    }
 }

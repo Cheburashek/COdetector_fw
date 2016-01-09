@@ -19,7 +19,7 @@
    GLOBAL CONSTANTS
 */
 
-#define RTC_PERIOD               1        // Should be 1,3,5 or 15 [s] 
+#define RTC_PERIOD               3        // Should be 1,3,5 or 15 [s] 
 
 
 #define ADC_SENS_MULTI_MV      1800     // By input voltage divider ( 1:1 -> 1000 )
@@ -28,7 +28,7 @@
 
 #define SENS_NA_MV_MULTI_1k    1092      // nA/mV multiplier x1000  -> circuit  [new->measuring with WO] 
 #define SENS_NA_PPM_MULTI_1k   1594     // nA/ppm multiplier x1000  -> sensor  
-#define SENS_OFFSET_MV         20       // offset in mV at ADC input (0ppm)
+#define SENS_OFFSET_MV         30       // offset in mV at ADC input (0ppm)
 
 // Permissions:
 #define xHELLO_SCREEN_PERM
@@ -36,7 +36,7 @@
 #define BUZZER_ON_BT_PERM      
 #define xALARM_PERM
 #define TEMP_MEAS_PERM
-#define xBATTERY_PERM
+#define BATTERY_PERM
 #define SLEEP_PERM
 
 #define ALARM_PERIOD_HI        700      // ms period of alarm
@@ -52,7 +52,7 @@
 
 // Values in mV to calculate percent of battery capacity:
 #define BATTERY_MIN_VOLTAGE    3300
-#define BATTERY_MAX_VOLTAGE    4500
+#define BATTERY_MAX_VOLTAGE    4800
 
 
 /*****************************************************************************************

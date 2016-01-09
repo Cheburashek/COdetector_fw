@@ -90,8 +90,7 @@ void spiInit ( void )
    
    SPIC.CTRLB = SPI_SSD_bm;            // Slave select disable (master mode), unbuffered mode   
    
-   SPIC.CTRL = ( SPI_CLK2X_bm    |     // Clock Double
-                 SPI_MASTER_bm   );    // Master mode          
+   SPIC.CTRL = SPI_MASTER_bm;    // Master mode          
    
    SPIC.INTCTRL = CFG_PRIO_SPI;        // Interrupt level from boardCfg.h    
                                                     
